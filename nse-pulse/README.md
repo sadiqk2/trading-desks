@@ -1,5 +1,7 @@
 # NSE Pulse · Most Active Contracts
 
+**Live:** [sadiqk2.github.io/trading-desks/nse-pulse](https://sadiqk2.github.io/trading-desks/nse-pulse/) · part of [sadiqk2/trading-desks](https://github.com/sadiqk2/trading-desks)
+
 A modern, elegant real-time dashboard inspired by **NSE India → Market Data → Most Active Contracts**,
 with premium-flow analytics and an automatic **BUY / SELL / HOLD** signal engine.
 
