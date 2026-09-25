@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Trading Desks</title>
+<style>
+  :root{
+    --bg:#0b0e11; --panel:#151a21; --line:#2a313a;
+    --txt:#eaecef; --muted:#848e9c; --dim:#5e6673;
+    --up:#0ecb81; --warn:#f0b90b; --acc:#d8b24b;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:var(--bg); color:var(--txt); min-height:100vh;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:34px; padding:40px 18px;
+    background-image:
+      radial-gradient(900px 420px at 80% -10%, rgba(216,178,75,.08), transparent 60%),
+      radial-gradient(700px 380px at 0% 110%, rgba(14,203,129,.07), transparent 60%);
+  }
+  header{text-align:center}
+  h1{font-size:26px; font-weight:800; letter-spacing:.14em}
+  h1 span{color:var(--acc)}
+  header p{color:var(--muted); margin-top:8px; font-size:13px}
+  .grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,360px)); gap:18px; justify-content:center}
+  a.card{
+    display:block; text-decoration:none; color:var(--txt);
+    background:var(--panel); border:1px solid var(--line); border-radius:10px; padding:22px;
+    transition:.15s;
+  }
+  a.card:hover{border-color:var(--acc); transform:translateY(-2px)}
+  .tag{display:inline-block; font-size:9px; font-weight:900; letter-spacing:.12em; padding:3px 8px; border-radius:3px; margin-bottom:12px}
+  .t1{color:var(--up); background:rgba(14,203,129,.12); border:1px solid rgba(14,203,129,.4)}
+  .t2{color:var(--warn); background:rgba(240,185,11,.12); border:1px solid rgba(240,185,11,.4)}
+  h2{font-size:17px; font-weight:750; margin-bottom:8px}
+  p.d{color:var(--muted); font-size:12.5px; line-height:1.55; margin-bottom:14px}
+  .go{font-family:"Roboto Mono",ui-monospace,Menlo,monospace; font-size:11.5px; color:var(--acc)}
+  footer{color:var(--dim); font-size:10.5px; text-align:center; line-height:1.7}
+</style>
+</head>
+<body>
+  <header>
+    <h1>TRADING <span>DESKS</span></h1>
+    <p>Self-contained market analytics terminals · runs fully client-side</p>
+  </header>
+  <div class="grid">
+    <a class="card" href="nifty-options-desk/">
+      <span class="tag t1">OPTIONS ANALYTICS</span>
+      <h2>NIFTY Options Desk</h2>
+      <p class="d">Option-chain terminal: market structure with evidence ladder, OI-based S/R,
+      per-strike buildup/writing classification, CE/PE/RANGE setup scanner, breakout alerts,
+      contract selector, trade plans and a risk calculator.</p>
+      <span class="go">open desk →</span>
+    </a>
+    <a class="card" href="nse-pulse/">
+      <span class="tag t2">MOST ACTIVE CONTRACTS</span>
+      <h2>NSE Pulse</h2>
+      <p class="d">Real-time most-active-contracts flow: premium-traded leaderboard, CE-vs-PE
+      premium flow, live price charts and per-contract BUY / SELL / HOLD signals with
+      auto-refresh.</p>
+      <span class="go">open pulse →</span>
+    </a>
+  </div>
+  <footer>
+    Educational analytics · not investment advice · derivatives carry substantial risk of loss<br/>
+    Data: simulated live feeds seeded from genuine NSE snapshots — plug a broker API for live data
+  </footer>
+</body>
+</html>

@@ -1,0 +1,1731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>NIFTY Options Desk · Chain Analytics & Setups</title>
+<style>
+  /* ============================ terminal theme ============================ */
+  :root{
+    --bg:#0b0e11; --bg2:#12161c; --panel:#151a21; --panel2:#1b2129; --panel3:#202730;
+    --line:#2a313a; --line2:#222932;
+    --txt:#eaecef; --txt2:#b7bdc6; --muted:#848e9c; --dim:#5e6673;
+    --up:#0ecb81; --upbg:rgba(14,203,129,.12); --upbd:rgba(14,203,129,.4);
+    --dn:#f6465d; --dnbg:rgba(246,70,93,.12); --dnbd:rgba(246,70,93,.4);
+    --warn:#f0b90b; --warnbg:rgba(240,185,11,.12); --warnbd:rgba(240,185,11,.4);
+    --grey:#5e6673; --greybg:rgba(94,102,115,.15);
+    --acc:#d8b24b;
+    --mono:"Roboto Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:Inter,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:var(--sans); background:var(--bg); color:var(--txt); font-size:12.5px; line-height:1.45;
+    -webkit-font-smoothing:antialiased; min-height:100%;
+  }
+  .num{font-family:var(--mono); font-variant-numeric:tabular-nums}
+  .up{color:var(--up)} .dn{color:var(--dn)} .wt{color:var(--warn)} .gy{color:var(--grey)} .mu{color:var(--muted)}
+  ::selection{background:rgba(216,178,75,.25)}
+  ::-webkit-scrollbar{width:9px;height:9px}
+  ::-webkit-scrollbar-thumb{background:#2a313a;border-radius:6px}
+  ::-webkit-scrollbar-thumb:hover{background:#3a424d}
+  ::-webkit-scrollbar-track{background:transparent}
+
+  /* ============================ header ============================ */
+  header{
+    position:sticky;top:0;z-index:60;background:var(--bg2);border-bottom:1px solid var(--line);
+    display:flex;align-items:center;gap:22px;padding:0 18px;height:58px;
+  }
+  .brand{display:flex;align-items:center;gap:10px}
+  .brand .mark{width:30px;height:30px;border-radius:6px;background:var(--panel3);border:1px solid var(--line);
+    display:grid;place-items:center;font-weight:800;font-size:11px;color:var(--acc);letter-spacing:.5px}
+  .brand h1{font-size:13px;font-weight:750;letter-spacing:.06em}
+  .brand small{display:block;font-size:9.5px;color:var(--dim);letter-spacing:.14em;text-transform:uppercase}
+  .spot{display:flex;align-items:baseline;gap:10px;padding-left:18px;border-left:1px solid var(--line)}
+  .spot .px{font-family:var(--mono);font-size:22px;font-weight:650;letter-spacing:-.3px}
+  .spot .chg{font-family:var(--mono);font-size:13px}
+  .hmeta{display:flex;gap:18px;align-items:center;padding-left:6px}
+  .hm .k{font-size:9px;letter-spacing:.12em;color:var(--dim);text-transform:uppercase;font-weight:700}
+  .hm .v{font-family:var(--mono);font-size:12px;margin-top:1px}
+  .hgrow{flex:1}
+  .status{padding:4px 10px;border-radius:4px;font-size:10.5px;font-weight:800;letter-spacing:.1em}
+  .status.open{color:var(--up);background:var(--upbg);border:1px solid var(--upbd)}
+  .status.closed{color:var(--muted);background:var(--greybg);border:1px solid var(--line)}
+  .status.pre{color:var(--warn);background:var(--warnbg);border:1px solid var(--warnbd)}
+  .hctl{display:flex;align-items:center;gap:8px}
+  .btn{
+    appearance:none;border:1px solid var(--line);background:var(--panel2);color:var(--txt2);
+    font-family:var(--sans);font-size:11px;font-weight:650;padding:6px 11px;border-radius:4px;cursor:pointer;transition:.12s;
+  }
+  .btn:hover{border-color:var(--dim);color:var(--txt)}
+  .btn.on{color:var(--up);border-color:var(--upbd);background:var(--upbg)}
+  .btn.warn{color:var(--warn);border-color:var(--warnbd);background:var(--warnbg)}
+  select.btn{padding:6px 4px}
+  .lbl-sim{font-size:9px;letter-spacing:.14em;color:var(--warn);border:1px solid var(--warnbd);background:var(--warnbg);
+    padding:3px 8px;border-radius:3px;font-weight:800}
+  .lbl-live{color:var(--up);border-color:var(--upbd);background:var(--upbg)}
+
+  /* ============================ layout ============================ */
+  main{padding:12px 14px 26px;display:flex;flex-direction:column;gap:12px;max-width:1720px;margin:0 auto}
+  .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:12px}
+  .c7{grid-column:span 7}.c5{grid-column:span 5}.c8{grid-column:span 8}.c4{grid-column:span 4}
+  .c12{grid-column:span 12}.c6{grid-column:span 6}.c3{grid-column:span 3}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden;display:flex;flex-direction:column}
+  .card>header.hh{
+    display:flex;align-items:center;gap:10px;padding:9px 13px;border-bottom:1px solid var(--line2);background:var(--bg2)
+  }
+  .card h2{font-size:10.5px;font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:var(--txt2)}
+  .card h2 .sep{color:var(--dim);margin:0 4px}
+  .sp{flex:1}
+  .tag{font-size:9px;font-weight:800;letter-spacing:.08em;padding:2.5px 7px;border-radius:3px;text-transform:uppercase}
+  .tag.up{color:var(--up);background:var(--upbg);border:1px solid var(--upbd)}
+  .tag.dn{color:var(--dn);background:var(--dnbg);border:1px solid var(--dnbd)}
+  .tag.wt{color:var(--warn);background:var(--warnbg);border:1px solid var(--warnbd)}
+  .tag.gy{color:var(--muted);background:var(--greybg);border:1px solid var(--line)}
+  .bd{padding:12px 13px}
+  .hint{font-size:10px;color:var(--dim)}
+  .footnote{font-size:9.5px;color:var(--dim);padding:7px 13px;border-top:1px solid var(--line2);background:var(--bg2)}
+
+  /* ============================ structure panel ============================ */
+  .struct-top{display:flex;gap:18px;align-items:center;padding:14px 16px 10px}
+  .verdict{min-width:220px}
+  .verdict .st{font-family:var(--mono);font-size:27px;font-weight:800;letter-spacing:.04em;line-height:1.05}
+  .verdict .stsub{font-size:10px;color:var(--dim);letter-spacing:.12em;text-transform:uppercase;margin-top:4px;font-weight:700}
+  .strength{flex:1;min-width:220px}
+  .strength .row1{display:flex;align-items:baseline;gap:8px}
+  .strength .row1 b{font-family:var(--mono);font-size:19px}
+  .segs{display:flex;gap:4px;margin-top:7px}
+  .seg{flex:1;height:9px;border-radius:2px;background:var(--panel3);border:1px solid var(--line2)}
+  .seg.on.up{background:var(--up);border-color:var(--up)}
+  .seg.on.dn{background:var(--dn);border-color:var(--dn)}
+  .seg.on.wt{background:var(--warn);border-color:var(--warn)}
+  .seg.on.gy{background:var(--grey);border-color:var(--grey)}
+  .stagerow{display:flex;gap:6px;align-items:center;padding:0 16px 10px;flex-wrap:wrap}
+  .stage{font-family:var(--mono);font-size:10px;font-weight:700;letter-spacing:.06em;padding:3px 8px;border-radius:3px;border:1px dashed var(--line);color:var(--dim)}
+  .stage.on{border-style:solid}
+  .stage.on.obs{color:var(--muted);border-color:var(--line);background:var(--greybg)}
+  .stage.on.form{color:var(--warn);border-color:var(--warnbd);background:var(--warnbg)}
+  .stage.on.conf{color:var(--up);border-color:var(--upbd);background:var(--upbg)}
+  .stage.on.inv{color:var(--dn);border-color:var(--dnbd);background:var(--dnbg)}
+  .evid{display:grid;grid-template-columns:1fr 1fr;gap:0;border-top:1px solid var(--line2)}
+  .ev{display:flex;align-items:center;gap:9px;padding:7px 13px;border-bottom:1px solid var(--line2)}
+  .ev:nth-child(odd){border-right:1px solid var(--line2)}
+  .ev .ic{width:16px;height:16px;border-radius:3px;display:grid;place-items:center;font-size:10px;font-weight:900;flex:none}
+  .ev .ic.up{color:var(--up);background:var(--upbg)}
+  .ev .ic.dn{color:var(--dn);background:var(--dnbg)}
+  .ev .ic.wt{color:var(--warn);background:var(--warnbg)}
+  .ev .ic.gy{color:var(--grey);background:var(--greybg)}
+  .ev .k{width:118px;color:var(--muted);font-size:10.5px;font-weight:650;letter-spacing:.03em}
+  .ev .v{font-family:var(--mono);font-size:11.5px;font-weight:650;flex:1}
+  .ev .d{font-size:10px;color:var(--dim);max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:right}
+  .reasons{padding:10px 13px;border-top:1px solid var(--line2);display:flex;flex-direction:column;gap:4px;background:var(--bg2)}
+  .reasons .r{font-size:11.5px;color:var(--txt2)}
+  .reasons .r b{font-weight:700}
+  .reasons .r.ok b{color:var(--up)} .reasons .r.bad b{color:var(--dn)} .reasons .r.warn b{color:var(--warn)}
+
+  /* ============================ levels ladder ============================ */
+  .ladder{padding:14px 13px 6px}
+  .lad-row{display:grid;grid-template-columns:128px 1fr 74px;gap:8px;align-items:center;padding:5.5px 0}
+  .lad-row .k{font-size:10.5px;font-weight:700;letter-spacing:.05em;color:var(--muted);text-transform:uppercase}
+  .lad-row .p{font-family:var(--mono);font-size:14px;font-weight:700;text-align:right}
+  .lad-row .why{font-size:9.5px;color:var(--dim);grid-column:1/4;padding-left:0;margin-top:-2px}
+  .lad-vis{position:relative;height:38px;margin:8px 2px 4px;border:1px solid var(--line2);border-radius:4px;background:var(--bg2);overflow:hidden}
+  .lad-vis .zone{position:absolute;top:0;bottom:0;opacity:.13}
+  .lad-vis .mk{position:absolute;top:0;bottom:0;width:2px}
+  .lad-vis .cur{position:absolute;top:50%;transform:translate(-50%,-50%);font-family:var(--mono);font-size:9px;
+    background:var(--txt);color:var(--bg);padding:1.5px 5px;border-radius:3px;font-weight:800}
+  .lad-vis .t{position:absolute;bottom:2px;font-family:var(--mono);font-size:8.5px;color:var(--muted);transform:translateX(-50%)}
+  .pcr{border-top:1px solid var(--line2);padding:10px 13px;display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+  .pcr .item .k{font-size:9px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;font-weight:700}
+  .pcr .item .v{font-family:var(--mono);font-size:15px;font-weight:700;display:flex;align-items:baseline;gap:6px}
+  .pcr .item .t{font-family:var(--mono);font-size:10px}
+
+  /* ============================ scanner ============================ */
+  .scanner{display:grid;grid-template-columns:repeat(3,1fr);gap:0;flex:1}
+  .scn{padding:12px 14px;border-right:1px solid var(--line2);display:flex;flex-direction:column;gap:8px}
+  .scn:last-child{border-right:none}
+  .scn h3{font-family:var(--mono);font-size:12px;font-weight:800;letter-spacing:.08em;display:flex;align-items:center;gap:8px}
+  .scn .verdictchip{font-family:var(--mono);font-size:15px;font-weight:800;padding:3px 10px;border-radius:4px}
+  .scn .verdictchip.YES{color:var(--up);background:var(--upbg);border:1px solid var(--upbd)}
+  .scn .verdictchip.NO{color:var(--dn);background:var(--dnbg);border:1px solid var(--dnbd)}
+  .scn .verdictchip.WAIT{color:var(--warn);background:var(--warnbg);border:1px solid var(--warnbd)}
+  .scn .verdictchip.GREY{color:var(--grey);background:var(--greybg);border:1px solid var(--line)}
+  .conds{display:flex;flex-direction:column;gap:3px}
+  .cond{display:flex;gap:8px;align-items:center;font-size:11px;color:var(--txt2)}
+  .cond .m{width:14px;height:14px;border-radius:3px;display:grid;place-items:center;font-size:9px;font-weight:900;flex:none}
+  .cond .m.ok{color:var(--up);background:var(--upbg)}
+  .cond .m.no{color:var(--dn);background:var(--dnbg)}
+  .cond .m.pend{color:var(--warn);background:var(--warnbg)}
+  .cond .m.gy{color:var(--grey);background:var(--greybg)}
+  .action{margin-top:auto;padding:8px 10px;border-radius:4px;background:var(--bg2);border:1px solid var(--line2);
+    font-family:var(--mono);font-size:11px;font-weight:700;letter-spacing:.03em}
+  .action.up{color:var(--up);border-color:var(--upbd)}
+  .action.dn{color:var(--dn);border-color:var(--dnbd)}
+  .action.wt{color:var(--warn);border-color:var(--warnbd)}
+  .rangeladder{font-family:var(--mono);font-size:12px;color:var(--txt2);letter-spacing:.02em;white-space:pre;line-height:1.6}
+
+  /* ============================ option chain ============================ */
+  .chainwrap{overflow:auto;max-height:520px}
+  table.chain{width:100%;border-collapse:collapse;white-space:nowrap}
+  table.chain th{
+    position:sticky;top:0;z-index:3;background:var(--bg2);color:var(--dim);
+    font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:800;padding:6px 7px;border-bottom:1px solid var(--line);text-align:right
+  }
+  table.chain th.grp{text-align:center;border-bottom:1px solid var(--line2);color:var(--muted);padding:5px}
+  table.chain th.strike,table.chain td.strike{text-align:center}
+  table.chain td{padding:5px 7px;text-align:right;border-bottom:1px solid var(--line2);font-family:var(--mono);font-size:11.5px}
+  table.chain tr:hover td{background:rgba(255,255,255,.025)}
+  table.chain tr.atm td{background:rgba(216,178,75,.07);border-top:1px solid var(--warnbd);border-bottom:1px solid var(--warnbd)}
+  table.chain td.strike{font-weight:800;font-size:12.5px;background:var(--bg2);position:relative}
+  table.chain td.strike .atmtag{position:absolute;top:2px;left:50%;transform:translateX(-50%);
+    font-family:var(--sans);font-size:7.5px;font-weight:900;letter-spacing:.12em;color:var(--warn)}
+  .cls{display:block;font-family:var(--sans);font-size:8.5px;font-weight:800;letter-spacing:.05em;margin-top:1px;text-transform:uppercase}
+  .cls.LB{color:var(--up)} .cls.WR{color:var(--dn)} .cls.SC{color:var(--warn)} .cls.LU{color:var(--grey)}
+  .badge{display:inline-block;font-family:var(--sans);font-size:7.5px;font-weight:900;letter-spacing:.06em;
+    padding:1px 4px;border-radius:2px;margin-left:4px;vertical-align:1px}
+  .badge.hioi{color:var(--acc);background:rgba(216,178,75,.14);border:1px solid rgba(216,178,75,.35)}
+  .badge.add{color:var(--up);background:var(--upbg);border:1px solid var(--upbd)}
+  .badge.cut{color:var(--warn);background:var(--warnbg);border:1px solid var(--warnbd)}
+  .badge.vol{color:#7cb0ff;background:rgba(90,140,255,.14);border:1px solid rgba(90,140,255,.4)}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;padding:8px 13px;border-top:1px solid var(--line2);background:var(--bg2);font-size:10px;color:var(--muted)}
+  .legend .badge{margin:0}
+
+  /* ============================ alerts ============================ */
+  .alert{border:1px solid var(--line2);border-radius:5px;padding:10px 11px;margin-bottom:10px;background:var(--bg2)}
+  .alert h4{font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.08em;display:flex;align-items:center;gap:8px;margin-bottom:7px}
+  .alert .zone{font-family:var(--mono);font-size:12.5px;font-weight:700;color:var(--txt);margin-bottom:6px}
+  .conf{margin-top:8px;padding:6px 9px;border-radius:4px;font-family:var(--mono);font-size:11px;font-weight:800;letter-spacing:.06em;display:none}
+  .conf.show{display:block}
+  .conf.up{color:var(--up);background:var(--upbg);border:1px solid var(--upbd)}
+  .conf.dn{color:var(--dn);background:var(--dnbg);border:1px solid var(--dnbd)}
+
+  /* ============================ contracts ============================ */
+  .ktable{width:100%;border-collapse:collapse}
+  .ktable th{font-size:8.5px;letter-spacing:.08em;color:var(--dim);text-transform:uppercase;padding:4px 6px;text-align:right;border-bottom:1px solid var(--line2)}
+  .ktable th:first-child{text-align:left}
+  .ktable td{padding:5px 6px;font-family:var(--mono);font-size:11px;text-align:right;border-bottom:1px solid var(--line2)}
+  .ktable td:first-child{text-align:left;font-family:var(--sans);font-weight:700;font-size:11.5px}
+  .ktable tr:hover td{background:rgba(255,255,255,.03)}
+  .liq{font-family:var(--sans);font-size:8.5px;font-weight:900;letter-spacing:.06em;padding:2px 6px;border-radius:2px}
+  .liq.L{color:var(--up);background:var(--upbg);border:1px solid var(--upbd)}
+  .liq.M{color:var(--warn);background:var(--warnbg);border:1px solid var(--warnbd)}
+  .liq.T{color:var(--dn);background:var(--dnbg);border:1px solid var(--dnbd)}
+
+  /* ============================ plan / risk ============================ */
+  .planrow{display:grid;grid-template-columns:132px 1fr;gap:6px;padding:4.5px 0;border-bottom:1px solid var(--line2);align-items:baseline}
+  .planrow:last-child{border-bottom:none}
+  .planrow .k{font-size:9.5px;font-weight:800;letter-spacing:.1em;color:var(--dim);text-transform:uppercase}
+  .planrow .v{font-family:var(--mono);font-size:12px;font-weight:650}
+  .planrow .v.small{font-family:var(--sans);font-size:11px;font-weight:500;color:var(--txt2)}
+  .riskgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .field label{display:block;font-size:9px;letter-spacing:.1em;color:var(--dim);text-transform:uppercase;font-weight:700;margin-bottom:3px}
+  .field input{
+    width:100%;background:var(--bg2);border:1px solid var(--line);color:var(--txt);border-radius:4px;
+    padding:6px 8px;font-family:var(--mono);font-size:12px;outline:none
+  }
+  .field input:focus{border-color:var(--acc)}
+  .riskout{margin-top:10px;display:grid;grid-template-columns:1fr 1fr;gap:6px 12px;border-top:1px solid var(--line2);padding-top:9px}
+  .riskout .o{display:flex;justify-content:space-between;font-size:11px}
+  .riskout .o b{font-family:var(--mono);font-weight:700}
+  .riskwarn{margin-top:8px;padding:7px 9px;border-radius:4px;font-size:11px;font-weight:700;display:none}
+  .riskwarn.show{display:block}
+  .riskwarn.bad{color:var(--dn);background:var(--dnbg);border:1px solid var(--dnbd)}
+  .riskwarn.ok{color:var(--up);background:var(--upbg);border:1px solid var(--upbd)}
+
+  /* ============================ signal log ============================ */
+  .logwrap{overflow:auto;max-height:260px}
+  table.log{width:100%;border-collapse:collapse;white-space:nowrap}
+  table.log th{position:sticky;top:0;background:var(--bg2);color:var(--dim);font-size:8.5px;letter-spacing:.1em;
+    text-transform:uppercase;font-weight:800;padding:6px 9px;text-align:left;border-bottom:1px solid var(--line)}
+  table.log td{padding:5px 9px;font-family:var(--mono);font-size:11px;text-align:left;border-bottom:1px solid var(--line2);color:var(--txt2)}
+  table.log td.reason{font-family:var(--sans);font-size:10.5px;color:var(--muted);max-width:340px;overflow:hidden;text-overflow:ellipsis}
+  .res{font-family:var(--sans);font-size:9px;font-weight:900;letter-spacing:.06em;padding:2px 6px;border-radius:2px}
+  .res.RUN{color:var(--warn);background:var(--warnbg);border:1px solid var(--warnbd)}
+  .res.T1,.res.T2{color:var(--up);background:var(--upbg);border:1px solid var(--upbd)}
+  .res.SL,.res.INV{color:var(--dn);background:var(--dnbg);border:1px solid var(--dnbd)}
+  .res.LOG{color:var(--muted);background:var(--greybg);border:1px solid var(--line)}
+
+  footer{max-width:1720px;margin:0 auto;padding:4px 16px 24px;color:var(--dim);font-size:10px;
+    display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line2);padding-top:12px}
+  footer b{color:var(--muted)}
+
+  @media (max-width:1360px){
+    .c7,.c8{grid-column:span 12}.c5,.c4{grid-column:span 6}.c3{grid-column:span 6}
+  }
+  @media (max-width:900px){
+    .grid>*{grid-column:span 12 !important}
+    .scanner{grid-template-columns:1fr}
+    .scn{border-right:none;border-bottom:1px solid var(--line2)}
+    header{height:auto;flex-wrap:wrap;padding:8px 12px;gap:12px}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="brand">
+    <div class="mark">N₹</div>
+    <div><h1>NIFTY OPTIONS DESK</h1><small>chain analytics · setups · risk</small></div>
+  </div>
+  <div class="spot">
+    <span class="px num" id="hSpot">—</span>
+    <span class="chg num" id="hChg">—</span>
+  </div>
+  <div class="hmeta">
+    <div class="hm"><div class="k">Expiry</div><div class="v" id="hExpiry">—</div></div>
+    <div class="hm"><div class="k">To Expiry</div><div class="v" id="hDte">—</div></div>
+    <div class="hm"><div class="k">Updated</div><div class="v" id="hUpd">—</div></div>
+  </div>
+  <div class="hgrow"></div>
+  <span class="lbl-sim" id="feedLbl">SIM FEED</span>
+  <span class="status closed" id="hStatus">—</span>
+  <div class="hctl">
+    <button class="btn on" id="btnAuto">AUTO</button>
+    <select class="btn" id="selInt">
+      <option value="1000">1s</option>
+      <option value="2000" selected>2s</option>
+      <option value="5000">5s</option>
+    </select>
+    <button class="btn" id="btnNow" title="Refresh (R)">↻ REFRESH</button>
+  </div>
+</header>
+
+<main>
+  <!-- ROW A : structure + levels -->
+  <section class="grid">
+    <div class="card c7" id="cardStructure">
+      <header class="hh"><h2>Market Structure</h2><span class="sp"></span>
+        <span class="hint">multi-factor confirmation · not a prediction</span></header>
+      <div class="struct-top">
+        <div class="verdict">
+          <div class="st num" id="stVerdict">—</div>
+          <div class="stsub">market structure</div>
+        </div>
+        <div class="strength">
+          <div class="row1">
+            <span class="hint" style="font-weight:800;letter-spacing:.1em">SIGNAL STRENGTH</span>
+            <b class="num" id="stStrength">—</b>
+            <span class="hint" id="stStrengthSub"></span>
+          </div>
+          <div class="segs" id="stSegs"></div>
+          <div class="hint" style="margin-top:5px">Strength = number of agreeing confirmations — <b style="color:var(--muted)">not a win probability</b></div>
+        </div>
+      </div>
+      <div class="stagerow">
+        <span class="hint" style="font-weight:800;letter-spacing:.1em">STATE OF PLAY</span>
+        <span class="stage obs" id="sgObs">1 OBSERVATION</span>
+        <span class="mu">→</span>
+        <span class="stage form" id="sgForm">2 SETUP FORMING</span>
+        <span class="mu">→</span>
+        <span class="stage conf" id="sgConf">3 CONFIRMATION</span>
+        <span class="mu">|</span>
+        <span class="stage inv" id="sgInv">4 INVALIDATED</span>
+        <span class="sp"></span>
+        <span class="hint" id="sgNote"></span>
+      </div>
+      <div class="evid" id="evidGrid"></div>
+      <div class="reasons" id="reasonsBox"></div>
+      <div class="footnote">Observation ≠ trade. Structure is derived only when multiple independent factors agree. Single indicators (high OI, PCR, RSI) never create a signal.</div>
+    </div>
+
+    <div class="card c5">
+      <header class="hh"><h2>Key Levels</h2><span class="sp"></span><span class="hint">OI walls · OI change · volume · price action</span></header>
+      <div class="ladder">
+        <div class="lad-row"><span class="k dn">Strong Resistance</span><span></span><span class="p dn" id="lvSR">—</span><span class="why" id="lvSRw"></span></div>
+        <div class="lad-row"><span class="k dn">Immediate Resistance</span><span></span><span class="p dn" id="lvIR">—</span><span class="why" id="lvIRw"></span></div>
+        <div class="lad-vis" id="ladVis"></div>
+        <div class="lad-row"><span class="k" style="color:var(--txt)">CURRENT</span><span></span><span class="p" id="lvCUR">—</span></div>
+        <div class="lad-row"><span class="k up">Immediate Support</span><span></span><span class="p up" id="lvIS">—</span><span class="why" id="lvISw"></span></div>
+        <div class="lad-row"><span class="k up">Strong Support</span><span></span><span class="p up" id="lvSS">—</span><span class="why" id="lvSSw"></span></div>
+      </div>
+      <div class="pcr">
+        <div class="item"><div class="k">PCR · OI (overall)</div><div class="v num" id="pcrOi">—</div><div class="t" id="pcrOiT"></div></div>
+        <div class="item"><div class="k">PCR · Volume</div><div class="v num" id="pcrVol">—</div><div class="t" id="pcrVolT"></div></div>
+        <div class="item"><div class="k">PCR · Near-ATM OI</div><div class="v num" id="pcrAtm">—</div><div class="t" id="pcrAtmT"></div></div>
+        <div class="item"><div class="k">PCR · OI change (Δ)</div><div class="v num" id="pcrChg">—</div><div class="t" id="pcrChgT"></div></div>
+      </div>
+      <div class="footnote">PCR is context only — it never generates a trade signal on its own.</div>
+    </div>
+  </section>
+
+  <!-- ROW B : setup scanner -->
+  <section class="grid">
+    <div class="card c12">
+      <header class="hh"><h2>Smart Setup Scanner</h2><span class="sp"></span>
+        <span class="hint">YES = multi-condition confirmed · WAIT = incomplete · NO = invalidated / opposite</span></header>
+      <div class="scanner">
+        <div class="scn" id="scnCE">
+          <h3 class="up">CE SETUP <span class="sp"></span><span class="verdictchip GREY" id="ceV">—</span></h3>
+          <div class="conds" id="ceConds"></div>
+          <div class="action wt" id="ceAct">—</div>
+        </div>
+        <div class="scn" id="scnPE">
+          <h3 class="dn">PE SETUP <span class="sp"></span><span class="verdictchip GREY" id="peV">—</span></h3>
+          <div class="conds" id="peConds"></div>
+          <div class="action wt" id="peAct">—</div>
+        </div>
+        <div class="scn" id="scnRG">
+          <h3 class="wt">RANGE SETUP <span class="sp"></span><span class="verdictchip GREY" id="rgV">—</span></h3>
+          <div class="rangeladder" id="rgLadder">—</div>
+          <div class="conds" id="rgConds"></div>
+          <div class="action wt" id="rgAct">—</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROW C : chain + rail -->
+  <section class="grid">
+    <div class="card c8">
+      <header class="hh"><h2>Option Chain</h2><span class="sep">·</span><span class="hint" id="chainSub">—</span>
+        <span class="sp"></span><span class="hint">ATM centred · classification = option price × OI</span></header>
+      <div class="chainwrap" id="chainWrap">
+        <table class="chain">
+          <thead>
+            <tr>
+              <th class="grp" colspan="6" style="color:var(--up)">CALLS</th>
+              <th class="grp strike">STRIKE</th>
+              <th class="grp" colspan="6" style="color:var(--dn)">PUTS</th>
+            </tr>
+            <tr>
+              <th>LTP</th><th>% Chg</th><th>Volume</th><th>OI</th><th>OI Chg</th><th>IV</th>
+              <th class="strike">Strike</th>
+              <th>IV</th><th>OI Chg</th><th>OI</th><th>Volume</th><th>% Chg</th><th>LTP</th>
+            </tr>
+          </thead>
+          <tbody id="chainBody"></tbody>
+        </table>
+      </div>
+      <div class="legend">
+        <span><span class="badge hioi">HI OI</span> highest OI</span>
+        <span><span class="badge add">MAX ADD</span> largest OI increase</span>
+        <span><span class="badge cut">MAX CUT</span> largest OI decrease</span>
+        <span><span class="badge vol">VOL</span> unusual volume</span>
+        <span class="cls LB" style="display:inline">LONG BUILDUP</span>
+        <span class="cls WR" style="display:inline">WRITING</span>
+        <span class="cls SC" style="display:inline">SHORT COVERING</span>
+        <span class="cls LU" style="display:inline">LONG UNWINDING</span>
+      </div>
+    </div>
+
+    <div class="card c4">
+      <header class="hh"><h2>Breakout / Breakdown Alerts</h2><span class="sp"></span><span class="hint">multi-condition</span></header>
+      <div class="bd">
+        <div class="alert">
+          <h4 class="up">▲ BREAKOUT WATCH</h4>
+          <div class="zone" id="boZone">—</div>
+          <div class="conds" id="boConds"></div>
+          <div class="conf up" id="boConf">BULLISH CONFIRMATION</div>
+        </div>
+        <div class="alert" style="margin-bottom:4px">
+          <h4 class="dn">▼ BREAKDOWN WATCH</h4>
+          <div class="zone" id="bdZone">—</div>
+          <div class="conds" id="bdConds"></div>
+          <div class="conf dn" id="bdConf">BEARISH CONFIRMATION</div>
+        </div>
+      </div>
+      <header class="hh" style="border-top:1px solid var(--line2)"><h2>Market Context</h2><span class="sp"></span>
+        <span class="hint" id="ctxAgree">—</span></header>
+      <div class="bd" style="display:grid;grid-template-columns:1fr 1fr;gap:7px 14px" id="ctxGrid"></div>
+    </div>
+  </section>
+
+  <!-- ROW D : contracts + plan + risk -->
+  <section class="grid">
+    <div class="card c5">
+      <header class="hh"><h2>Contract Selector</h2><span class="sp"></span>
+        <span class="hint" id="cnSide">—</span></header>
+      <div class="bd" style="padding-top:6px">
+        <table class="ktable">
+          <thead><tr>
+            <th>Contract</th><th>Prem</th><th>Δ</th><th>Θ/day</th><th>IV</th><th>Vol</th><th>OI</th><th>Spread</th><th>Liquidity</th>
+          </tr></thead>
+          <tbody id="cnBody"></tbody>
+        </table>
+        <div class="hint" style="margin-top:8px">Spread &amp; liquidity highlighted to avoid illiquid contracts. Selection aid only — <b style="color:var(--muted)">no orders are ever placed</b>.</div>
+      </div>
+    </div>
+
+    <div class="card c4">
+      <header class="hh"><h2>Trade Plan</h2><span class="sp"></span><span class="tag gy" id="planTag">DRAFT</span></header>
+      <div class="bd" id="planBody">
+        <div class="planrow"><span class="k">Status</span><span class="v small" id="plStatus">—</span></div>
+        <div class="planrow"><span class="k">NIFTY Direction</span><span class="v" id="plDir">—</span></div>
+        <div class="planrow"><span class="k">Trigger</span><span class="v small" id="plTrig">—</span></div>
+        <div class="planrow"><span class="k">Preferred Contract</span><span class="v" id="plCtr">—</span></div>
+        <div class="planrow"><span class="k">Entry</span><span class="v small" id="plEntry">—</span></div>
+        <div class="planrow"><span class="k">Stop Loss</span><span class="v small" id="plSl">—</span></div>
+        <div class="planrow"><span class="k">Target 1</span><span class="v small" id="plT1">—</span></div>
+        <div class="planrow"><span class="k">Target 2</span><span class="v small" id="plT2">—</span></div>
+        <div class="planrow"><span class="k">Invalidation</span><span class="v small" id="plInv">—</span></div>
+      </div>
+      <div class="footnote">Scenario plan built from structure — <b style="color:var(--muted)">not a recommendation, never a guarantee</b>. Size and decide your own risk.</div>
+    </div>
+
+    <div class="card c3">
+      <header class="hh"><h2>Risk Calculator</h2><span class="sp"></span></header>
+      <div class="bd">
+        <div class="riskgrid">
+          <div class="field"><label>Capital ₹</label><input id="rkCap" type="number" value="200000" /></div>
+          <div class="field"><label>Max Risk %</label><input id="rkPct" type="number" value="2" step="0.5" /></div>
+          <div class="field"><label>Entry Premium</label><input id="rkEntry" type="number" step="0.05" /></div>
+          <div class="field"><label>SL Premium</label><input id="rkSl" type="number" step="0.05" /></div>
+          <div class="field"><label>Target Premium</label><input id="rkTgt" type="number" step="0.05" /></div>
+          <div class="field"><label>Lot Size</label><input id="rkLot" type="number" value="75" /></div>
+          <div class="field"><label>Number of Lots</label><input id="rkLots" type="number" value="1" min="1" /></div>
+        </div>
+        <div class="riskout">
+          <div class="o"><span>Max ₹ Risk</span><b class="num" id="roMax">—</b></div>
+          <div class="o"><span>Quantity</span><b class="num" id="roQty">—</b></div>
+          <div class="o"><span>Capital Req.</span><b class="num" id="roCap">—</b></div>
+          <div class="o"><span>Loss at SL</span><b class="num dn" id="roLoss">—</b></div>
+          <div class="o"><span>Profit at Tgt</span><b class="num up" id="roPft">—</b></div>
+          <div class="o"><span>Risk / Reward</span><b class="num" id="roRR">—</b></div>
+          <div class="o"><span>Max Sugg. Lots</span><b class="num" id="roMaxLots">—</b></div>
+        </div>
+        <div class="riskwarn" id="rkWarn"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ROW E : log -->
+  <section class="grid">
+    <div class="card c12">
+      <header class="hh"><h2>Historical Signal Log</h2><span class="sp"></span>
+        <span class="hint">every generated setup is recorded — review it before trusting the screen</span>
+        <button class="btn" id="btnClrLog" style="padding:3px 8px">CLEAR</button></header>
+      <div class="logwrap">
+        <table class="log">
+          <thead><tr>
+            <th>Time</th><th>NIFTY</th><th>Direction</th><th>Strike</th><th>Signal</th><th>Reason</th>
+            <th>Entry</th><th>SL</th><th>Target</th><th>Result</th>
+          </tr></thead>
+          <tbody id="logBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  <span><b>Feed:</b> <span id="ftFeed">—</span></span>
+  <span><b>Method:</b> structure needs multiple confirmations (trend + OI behaviour + volume + price action). High OI / high PCR / extreme RSI alone are only observations.</span>
+  <span><b>Risk:</b> derivatives can lose more than capital at risk in a position. Nothing here is investment advice or a guarantee of outcome.</span>
+</footer>
+
+<script>
+/* ============================================================================
+   LAYER 1 — DATA
+   Provider interface (swap freely; UI never touches provider internals):
+     await provider.init()
+     provider.getSnapshot() -> Snapshot
+   Snapshot {
+     meta   : { provider, mode:'sim'|'live', asOf:ISO, ist:'HH:MM:SS IST', marketStatus,
+                expiry:'29-Sep-2026', expiryISO, dteDays, dteText, lotSize }
+     spot   : { ltp, chg, chgPct, prevClose, dayOpen, dayHigh, dayLow, vwap,
+                rsi14, atr14, volVsAvg, trend15m, trend1h, vix,
+                candles15m: [{t,o,h,l,c,v}] }        // t = candle open epoch ms
+     chain  : [ { strike, ce: Leg, pe: Leg } ]
+     // Leg = { ltp, prevClose, chgPct, volume, oi, oiChg, iv, bid, ask,
+     //         delta, thetaDay, prevOi, volAvg, classify }
+     // classify (computed by Analytics, not the provider):
+     //   'LB' long buildup · 'WR' writing/short buildup · 'SC' short covering · 'LU' long unwinding
+   }
+   A live provider (Kite / Upstox / NSE via server proxy) only has to map its feed
+   into this shape — see README.md. server.js ships a documented /api/chain adapter.
+   ============================================================================ */
+'use strict';
+
+/* ---------- math helpers ---------- */
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+function randn() { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+function ncdf(x) {
+  const t = 1 / (1 + 0.2316419 * Math.abs(x));
+  const d = 0.3989422804014327 * Math.exp(-x * x / 2);
+  const p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+  return x >= 0 ? 1 - p : p;
+}
+const npdf = (x) => 0.3989422804014327 * Math.exp(-x * x / 2);
+
+/* ---------- Black–Scholes (chain synthesis + Greeks display) ---------- */
+function bs(S, K, T, r, sig, type) {
+  T = Math.max(T, 1 / (365 * 48)); sig = clamp(sig, 0.03, 2.5);
+  const st = sig * Math.sqrt(T);
+  const d1 = (Math.log(S / K) + (r + sig * sig / 2) * T) / st;
+  const d2 = d1 - st;
+  let px, delta, thetaY;
+  if (type === 'CE') {
+    px = S * ncdf(d1) - K * Math.exp(-r * T) * ncdf(d2);
+    delta = ncdf(d1);
+    thetaY = -(S * npdf(d1) * sig) / (2 * Math.sqrt(T)) - r * K * Math.exp(-r * T) * ncdf(d2);
+  } else {
+    px = K * Math.exp(-r * T) * ncdf(-d2) - S * ncdf(-d1);
+    delta = ncdf(d1) - 1;
+    thetaY = -(S * npdf(d1) * sig) / (2 * Math.sqrt(T)) + r * K * Math.exp(-r * T) * ncdf(-d2);
+  }
+  return { px: Math.max(px, 0.05), delta, thetaDay: thetaY / 365 };
+}
+
+/* ---------- IST clock ---------- */
+const IST = 'Asia/Kolkata';
+const istHMS = (d = new Date()) => new Intl.DateTimeFormat('en-GB', { timeZone: IST, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(d);
+const istHM = (d = new Date()) => new Intl.DateTimeFormat('en-GB', { timeZone: IST, hour: '2-digit', minute: '2-digit', hour12: false }).format(d);
+function istParts(d = new Date()) {
+  const f = new Intl.DateTimeFormat('en-GB', { timeZone: IST, hour: '2-digit', minute: '2-digit', weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
+  const o = {}; f.formatToParts(d).forEach(p => { if (p.type !== 'literal') o[p.type] = p.value; });
+  return o;
+}
+function istDateISO(d = new Date()) {
+  const f = new Intl.DateTimeFormat('en-GB', { timeZone: IST, year: 'numeric', month: '2-digit', day: '2-digit' });
+  const o = {}; f.formatToParts(d).forEach(p => { if (p.type !== 'literal') o[p.type] = p.value; });
+  return `${o.year}-${o.month}-${o.day}`;
+}
+
+/* ============================================================================
+   MockOptionChainProvider — seeded from the genuine NSE option-chain snapshot
+   of 25-Sep-2026 10:40 IST (spot 23,068.60, expiry 29-Sep-2026).  Missing
+   strikes synthesised via Black–Scholes with a realistic IV smile.
+   ============================================================================ */
+const MockOptionChainProvider = (() => {
+  const R = 0.065, LOT = 75;
+  const SPOT0 = 23068.60, PREV_CLOSE = 23060.35, OPEN = 23052.10;
+  const EXPIRY_LABEL = '29-Sep-2026', EXPIRY_ISO = '2026-09-29T15:30:00+05:30';
+
+  /* Genuine NSE rows [strike, 'CE'|'PE', ltp, chgPct, volume, oi, oiChg, iv] */
+  const REAL = [
+    [23100,'PE',106.60,-12.08,2202243,242175, -2630,13.4],
+    [23000,'PE', 69.20,-15.66,1907165,298313,22640,13.1],
+    [23100,'CE',117.00,-11.09,1688890,252350,12350,13.2],
+    [23050,'PE', 86.35,-13.48,1599764,158184,14180,13.3],
+    [23200,'CE', 70.70,-16.77,1211614,264110,21530,13.6],
+    [23150,'CE', 91.85,-14.04, 931689,132573,18330,13.4],
+    [23300,'CE', 39.10,-24.30, 846315,224890, -8210,14.2],
+    [22900,'PE', 43.15,-20.02, 819142,129129,  6610,13.9],
+    [23050,'CE',146.00, -9.01, 741170, 79058,  3830,13.1],
+    [23000,'CE',179.25, -6.35, 698603,105865,  5210,13.0],
+    [23150,'PE',131.50, -9.37, 690942, 68682, -5420,13.3],
+    [23200,'PE',159.90, -8.37, 670110,103946,  7260,13.8],
+    [23250,'CE', 53.25,-19.80, 639676,161352,  9110,13.9],
+    [22800,'PE', 27.30,-23.31, 635482,149546,  8840,14.6],
+    [23500,'CE', 11.10,-39.18, 607811,246830, 26430,15.4],
+    [22950,'PE', 54.65,-17.63, 574299, 72236,  1830,13.6],
+    [23400,'CE', 20.60,-33.23, 558639,185684, 15220,14.8],
+    [22850,'PE', 33.95,-21.95, 405133, 82339,  3120,14.2],
+    [23350,'CE', 28.50,-28.30, 404529, 88833, -4310,14.5],
+  ];
+  const realMap = new Map(REAL.map(r => [r[0] + r[1], { ltp: r[2], chgPct: r[3], volume: r[4], oi: r[5], oiChg: r[6], iv: r[7] }]));
+
+  const STRIKES = [];
+  for (let k = 22700; k <= 23500; k += 50) STRIKES.push(k);
+
+  const st = {
+    spot: SPOT0, drift: 0, tick: 0,
+    chain: [], candles: [], forming: null,
+    vix: 13.75, startedAt: Date.now(),
+  };
+
+  function ivSmile(K, S) {
+    const m = (K - S) / S;
+    const base = 13.4 + Math.pow(Math.abs(m) * 55, 1.75) + (m < 0 ? 0.9 : 0);   // put skew
+    return clamp(base, 12, 30) / 100;
+  }
+
+  function liqProfile(K) {
+    const d = Math.abs(K - SPOT0) / 50;
+    return Math.exp(-d * 0.14);
+  }
+
+  function mkLeg(K, side) {
+    const real = realMap.get(K + side);
+    const T = dteYears();
+    const iv = real ? real.iv / 100 : ivSmile(K, SPOT0);
+    const g = bs(SPOT0, K, T, R, iv, side);
+    const ltp = real ? real.ltp : g.px;
+    const chgPct = real ? real.chgPct : (side === 'CE' ? -12 - randn() * 4 : -11 - randn() * 4);
+    const volume = real ? real.volume : Math.round(820000 * liqProfile(K) * (0.55 + Math.random() * 0.5));
+    // synthetic OI walls: calls peak at 23,200 (real), puts peak at 23,000 (real)
+    let oi;
+    if (real) oi = real.oi;
+    else if (side === 'CE') oi = Math.round(46000 + 200000 * Math.exp(-Math.pow(K - 23250, 2) / 120000) + 30000 * liqProfile(K) + Math.random() * 20000);
+    else oi = Math.round(28000 + 240000 * Math.exp(-Math.pow(K - 22980, 2) / 90000) + 25000 * liqProfile(K) + Math.random() * 15000);
+    const oiChg = real ? real.oiChg : Math.round((Math.random() - 0.42) * oi * 0.12);
+    const spreadHalf = Math.max(0.05, ltp * (liqProfile(K) > 0.7 ? 0.012 : liqProfile(K) > 0.35 ? 0.025 : 0.045));
+    return {
+      side, ltp, prevClose: ltp / (1 + chgPct / 100), chgPct,
+      volume, volAvg: Math.round(volume / 2.2), oi, oiChg, prevOi: oi - oiChg,
+      iv, bid: Math.max(0.05, ltp - spreadHalf), ask: ltp + spreadHalf,
+      delta: g.delta, thetaDay: g.thetaDay,
+      _regime: Math.floor(Math.random() * 4), _regimeT: 40 + Math.floor(Math.random() * 240),
+      _volBase: Math.max(2, volume / 22500), _dvEma: Math.max(2, volume / 22500), _spike: false,
+    };
+  }
+
+  function dteYears() {
+    const ms = new Date(EXPIRY_ISO).getTime() - Date.now();
+    return Math.max(ms, 36e5) / (365 * 24 * 36e5); // ≥ 1h
+  }
+
+  function buildCandles() {
+    /* completed 15m candles from 09:15 IST to the current boundary (or a full
+       synthetic session when viewed outside market hours) */
+    st.candles = [];
+    const now = new Date();
+    const p = istParts(now);
+    // candle boundaries use the IST calendar date (numeric ISO form — ICU-safe)
+    const dayStr = istDateISO(now);
+    const at = (hhmm) => new Date(`${dayStr}T${hhmm}:00+05:30`).getTime();
+    let t0 = at('09:15'), tEnd = Date.now();
+    if (tEnd - t0 > 6 * 36e5 || tEnd < t0) { t0 = tEnd - 40 * 15 * 6e4; t0 = Math.floor(t0 / 9e5) * 9e5; }
+    let px = OPEN, i = 0;
+    for (let t = t0; t + 9e5 <= tEnd; t += 9e5, i++) {
+      const o = px;
+      const drift = 3.0 * Math.sin(i / 5.5) + randn() * 7;
+      const c = o + drift;
+      const h = Math.max(o, c) + Math.abs(randn()) * 4;
+      const l = Math.min(o, c) - Math.abs(randn()) * 4;
+      const v = Math.round(210000 * (0.6 + Math.abs(drift) / 8 + Math.random() * 0.55));
+      st.candles.push({ t, o, h, l, c, v });
+      px = c;
+    }
+    // constant shift so the last close == current spot (keeps the walk shape intact)
+    const k = st.candles.length - 1;
+    if (k >= 0) {
+      const shift = st.spot - st.candles[k].c;
+      st.candles.forEach((cd) => { cd.o += shift; cd.h += shift; cd.l += shift; cd.c += shift; });
+    }
+    const nowB = Math.floor(Date.now() / 9e5) * 9e5;
+    // forming candle: volume already elapsed in this bar (pace-consistent start)
+    const avgV = st.candles.length
+      ? st.candles.slice(-20).reduce((a, c) => a + c.v, 0) / Math.min(20, st.candles.length)
+      : 210000;
+    const elapsedMin = clamp((Date.now() - nowB) / 6e4, 0, 15);
+    st.forming = { t: nowB, o: st.spot, h: st.spot, l: st.spot, c: st.spot, v: Math.round(avgV * elapsedMin / 15) };
+  }
+
+  function init() {
+    st.chain = STRIKES.map(K => {
+      const row = { strike: K, ce: mkLeg(K, 'CE'), pe: mkLeg(K, 'PE') };
+      row.CE = row.ce; row.PE = row.pe;   // alias refs so row['CE'|'CE'.toLowerCase()] both work
+      return row;
+    });
+    buildCandles();
+  }
+
+  function rollCandle() {
+    const b = Math.floor(Date.now() / 9e5) * 9e5;
+    if (st.forming.t !== b) {
+      st.candles.push(st.forming);
+      if (st.candles.length > 220) st.candles.shift();
+      st.forming = { t: b, o: st.spot, h: st.spot, l: st.spot, c: st.spot, v: 0 };
+    }
+  }
+
+  function tick() {
+    st.tick++;
+    rollCandle();
+    // spot: slow regime drift + mean reversion into 23,040–23,180 band + noise
+    if (st.tick % 150 === 0) st.drift = randn() * 0.00004;
+    const bandMid = 23110;
+    const rev = (bandMid - st.spot) * 2.2e-6;
+    const ds = st.drift + rev + randn() * 0.00022;
+    const before = st.spot;
+    st.spot = Math.max(22600, st.spot * Math.exp(ds));
+    const dSpot = st.spot - before;
+
+    st.forming.h = Math.max(st.forming.h, st.spot);
+    st.forming.l = Math.min(st.forming.l, st.spot);
+    st.forming.c = st.spot;
+    st.forming.v += 400 + Math.round(Math.abs(dSpot) * 40);
+
+    st.vix = clamp(st.vix + randn() * 0.03 + Math.abs(dSpot) * 0.002, 10.5, 21);
+
+    const T = dteYears();
+    for (const row of st.chain) {
+      for (const side of ['CE', 'PE']) {
+        const leg = row[side];
+        // reprice: delta * dSpot − theta + vega noise
+        const th = leg.thetaDay / 4500;                    // accelerated melt for a live demo
+        const ivSh = (dSpot < 0 ? (side === 'PE' ? 0.00025 : -0.0001) : (side === 'PE' ? -0.0001 : 0.00012));
+        leg.iv = clamp(leg.iv + ivSh + randn() * 0.0004, 0.08, 0.6);
+        const g = bs(st.spot, row.strike, T, R, leg.iv, side);
+        leg.delta = g.delta; leg.thetaDay = g.thetaDay;
+        leg.ltp = Math.max(0.05, leg.ltp + leg.delta * dSpot - th + leg.ltp * 0.004 * randn());
+        leg.chgPct = (leg.ltp - leg.prevClose) / leg.prevClose * 100;
+
+        // volume: bursty, with unusual-volume spikes
+        const burst = Math.exp(randn() * 0.55) * (1 + Math.min(5, Math.abs(dSpot) * 400));
+        const dv = Math.max(0, Math.round(leg._volBase * burst * 2.2));
+        leg._dvEma = leg._dvEma * 0.95 + 0.05 * dv;
+        leg._spike = dv > leg._dvEma * 3 && dv > 30;
+        leg.volume += dv;
+
+        // OI regimes → genuine buildup / writing / covering / unwinding patterns
+        if (--leg._regimeT <= 0) { leg._regime = Math.floor(Math.random() * 4); leg._regimeT = 35 + Math.floor(Math.random() * 220); }
+        const pUp = leg.ltp - (leg._prevTick || leg.ltp) >= 0;
+        leg._prevTick = leg.ltp;
+        const sc = dv * (0.4 + Math.random());
+        let dOi = 0;
+        if (leg._regime === 0) dOi = pUp ? sc : -sc * 0.3;
+        else if (leg._regime === 1) dOi = pUp ? -sc * 0.3 : sc;
+        else if (leg._regime === 2) dOi = pUp ? -sc * 0.8 : sc * 0.2;
+        else dOi = pUp ? sc * 0.2 : -sc * 0.8;
+        dOi = Math.round(dOi + randn() * 8);
+        leg.oi = Math.max(0, leg.oi + dOi);
+        leg.oiChg += dOi;
+
+        // quotes
+        const half = Math.max(0.05, leg.ltp * (liqProfile(row.strike) > 0.7 ? 0.012 : liqProfile(row.strike) > 0.35 ? 0.025 : 0.045)) * (0.9 + Math.random() * 0.3);
+        leg.bid = Math.max(0.05, leg.ltp - half); leg.ask = leg.ltp + half;
+      }
+    }
+  }
+
+  function candleList() {
+    return st.candles.concat([st.forming]);
+  }
+
+  function getSnapshot() {
+    const p = istParts(new Date());
+    const mins = istHMS().split(':').map(Number);
+    const mm = mins[0] * 60 + mins[1];
+    const wd = p.weekday;
+    const weekend = wd === 'Sat' || wd === 'Sun';
+    const status = weekend || mm < 555 || mm >= 930 ? 'CLOSED' : 'OPEN';
+    const expMs = new Date(EXPIRY_ISO).getTime();
+    const leftMs = Math.max(0, expMs - Date.now());
+    const dH = Math.floor(leftMs / 36e5), dM = Math.floor((leftMs % 36e5) / 6e4);
+    const chg = st.spot - PREV_CLOSE;
+    return {
+      meta: {
+        provider: 'mock', mode: 'sim', asOf: new Date().toISOString(),
+        ist: istHMS() + ' IST', marketStatus: status,
+        expiry: EXPIRY_LABEL, expiryISO: EXPIRY_ISO,
+        dteDays: leftMs / 864e5,
+        dteText: `${Math.floor(leftMs / 864e5)}d ${String(dH % 24).padStart(2, '0')}h ${String(dM).padStart(2, '0')}m`,
+        lotSize: LOT,
+      },
+      spot: {
+        ltp: st.spot, chg, chgPct: chg / PREV_CLOSE * 100,
+        prevClose: PREV_CLOSE, dayOpen: OPEN,
+        dayHigh: Math.max(...candleList().map(c => c.h)), dayLow: Math.min(...candleList().map(c => c.l)),
+        candles15m: candleList(),
+        vix: st.vix,
+      },
+      chain: st.chain,
+    };
+  }
+
+  return { init, tick, getSnapshot, name: 'mock' };
+})();
+
+/* LiveNseProvider — drop-in replacement shape (implemented against server.js):
+   const LiveProvider = {
+     name:'nse', async init(){}, async getSnapshot(){
+       const r = await fetch('/api/chain');        // server normalises to Snapshot schema
+       return r.json();
+     }
+   };
+   The UI code below only ever calls init()/getSnapshot() — swap the provider and
+   every panel keeps working without redesign. */
+
+/* ============================================================================
+   LAYER 2 — ANALYTICS  (pure functions over a Snapshot)
+   ============================================================================ */
+const Analytics = (() => {
+
+  /* ---- (5) OI interpretation: option price change × OI change ---- */
+  function classify(leg) {
+    const p = leg.chgPct, o = leg.oiChg, oPct = leg.prevOi ? (o / leg.prevOi) * 100 : 0;
+    const pu = p > 0.35, pd = p < -0.35, ou = oPct > 0.3, od = oPct < -0.3;
+    if (pu && ou) return { code: 'LB', label: 'LONG BUILDUP', tone: 'up' };
+    if (pd && ou) return { code: 'WR', label: leg.side === 'CE' ? 'CALL WRITING' : 'PUT WRITING', tone: 'dn' };
+    if (pu && od) return { code: 'SC', label: 'SHORT COVERING', tone: 'wt' };
+    if (pd && od) return { code: 'LU', label: 'LONG UNWINDING', tone: 'gy' };
+    return { code: 'NT', label: 'NO CLEAR EDGE', tone: 'gy' };
+  }
+
+  function decorate(snap) {
+    for (const row of snap.chain) {
+      for (const s of ['CE', 'PE']) {
+        const leg = row[s];
+        leg.classify = classify(leg);
+        leg.oiChgPct = leg.prevOi ? (leg.oiChg / leg.prevOi) * 100 : 0;
+        leg.spread = leg.ask - leg.bid;
+        leg.spreadPct = leg.ltp ? (leg.spread / leg.ltp) * 100 : 99;
+        leg.unusualVol = !!leg._spike || (!leg._volBase && leg.volume > leg.volAvg * 2.2);
+      }
+    }
+    return snap;
+  }
+
+  /* ---- indicators (VWAP / RSI / ATR / trends) ---- */
+  function indicators(snap) {
+    const cs = snap.spot.candles15m;
+    const n = cs.length;
+    if (n < 3) return { vwap: snap.spot.ltp, rsi: 50, atr: 20, trend15m: 'Sideways', trend1h: 'Sideways', volVsAvg: 1, paTone: 'gy', paText: 'building history', e5: snap.spot.ltp, e20: snap.spot.ltp };
+    let pv = 0, vv = 0;
+    cs.forEach(c => { const tp = (c.h + c.l + c.c) / 3; pv += tp * c.v; vv += c.v; });
+    const vwap = vv ? pv / vv : snap.spot.ltp;
+
+    const closes = cs.map(c => c.c);
+    // RSI(14) Wilder on completed closes (forming bar excluded)
+    const doneCloses = cs.slice(0, -1).map(c => c.c);
+    const cl = doneCloses.length >= 5 ? doneCloses : closes;
+    let g = 0, l = 0;
+    const k = Math.min(14, cl.length - 1);
+    for (let i = cl.length - k; i < cl.length; i++) { const d = cl[i] - cl[i - 1]; if (d >= 0) g += d; else l -= d; }
+    let ag = k ? g / k : 0, al = k ? l / k : 0;
+    for (let i = cl.length - k + 1; i < cl.length; i++) {
+      const d = cl[i] - cl[i - 1];
+      ag = (ag * 13 + Math.max(d, 0)) / 14; al = (al * 13 + Math.max(-d, 0)) / 14;
+    }
+    const rsi = al < 1e-9 ? (ag > 0 ? 78 : 50) : 100 - 100 / (1 + ag / al);
+
+    // ATR(14)
+    let atr = 0, cnt = 0;
+    for (let i = Math.max(1, n - 14); i < n; i++) {
+      const c = cs[i], pc = cs[i - 1];
+      atr += Math.max(c.h - c.l, Math.abs(c.h - pc.c), Math.abs(c.l - pc.c)); cnt++;
+    }
+    atr = cnt ? atr / cnt : 25;
+
+    const emaS = (arr, p) => { const a = 2 / (p + 1); let e = arr[0]; for (let i = 1; i < arr.length; i++) e = arr[i] * a + e * (1 - a); return e; };
+    const e5 = emaS(closes.slice(-30), 5), e9 = emaS(closes.slice(-30), 9);
+    const e20 = emaS(closes.slice(-80), 20);
+    const trend15m = e5 > e20 + atr * 0.08 ? 'Bullish' : e5 < e20 - atr * 0.08 ? 'Bearish' : 'Sideways';
+    // 1H proxy: EMA on 4×-aggregated closes
+    const hc = [];
+    for (let i = 0; i < n; i += 4) hc.push(cs[Math.min(i + 3, n - 1)].c);
+    const eh1 = emaS(hc.slice(-30), 3), eh2 = emaS(hc.slice(-60), 8);
+    const trend1h = eh1 > eh2 + atr * 0.15 ? 'Bullish' : eh1 < eh2 - atr * 0.15 ? 'Bearish' : 'Sideways';
+
+    // volume vs avg: pace-projected forming candle vs 20 completed bars
+    const forming = cs[n - 1];
+    const done = cs.slice(0, -1);
+    let av = 0, ac = 0;
+    for (let i = Math.max(0, done.length - 20); i < done.length; i++) { av += done[i].v; ac++; }
+    const base = ac ? av / ac : Math.max(1, forming.v);
+    const elapsedMin = clamp((Date.now() - forming.t) / 60000, 0.5, 15);
+    const volVsAvg = (forming.v * (15 / elapsedMin)) / base;
+
+    // price action: HH/HL vs LH/LL over last 6 completed candles
+    const w = cs.slice(-7);
+    let hh = 0, hl = 0, lh = 0, ll = 0;
+    for (let i = 1; i < w.length; i++) {
+      if (w[i].h > w[i - 1].h) hh++; if (w[i].l > w[i - 1].l) hl++;
+      if (w[i].h < w[i - 1].h) lh++; if (w[i].l < w[i - 1].l) ll++;
+    }
+    const paTone = hh >= 4 && hl >= 3 ? 'up' : lh >= 4 && ll >= 3 ? 'dn' : 'gy';
+    const paText = paTone === 'up' ? 'HH/HL sequence' : paTone === 'dn' ? 'LH/LL sequence' : 'chop / mixed candles';
+
+    return { vwap, rsi, atr, trend15m, trend1h, volVsAvg, paTone, paText, e5, e20 };
+  }
+
+  /* ---- (3) key levels from OI walls, OI change, volume, price action ---- */
+  function levels(snap) {
+    const S = snap.spot.ltp;
+    const score = (row, side) => {
+      const leg = row[side];
+      const oiN = leg.oi / 300000;
+      const addN = Math.max(leg.oiChg, 0) / 60000;
+      const cutN = Math.max(-leg.oiChg, 0) / 60000;
+      const volN = leg.volume / 1200000;
+      const roundB = row.strike % 100 === 0 ? 0.55 : row.strike % 50 === 0 ? 0.2 : 0;
+      return { s: oiN * 0.5 + addN * 0.2 + volN * 0.12 + cutN * 0.08 + roundB, leg, strike: row.strike };
+    };
+    const sup = snap.chain.filter(r => r.strike < S).map(r => score(r, 'PE')).sort((a, b) => b.s - a.s);
+    const res = snap.chain.filter(r => r.strike > S).map(r => score(r, 'CE')).sort((a, b) => b.s - a.s);
+
+    const why = (x, kind) => x ? `${kind} OI ${fmtL(x.leg.oi)}${x.leg.oiChg >= 0 ? ' (+' : ' ('}${fmtL(x.leg.oiChg)}) · vol ${fmtL(x.leg.volume)}${x.strike % 100 === 0 ? ' · round level' : ''}` : '—';
+
+    const strongS = sup[0] || null;
+    const strongR = res[0] || null;
+    // immediate = nearest level with meaningful OI (slight gap from spot), else strong
+    const immS = sup.filter(x => x.strike <= S - 10).sort((a, b) => b.strike - a.strike)[0] || strongS;
+    const immR = res.filter(x => x.strike >= S + 10).sort((a, b) => a.strike - b.strike)[0] || strongR;
+
+    return {
+      strongS: strongS && strongS.strike, strongSwhy: why(strongS, 'put'),
+      immS: immS && immS.strike, immSwhy: why(immS, 'put'),
+      immR: immR && immR.strike, immRwhy: why(immR, 'call'),
+      strongR: strongR && strongR.strike, strongRwhy: why(strongR, 'call'),
+      dayLow: snap.spot.dayLow, dayHigh: snap.spot.dayHigh,
+    };
+  }
+
+  /* ---- (6) PCR ---- */
+  function pcr(snap) {
+    let ceOi = 0, peOi = 0, ceV = 0, peV = 0, ceAdd = 0, peAdd = 0, ceCut = 0, peCut = 0;
+    const atm = snap.chain.reduce((best, r) => Math.abs(r.strike - snap.spot.ltp) < Math.abs(best - snap.spot.ltp) ? r.strike : best, snap.chain[0].strike);
+    let aCeOi = 0, aPeOi = 0;
+    for (const r of snap.chain) {
+      ceOi += r.ce.oi; peOi += r.pe.oi; ceV += r.ce.volume; peV += r.pe.volume;
+      if (r.ce.oiChg >= 0) ceAdd += r.ce.oiChg; else ceCut -= r.ce.oiChg;
+      if (r.pe.oiChg >= 0) peAdd += r.pe.oiChg; else peCut -= r.pe.oiChg;
+      if (Math.abs(r.strike - atm) <= 100) { aCeOi += r.ce.oi; aPeOi += r.pe.oi; }
+    }
+    return {
+      oi: peOi / (ceOi || 1), vol: peV / (ceV || 1), atm: aPeOi / (aCeOi || 1),
+      netChg: (peAdd - peCut) / (ceAdd - ceCut || 1),
+      ceAdd, peAdd, ceCut, peCut,
+    };
+  }
+
+  /* ---- (2) evidence rows for the structure panel ---- */
+  function evidence(snap) {
+    const ind = indicators(snap), lv = levels(snap), pc = pcr(snap);
+    const S = snap.spot.ltp;
+
+    // OI behaviour census for the ±3-strike band
+    const band = snap.chain.filter(r => Math.abs(r.strike - S) <= 150);
+    let callWr = 0, putWr = 0, callSC = 0, putSC = 0, callLU = 0, putLU = 0;
+    band.forEach(r => {
+      const c = r.ce.classify.code, p = r.pe.classify.code;
+      if (c === 'WR') callWr++; if (p === 'WR') putWr++;
+      if (c === 'SC') callSC++; if (p === 'SC') putSC++;
+      if (c === 'LU') callLU++; if (p === 'LU') putLU++;
+    });
+
+    const vwapTone = S > ind.vwap + 2 ? 'up' : S < ind.vwap - 2 ? 'dn' : 'gy';
+    const rsiTone = ind.rsi > 55 ? 'up' : ind.rsi < 45 ? 'dn' : 'gy';
+    const volTone = ind.volVsAvg > 1.2 ? (snap.spot.chg >= 0 ? 'up' : 'dn') : ind.volVsAvg < 0.7 ? 'gy' : 'wt';
+    const trendTone = ind.trend15m === 'Bullish' && ind.trend1h !== 'Bearish' ? 'up'
+      : ind.trend15m === 'Bearish' && ind.trend1h !== 'Bullish' ? 'dn'
+      : 'gy';
+    // OI structure: building on which side?
+    const oiTone = pc.peAdd > pc.ceAdd * 1.12 ? 'up' : pc.ceAdd > pc.peAdd * 1.12 ? 'dn' : 'gy';
+
+    const rows = [
+      { k: 'Trend', v: ind.trend15m, tone: trendTone, d: `15m ${ind.trend15m} · 1H ${ind.trend1h}`, s: trendTone === 'up' ? 1 : trendTone === 'dn' ? -1 : 0 },
+      { k: 'OI Structure', v: oiTone === 'up' ? 'Put-heavy adds' : oiTone === 'dn' ? 'Call-heavy adds' : 'Balanced adds', tone: oiTone, d: `PE+${fmtL(pc.peAdd)} vs CE+${fmtL(pc.ceAdd)}`, s: oiTone === 'up' ? 1 : oiTone === 'dn' ? -1 : 0 },
+      { k: 'Call Writing', v: callWr ? `${callWr} strikes` : 'Not active', tone: callWr >= 2 ? 'dn' : callWr ? 'wt' : 'gy', d: 'writing = resistance', s: callWr >= 2 ? -1 : callWr ? -0.5 : 0 },
+      { k: 'Put Writing', v: putWr ? `${putWr} strikes` : 'Not active', tone: putWr >= 2 ? 'up' : putWr ? 'wt' : 'gy', d: 'writing = support', s: putWr >= 2 ? 1 : putWr ? 0.5 : 0 },
+      { k: 'Call Short Cov.', v: callSC ? `${callSC} strikes` : 'Not active', tone: callSC ? 'up' : 'gy', d: 'CE OI↓ + price↑', s: callSC ? 0.5 : 0 },
+      { k: 'Put Short Cov.', v: putSC ? `${putSC} strikes` : 'Not active', tone: putSC ? 'dn' : 'gy', d: 'PE OI↓ + price↑', s: putSC ? -0.5 : 0 },
+      { k: 'Volume', v: `${ind.volVsAvg.toFixed(2)}× avg`, tone: volTone, d: 'vs 20-bar average', s: volTone === 'up' ? 1 : volTone === 'dn' ? -1 : 0 },
+      { k: 'RSI 14', v: ind.rsi.toFixed(1), tone: rsiTone, d: ind.rsi > 75 ? 'overbought risk' : ind.rsi < 25 ? 'oversold risk' : '15m basis', s: ind.rsi > 75 || ind.rsi < 25 ? 0 : rsiTone === 'up' ? 1 : rsiTone === 'dn' ? -1 : 0 },
+      { k: 'VWAP', v: ind.vwap.toFixed(1), tone: vwapTone, d: S > ind.vwap ? 'price above' : 'price below', s: vwapTone === 'up' ? 1 : vwapTone === 'dn' ? -1 : 0 },
+      { k: 'Price Action', v: ind.paText, tone: ind.paTone, d: 'last 6 × 15m candles', s: ind.paTone === 'up' ? 1 : ind.paTone === 'dn' ? -1 : 0 },
+    ];
+
+    const score = rows.reduce((a, r) => a + r.s, 0);
+    return { rows, score, ind, lv, pc };
+  }
+
+  /* ---- (2) market structure verdict + signal strength ---- */
+  function structure(snap) {
+    const ev = evidence(snap);
+    const S = snap.spot.ltp, { ind, lv } = ev;
+    let verdict, tone, agree = 0;
+    const confined = lv.immR && lv.immS && S < lv.immR - 25 && S > lv.immS + 25 && (lv.immR - lv.immS) < 300;
+
+    if (ev.score >= 3.2 && ind.trend15m !== 'Bearish') { verdict = 'BULLISH'; tone = 'up'; agree = ev.rows.filter(r => r.s > 0).length; }
+    else if (ev.score <= -3.2 && ind.trend15m !== 'Bullish') { verdict = 'BEARISH'; tone = 'dn'; agree = ev.rows.filter(r => r.s < 0).length; }
+    else if (confined) { verdict = 'RANGE-BOUND'; tone = 'wt'; agree = ev.rows.filter(r => r.s === 0).length; }
+    else if (Math.abs(ev.score) >= 1.2) { verdict = 'NEUTRAL / INSUFFICIENT'; tone = 'gy'; agree = Math.max(1, ev.rows.filter(r => r.s !== 0).length - 3); }
+    else { verdict = 'NEUTRAL / INSUFFICIENT'; tone = 'gy'; agree = 0; }
+
+    const strength = verdict === 'NEUTRAL / INSUFFICIENT' ? Math.min(3, agree) : Math.min(10, agree);
+    return { verdict, tone, strength, ...ev };
+  }
+
+  return { decorate, indicators, levels, pcr, evidence, structure, classify };
+})();
+
+/* ============================================================================
+   LAYER 3 — SIGNAL ENGINE
+   Stages: 1 OBSERVATION → 2 SETUP FORMING → 3 CONFIRMATION → 4 INVALIDATED
+   A signal is never generated from a single condition.
+   ============================================================================ */
+const Signals = (() => {
+  const mem = { wasAboveR: false, wasBelowS: false, lastInvAt: 0, invWhy: '' };
+
+  /* condition helper: state ∈ ok | no | pend | gy */
+  function setups(snap) {
+    const st = Analytics.structure(snap);
+    const S = snap.spot.ltp;
+    const { ind, lv, pc } = st;
+    const nearR = lv.immR, nearS = lv.immS;
+
+    // breakout progress states
+    const crossedR = nearR && S > nearR;
+    const nearRZone = nearR && S > nearR - 40;
+    const crossedS = nearS && S < nearS;
+    const nearSZone = nearS && S < nearS + 40;
+
+    // close-basis confirmations use the last COMPLETED 15m candle
+    const done = snap.spot.candles15m.slice(0, -1);
+    const lastDone = done[done.length - 1];
+    const closeAboveR = lastDone && nearR && lastDone.c > nearR;
+    const closeBelowS = lastDone && nearS && lastDone.c < nearS;
+
+    // OI behaviours near the zone (±2 strikes)
+    const inZone = (k) => snap.chain.filter(r => Math.abs(r.strike - k) <= 100);
+    const zoneR = nearR ? inZone(nearR) : [];
+    const zoneS = nearS ? inZone(nearS) : [];
+    const callSCnearR = zoneR.some(r => r.ce.classify.code === 'SC');
+    const callWrNearR = zoneR.filter(r => r.ce.classify.code === 'WR').length >= 1;
+    const putWrNearS = zoneS.some(r => r.pe.classify.code === 'WR');
+    const putSCnearS = zoneS.some(r => r.pe.classify.code === 'SC');
+
+    /* ---------------- CE conditions (7) ---------------- */
+    const ce = [
+      { t: 'NIFTY trend bullish', ok: st.ind.trend15m === 'Bullish', pend: st.ind.trend15m === 'Sideways', note: `15m ${ind.trend15m}` },
+      { t: 'Price above VWAP', ok: S > ind.vwap + 1, pend: Math.abs(S - ind.vwap) <= 3, note: `VWAP ${ind.vwap.toFixed(0)}` },
+      { t: nearR ? `Breakout of ${fmtK(nearR)} resistance` : 'Breakout (level pending)', ok: closeAboveR && crossedR, pend: crossedR && !closeAboveR, note: crossedR ? (closeAboveR ? '15m closed above' : 'crossed — candle forming') : nearRZone ? 'approaching' : 'untouched' },
+      { t: 'Call short covering', ok: callSCnearR, pend: false, note: callSCnearR ? 'CE OI↓ price↑ near R' : 'not seen near R' },
+      { t: 'Put writing (support building)', ok: putWrNearS || pc.peAdd > pc.ceAdd, pend: pc.peAdd > pc.ceAdd * 0.8 && !putWrNearS, note: `PE adds ₹${fmtL(pc.peAdd)}` },
+      { t: 'Volume confirmation', ok: ind.volVsAvg >= 1.2, pend: ind.volVsAvg >= 0.8 && ind.volVsAvg < 1.2, note: `${ind.volVsAvg.toFixed(2)}× avg` },
+      { t: 'RSI confirmation (52–75)', ok: ind.rsi >= 52 && ind.rsi < 75, pend: ind.rsi >= 48 && ind.rsi < 52, note: `RSI ${ind.rsi.toFixed(0)}` },
+    ];
+    /* ---------------- PE conditions (mirror) ---------------- */
+    const pe = [
+      { t: 'NIFTY trend bearish', ok: ind.trend15m === 'Bearish', pend: ind.trend15m === 'Sideways', note: `15m ${ind.trend15m}` },
+      { t: 'Price below VWAP', ok: S < ind.vwap - 1, pend: Math.abs(S - ind.vwap) <= 3, note: `VWAP ${ind.vwap.toFixed(0)}` },
+      { t: nearS ? `Breakdown of ${fmtK(nearS)} support` : 'Breakdown (level pending)', ok: closeBelowS && crossedS, pend: crossedS && !closeBelowS, note: crossedS ? (closeBelowS ? '15m closed below' : 'crossed — candle forming') : nearSZone ? 'approaching' : 'untouched' },
+      { t: 'Put short covering', ok: putSCnearS, pend: false, note: putSCnearS ? 'PE OI↓ price↑ near S' : 'not seen near S' },
+      { t: 'Call writing (resistance building)', ok: callWrNearR || pc.ceAdd > pc.peAdd, pend: pc.ceAdd > pc.peAdd * 0.8 && !callWrNearR, note: `CE adds ₹${fmtL(pc.ceAdd)}` },
+      { t: 'Volume confirmation', ok: ind.volVsAvg >= 1.2, pend: ind.volVsAvg >= 0.8 && ind.volVsAvg < 1.2, note: `${ind.volVsAvg.toFixed(2)}× avg` },
+      { t: 'RSI confirmation (25–48)', ok: ind.rsi > 25 && ind.rsi <= 48, pend: ind.rsi > 48 && ind.rsi <= 52, note: `RSI ${ind.rsi.toFixed(0)}` },
+    ];
+
+    const crit = 2; // breakout condition index is mandatory for YES
+    function verdictOf(list) {
+      const okN = list.filter(c => c.ok).length;
+      const pendN = list.filter(c => c.pend).length;
+      const breakoutOk = list[crit].ok;
+      if (breakoutOk && okN >= 5) return 'YES';
+      // NO only when nothing is forming AND nothing confirmed — otherwise WAIT
+      if (okN <= 1 && pendN <= 1 && !list[crit].pend && !list[crit].ok) return 'NO';
+      return 'WAIT';
+    }
+    let ceV = verdictOf(ce), peV = verdictOf(pe);
+
+    /* invalidation memory: level was taken out and then lost again */
+    let ceInv = false, peInv = false;
+    if (crossedR) mem.wasAboveR = true;
+    if (crossedS) mem.wasBelowS = true;
+    if (mem.wasAboveR && !crossedR && nearR && S < nearR - 25) {
+      mem.wasAboveR = false; ceInv = true; mem.lastInvAt = Date.now();
+      mem.invWhy = `CE setup invalidated — price lost ${fmtK(nearR)}`;
+    }
+    if (mem.wasBelowS && !crossedS && nearS && S > nearS + 25) {
+      mem.wasBelowS = false; peInv = true; mem.lastInvAt = Date.now();
+      mem.invWhy = `PE setup invalidated — price reclaimed ${fmtK(nearS)}`;
+    }
+    if (ceInv && ceV !== 'YES') ceV = 'NO';
+    if (peInv && peV !== 'YES') peV = 'NO';
+
+    /* ---------------- RANGE ---------------- */
+    const rgOn = lv.immR && lv.immS && !crossedR && !crossedS &&
+      (lv.immR - lv.immS) >= 60 && (lv.immR - lv.immS) <= 320 &&
+      ind.trend15m === 'Sideways' && Math.abs(S - (lv.immR + lv.immS) / 2) < (lv.immR - lv.immS) * 0.42;
+    const rg = [
+      { t: 'Price trapped between walls', ok: rgOn, pend: !crossedR && !crossedS && !rgOn, note: '' },
+      { t: 'No breakout/breakdown in progress', ok: !crossedR && !crossedS, pend: false, note: '' },
+      { t: '15m trend sideways', ok: ind.trend15m === 'Sideways', pend: false, note: `15m ${ind.trend15m}` },
+    ];
+
+    /* ---------------- breakout / breakdown alert checklists (5 each) ---------------- */
+    const bo = [
+      { t: `NIFTY crosses ${fmtK(nearR)}`, ok: !!crossedR, pend: nearRZone, note: `spot ${S.toFixed(0)}` },
+      { t: '15m candle closes above', ok: !!closeAboveR, pend: crossedR && !closeAboveR, note: 'close-basis' },
+      { t: 'Call OI decreases', ok: nearR ? zoneR.some(r => r.ce.oiChg < 0 || r.ce.classify.code === 'SC') : false, pend: false, note: 'OI↓ at zone' },
+      { t: 'Call price increases', ok: nearR ? zoneR.some(r => r.ce.chgPct > -8 && r.ce.ltp > r.ce.prevClose * 0.95) : false, pend: false, note: 'CE holding/bidding' },
+      { t: 'Volume increases', ok: ind.volVsAvg >= 1.15, pend: ind.volVsAvg >= 0.85, note: `${ind.volVsAvg.toFixed(2)}×` },
+    ];
+    const bd = [
+      { t: `NIFTY crosses below ${fmtK(nearS)}`, ok: !!crossedS, pend: nearSZone, note: `spot ${S.toFixed(0)}` },
+      { t: '15m candle closes below', ok: !!closeBelowS, pend: crossedS && !closeBelowS, note: 'close-basis' },
+      { t: 'Put OI decreases', ok: nearS ? zoneS.some(r => r.pe.oiChg < 0 || r.pe.classify.code === 'SC') : false, pend: false, note: 'OI↓ at zone' },
+      { t: 'Put price increases', ok: nearS ? zoneS.some(r => r.pe.chgPct > -8 && r.pe.ltp > r.pe.prevClose * 0.95) : false, pend: false, note: 'PE holding/bidding' },
+      { t: 'Volume increases', ok: ind.volVsAvg >= 1.15, pend: ind.volVsAvg >= 0.85, note: `${ind.volVsAvg.toFixed(2)}×` },
+    ];
+    const boConf = bo.filter(c => c.ok).length >= 4 && bo[0].ok && bo[1].ok;
+    const bdConf = bd.filter(c => c.ok).length >= 4 && bd[0].ok && bd[1].ok;
+
+    /* ---------------- action texts ---------------- */
+    const ceAct = ceInv ? ceV === 'YES' ? `CONFIRMED — review ATM CE (${fmtK(atmStrike(snap))} CE)` : `CE SETUP INVALIDATED — price lost ${fmtK(nearR)}`
+      : ceV === 'YES' ? `CONFIRMED — review ATM CE (${fmtK(atmStrike(snap))} CE)`
+      : ceV === 'WAIT' ? (crossedR ? 'WAIT FOR 15M CLOSE ABOVE ' + fmtK(nearR) : `WAIT FOR ${nearR ? fmtK(nearR) : '—'} BREAKOUT`)
+      : ceV === 'NO' ? 'CE SETUP INVALID / OPPOSITE TAPE' : 'STAND ASIDE';
+    const peAct = peInv && peV !== 'YES' ? `PE SETUP INVALIDATED — price reclaimed ${fmtK(nearS)}`
+      : peV === 'YES' ? `CONFIRMED — review ATM PE (${fmtK(atmStrike(snap))} PE)`
+      : peV === 'WAIT' ? (crossedS ? 'WAIT FOR 15M CLOSE BELOW ' + fmtK(nearS) : `WAIT FOR ${nearS ? fmtK(nearS) : '—'} BREAKDOWN`)
+      : peV === 'NO' ? 'PE SETUP INVALID / OPPOSITE TAPE' : 'STAND ASIDE';
+
+    /* ---------------- stage machine ---------------- */
+    let stage = 'OBSERVATION', stageTone = 'obs', stageWhy = '';
+    const heavyOiObs = snap.chain.some(r => r.ce.oi > 220000 || r.pe.oi > 220000);
+    const freshInv = Date.now() - mem.lastInvAt < 90000;
+    if ((ceInv || peInv) && ceV !== 'YES' && peV !== 'YES') {
+      stage = 'INVALIDATED'; stageTone = 'inv'; stageWhy = mem.invWhy;
+    } else if (freshInv && ceV !== 'YES' && peV !== 'YES' && !(boConf || bdConf)) {
+      stage = 'INVALIDATED'; stageTone = 'inv'; stageWhy = mem.invWhy;
+    } else if (ceV === 'YES' || peV === 'YES') {
+      stage = 'CONFIRMATION'; stageTone = 'conf';
+      stageWhy = ceV === 'YES' ? 'CE multi-condition confirmed' : 'PE multi-condition confirmed';
+    } else if (boConf || bdConf) {
+      stage = 'CONFIRMATION'; stageTone = 'conf'; stageWhy = boConf ? 'Bullish breakout confirmed' : 'Bearish breakdown confirmed';
+    } else if ((crossedR || crossedS) && ((crossedR && !closeAboveR) || (crossedS && !closeBelowS))) {
+      stage = 'SETUP FORMING'; stageTone = 'form'; stageWhy = 'level crossed on forming candle — waiting for 15m close';
+    } else if (ceV === 'WAIT' || peV === 'WAIT') {
+      stage = 'SETUP FORMING'; stageTone = 'form';
+      stageWhy = ceV === 'WAIT' && peV === 'WAIT' ? 'conditions incomplete on both sides' : ceV === 'WAIT' ? 'CE conditions accumulating' : 'PE conditions accumulating';
+    } else if (ceV === 'NO' && peV === 'NO') {
+      stage = 'INVALIDATED'; stageTone = 'inv'; stageWhy = 'conditions failed on both sides — stand aside';
+    } else if (heavyOiObs) {
+      stage = 'OBSERVATION'; stageTone = 'obs'; stageWhy = 'heavy OI pockets — context only, no setup yet';
+    }
+
+    return {
+      ce: { list: ce, verdict: ceV, action: ceAct },
+      pe: { list: pe, verdict: peV, action: peAct },
+      range: { list: rg, verdict: rgOn ? 'YES' : 'WAIT', ladder: [lv.immS, lv.immR], action: rgOn ? 'Avoid chasing CE/PE in the middle of the range — trade edges only.' : 'No clean range — prefer directional confirmation.' },
+      alerts: { bo, bd, boConf, bdConf, zoneR: nearR, zoneS: nearS },
+      stage, stageTone, stageWhy, structure: st,
+    };
+  }
+
+  /* ---- (9) contract selector + (10) trade plan ---- */
+  function atmStrike(snap) {
+    return snap.chain.reduce((best, r) => Math.abs(r.strike - snap.spot.ltp) < Math.abs(best - snap.spot.ltp) ? r.strike : best, snap.chain[0].strike);
+  }
+
+  function contracts(snap, dir) {
+    if (dir !== 'Bullish' && dir !== 'Bearish') return { side: null, rows: [] };
+    const side = dir === 'Bullish' ? 'CE' : 'PE';
+    const atm = atmStrike(snap);
+    const picks = dir === 'Bullish'
+      ? [['Slight ITM', atm - 100], ['ATM', atm], ['OTM', atm + 100]]
+      : [['Slight ITM', atm + 100], ['ATM', atm], ['OTM', atm - 100]];
+    const rows = picks.map(([label, k]) => {
+      const row = snap.chain.find(r => r.strike === k);
+      if (!row) return null;
+      const leg = row[side];
+      const spread = leg.ask - leg.bid;
+      const spreadPct = leg.ltp ? (spread / leg.ltp) * 100 : 99;
+      let liq = 'T', liqLbl = 'THIN — AVOID';
+      if (spreadPct <= 2.2 && leg.volume > 350000 && leg.oi > 60000) { liq = 'L'; liqLbl = 'LIQUID'; }
+      else if (spreadPct <= 4.5 && leg.volume > 120000) { liq = 'M'; liqLbl = 'MODERATE'; }
+      return { label, strike: k, side, leg, spread, spreadPct, liq, liqLbl };
+    }).filter(Boolean);
+    return { side, rows };
+  }
+
+  function plan(snap, sig) {
+    const st = sig.structure;
+    const S = snap.spot.ltp, lv = st.lv;
+    let dir = null, confirmed = false;
+    if (sig.ce.verdict === 'YES') { dir = 'Bullish'; confirmed = true; }
+    else if (sig.pe.verdict === 'YES') { dir = 'Bearish'; confirmed = true; }
+    else if (st.verdict === 'BULLISH') dir = 'Bullish';
+    else if (st.verdict === 'BEARISH') dir = 'Bearish';
+
+    const empty = {
+      status: 'insufficient confirmation — no plan shown', dir: '—', trig: '—', ctr: '—',
+      entry: '—', sl: '—', t1: '—', t2: '—', inv: '—', confirmed: false, dirRaw: null, ctrStrike: null, side: null,
+    };
+    if (!dir) return empty;
+
+    const cs = contracts(snap, dir);
+    const prefer = cs.rows.find(r => r.label === 'ATM') || cs.rows[0];
+    if (!prefer) return empty;
+    const entryPrem = prefer.leg.ltp;
+    const slPrem = Math.max(0.05, entryPrem * 0.7);
+
+    let trig, t1S, t2S, invTxt;
+    const roundS = Math.round(S / 50) * 50;
+    if (dir === 'Bullish') {
+      const zR = sig.alerts.zoneR || lv.immR || roundS + 50;
+      trig = sig.alerts.zoneR ? `15m close above ${fmtK(zR)}` : '15m close above immediate resistance';
+      t1S = lv.strongR && lv.strongR > zR ? lv.strongR : zR + 100;
+      t2S = t1S + 100;
+      invTxt = `NIFTY closes back below ${fmtK(zR)}`;
+    } else {
+      const zS = sig.alerts.zoneS || lv.immS || roundS - 50;
+      trig = sig.alerts.zoneS ? `15m close below ${fmtK(zS)}` : '15m close below immediate support';
+      t1S = lv.strongS && lv.strongS < zS ? lv.strongS : zS - 100;
+      t2S = t1S - 100;
+      invTxt = `NIFTY closes back above ${fmtK(zS)}`;
+    }
+    // premium targets via delta linearisation
+    const d = Math.abs(prefer.leg.delta) || 0.5;
+    const t1Prem = Math.max(slPrem + 0.05, entryPrem + (dir === 'Bullish' ? (t1S - S) : (S - t1S)) * d);
+    const t2Prem = Math.max(slPrem + 0.05, entryPrem + (dir === 'Bullish' ? (t2S - S) : (S - t2S)) * d);
+
+    return {
+      status: confirmed ? 'CONFIRMED — scenario plan (not a recommendation)' : 'SETUP FORMING — draft plan, wait for confirmation',
+      dir, confirmed, dirRaw: dir,
+      trig,
+      ctr: `${fmtK(prefer.strike)} ${prefer.side} (${prefer.label})`,
+      ctrStrike: prefer.strike, side: prefer.side,
+      entry: `after confirmation near ₹${entryPrem.toFixed(2)} premium (ask ₹${prefer.leg.ask.toFixed(2)})`,
+      sl: `premium ₹${slPrem.toFixed(2)} (~30%) or underlying invalidation`,
+      t1: `premium ₹${t1Prem.toFixed(2)} · NIFTY ${fmtK(t1S)}`,
+      t2: `premium ₹${t2Prem.toFixed(2)} · NIFTY ${fmtK(t2S)}`,
+      inv: invTxt,
+      entryPrem, slPrem, t1Prem, t2Prem, liq: prefer.liqLbl,
+    };
+  }
+
+  return { setups, contracts, plan, atmStrike };
+})();
+
+/* format helpers shared by layers */
+function fmtK(n) { return n == null ? '—' : n.toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+function fmtL(n) { // lakh-ish compact
+  if (n == null) return '—';
+  const a = Math.abs(n);
+  if (a >= 1e7) return (n / 1e7).toFixed(2) + 'Cr';
+  if (a >= 1e5) return (n / 1e5).toFixed(1) + 'L';
+  return n.toLocaleString('en-IN');
+}
+
+/* ============================================================================
+   LAYER 3b — SIGNAL LOG store  (13)
+   ============================================================================ */
+const SignalLog = (() => {
+  const KEY = 'niftydesk.log.v1';
+  let rows = [];
+  try { rows = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { rows = []; }
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(rows.slice(-80))); } catch (e) {} };
+  return {
+    get: () => rows,
+    add(r) { rows.unshift({ id: Date.now() + Math.random(), ts: new Date().toISOString(), result: 'LOG', ...r }); rows = rows.slice(0, 80); save(); },
+    update(id, patch) { const r = rows.find(x => x.id === id); if (r) Object.assign(r, patch); save(); },
+    clear() { rows = []; save(); },
+  };
+})();
+
+/* ============================================================================
+   LAYER 4 — UI  (rendering + interaction; talks only to provider + layers 2/3)
+   ============================================================================ */
+const App = (() => {
+  const $ = (s) => document.querySelector(s);
+  const fmtPx = (n) => n == null ? '—' : n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const state = {
+    provider: MockOptionChainProvider,
+    snap: null, sig: null, plan: null,
+    auto: true, interval: 2000, nextAt: 0,
+    prev: {}, stagePrev: null, loggedStages: new Set(),
+  };
+
+  /* ---------- header ---------- */
+  function renderHeader() {
+    const s = state.snap, sp = s.spot, m = s.meta;
+    $('#hSpot').textContent = fmtPx(sp.ltp);
+    const up = sp.chg >= 0;
+    $('#hChg').textContent = `${up ? '+' : ''}${fmtPx(sp.chg)} (${up ? '+' : ''}${sp.chgPct.toFixed(2)}%)`;
+    $('#hChg').className = 'chg num ' + (up ? 'up' : 'dn');
+    $('#hExpiry').textContent = m.expiry;
+    $('#hDte').textContent = m.dteText;
+    $('#hUpd').textContent = m.ist;
+    const stEl = $('#hStatus');
+    stEl.textContent = m.marketStatus === 'OPEN' ? 'OPEN' : 'CLOSED';
+    stEl.className = 'status ' + (m.marketStatus === 'OPEN' ? 'open' : 'closed');
+    const feedEl = $('#feedLbl');
+    feedEl.textContent = m.mode === 'live' ? 'LIVE FEED' : 'SIM FEED';
+    feedEl.className = m.mode === 'live' ? 'lbl-sim lbl-live' : 'lbl-sim';
+    $('#ftFeed').textContent = m.mode === 'live'
+      ? `${m.provider} live option-chain provider`
+      : `mock provider — chain seeded from NSE 25-Sep-2026 10:40 IST, live tick simulation (swap LiveProvider for a broker API)`;
+  }
+
+  /* ---------- (2) structure panel ---------- */
+  function renderStructure() {
+    const st = state.sig.structure;
+    const vEl = $('#stVerdict');
+    vEl.textContent = st.verdict;
+    vEl.className = 'st num ' + (st.tone === 'up' ? 'up' : st.tone === 'dn' ? 'dn' : st.tone === 'wt' ? 'wt' : 'gy');
+    $('#stStrength').textContent = `${st.strength}/10`;
+    $('#stStrengthSub').textContent = st.strength >= 6 ? 'strong agreement' : st.strength >= 3 ? 'partial agreement' : 'weak / insufficient';
+    $('#stSegs').innerHTML = Array.from({ length: 10 }, (_, i) =>
+      `<span class="seg ${i < st.strength ? 'on ' + (st.tone === 'gy' ? 'gy' : st.tone) : ''}"></span>`).join('');
+
+    // evidence grid
+    $('#evidGrid').innerHTML = st.rows.map(r => {
+      const ic = r.tone === 'up' ? '✓' : r.tone === 'dn' ? '✗' : r.tone === 'wt' ? '⚠' : '–';
+      const cls = r.tone === 'up' ? 'up' : r.tone === 'dn' ? 'dn' : r.tone === 'wt' ? 'wt' : 'gy';
+      const vtone = r.tone === 'up' ? 'up' : r.tone === 'dn' ? 'dn' : r.tone === 'wt' ? 'wt' : 'mu';
+      return `<div class="ev"><span class="ic ${cls}">${ic}</span><span class="k">${r.k}</span>
+        <span class="v ${vtone}">${r.v}</span><span class="d" title="${r.d}">${r.d}</span></div>`;
+    }).join('');
+
+    // reasons
+    const reasons = [];
+    st.rows.forEach(r => {
+      if (r.s > 0.4) reasons.push({ c: 'ok', t: `<b>✓</b> ${r.k}: ${r.v}` });
+      else if (r.s < -0.4) reasons.push({ c: 'bad', t: `<b>✗</b> ${r.k}: ${r.v}` });
+    });
+    if (state.sig.alerts.zoneR && state.snap.spot.ltp < state.sig.alerts.zoneR)
+      reasons.push({ c: 'warn', t: `<b>⚠</b> Resistance at ${fmtK(state.sig.alerts.zoneR)}` });
+    if (state.sig.alerts.zoneS && state.snap.spot.ltp > state.sig.alerts.zoneS)
+      reasons.push({ c: 'warn', t: `<b>⚠</b> Support at ${fmtK(state.sig.alerts.zoneS)}` });
+    if (st.ind.rsi > 75) reasons.push({ c: 'warn', t: '<b>⚠</b> RSI overbought — chase risk' });
+    if (st.ind.volVsAvg < 0.7) reasons.push({ c: 'warn', t: '<b>⚠</b> Thin volume — signals unreliable' });
+    $('#reasonsBox').innerHTML = reasons.slice(0, 6).map(r => `<div class="r ${r.c}">${r.t}</div>`).join('') ||
+      '<div class="r mu">No confirmed evidence — observation only.</div>';
+
+    // stage strip
+    const map = { OBSERVATION: '#sgObs', 'SETUP FORMING': '#sgForm', CONFIRMATION: '#sgConf', INVALIDATED: '#sgInv' };
+    Object.values(map).forEach(sel => $(sel).classList.remove('on'));
+    $(map[state.sig.stage] || '#sgObs').classList.add('on');
+    $('#sgNote').textContent = state.sig.stageWhy;
+  }
+
+  /* ---------- (3) levels ---------- */
+  function renderLevels() {
+    const lv = state.sig.structure.lv, S = state.snap.spot.ltp;
+    $('#lvSR').textContent = fmtK(lv.strongR); $('#lvSRw').textContent = lv.strongRwhy;
+    $('#lvIR').textContent = fmtK(lv.immR); $('#lvIRw').textContent = lv.immRwhy;
+    $('#lvCUR').textContent = fmtPx(S);
+    $('#lvIS').textContent = fmtK(lv.immS); $('#lvISw').textContent = lv.immSwhy;
+    $('#lvSS').textContent = fmtK(lv.strongS); $('#lvSSw').textContent = lv.strongSwhy;
+
+    // horizontal ladder visual
+    const lo = Math.min(lv.strongS || S - 150, S - 120) - 30;
+    const hi = Math.max(lv.strongR || S + 150, S + 120) + 30;
+    const X = (p) => ((p - lo) / (hi - lo)) * 100;
+    const mk = (p, color, label) => p == null ? '' :
+      `<span class="mk" style="left:${X(p)}%;background:${color}"></span><span class="t" style="left:${X(p)}%;color:${color}">${label}</span>`;
+    $('#ladVis').innerHTML =
+      `<span class="zone" style="left:${X(lv.immS || lo)}%;right:${100 - X(lv.immR || hi)}%;background:#fff"></span>` +
+      mk(lv.strongS, 'var(--up)', fmtK(lv.strongS)) + mk(lv.immS, 'var(--up)', fmtK(lv.immS)) +
+      mk(lv.immR, 'var(--dn)', fmtK(lv.immR)) + mk(lv.strongR, 'var(--dn)', fmtK(lv.strongR)) +
+      `<span class="cur" style="left:${clamp(X(S), 6, 94)}%">${S.toFixed(0)}</span>`;
+  }
+
+  /* ---------- (6) PCR ---------- */
+  const pcrHist = [];
+  function renderPcr() {
+    const pc = Analytics.pcr(state.snap);
+    pcrHist.push({ t: Date.now(), ...pc });
+    if (pcrHist.length > 120) pcrHist.shift();
+    const prev = pcrHist[pcrHist.length - 16] || pcrHist[0];
+    const arrow = (a, b) => a > b + 0.01 ? '<span class="t up">▲ rising</span>' : a < b - 0.01 ? '<span class="t dn">▼ falling</span>' : '<span class="t mu">→ stable</span>';
+    $('#pcrOi').textContent = pc.oi.toFixed(2);
+    $('#pcrOiT').innerHTML = arrow(pc.oi, prev.oi);
+    $('#pcrVol').textContent = pc.vol.toFixed(2);
+    $('#pcrVolT').innerHTML = arrow(pc.vol, prev.vol);
+    $('#pcrAtm').textContent = pc.atm.toFixed(2);
+    $('#pcrAtmT').innerHTML = arrow(pc.atm, prev.atm);
+    $('#pcrChg').textContent = pc.netChg.toFixed(2);
+    $('#pcrChgT').innerHTML = `<span class="t mu">PE add ${fmtL(pc.peAdd)} · CE add ${fmtL(pc.ceAdd)}</span>`;
+  }
+
+  /* ---------- (5) option chain ---------- */
+  function renderChain() {
+    const snap = state.snap, S = snap.spot.ltp;
+    const atm = Signals.atmStrike(snap);
+    const rows = snap.chain;
+    // badge calculations
+    const maxOi = { CE: 0, PE: 0 }, maxAdd = { CE: -1e9, PE: -1e9 }, maxCut = { CE: 1e9, PE: 1e9 };
+    rows.forEach(r => ['CE', 'PE'].forEach(s => {
+      maxOi[s] = Math.max(maxOi[s], r[s].oi);
+      maxAdd[s] = Math.max(maxAdd[s], r[s].oiChg);
+      maxCut[s] = Math.min(maxCut[s], r[s].oiChg);
+    }));
+    $('#chainSub').textContent = `NIFTY ${fmtPx(S)} · ATM ${fmtK(atm)} · expiry ${snap.meta.expiry} · lot ${snap.meta.lotSize}`;
+
+    $('#chainBody').innerHTML = rows.map(r => {
+      const isAtm = r.strike === atm;
+      const chgC = r.ce.chgPct >= 0 ? 'up' : 'dn';
+      const chgP = r.pe.chgPct >= 0 ? 'up' : 'dn';
+      const oiC = r.ce.oiChg >= 0 ? 'up' : 'wt';
+      const oiP = r.pe.oiChg >= 0 ? 'up' : 'wt';
+      return `<tr class="${isAtm ? 'atm' : ''}">
+        <td><b>${fmtPx(r.ce.ltp)}</b><span class="cls ${r.ce.classify.code}">${r.ce.classify.label}</span></td>
+        <td class="${chgC}">${r.ce.chgPct >= 0 ? '+' : ''}${r.ce.chgPct.toFixed(2)}%</td>
+        <td class="${r.ce.unusualVol ? 'wt' : ''}">${fmtL(r.ce.volume)}${r.ce.unusualVol ? '<span class="badge vol">VOL</span>' : ''}</td>
+        <td>${fmtL(r.ce.oi)}${r.ce.oi === maxOi.CE ? '<span class="badge hioi">HI OI</span>' : ''}</td>
+        <td class="${oiC}">${r.ce.oiChg >= 0 ? '+' : ''}${fmtL(r.ce.oiChg)}${r.ce.oiChg === maxAdd.CE && r.ce.oiChg > 0 ? '<span class="badge add">MAX ADD</span>' : ''}${r.ce.oiChg === maxCut.CE && r.ce.oiChg < 0 ? '<span class="badge cut">MAX CUT</span>' : ''}</td>
+        <td>${(r.ce.iv * 100).toFixed(1)}</td>
+        <td class="strike">${isAtm ? '<span class="atmtag">ATM</span>' : ''}${fmtK(r.strike)}</td>
+        <td>${(r.pe.iv * 100).toFixed(1)}</td>
+        <td class="${oiP}">${r.pe.oiChg >= 0 ? '+' : ''}${fmtL(r.pe.oiChg)}${r.pe.oiChg === maxAdd.PE && r.pe.oiChg > 0 ? '<span class="badge add">MAX ADD</span>' : ''}${r.pe.oiChg === maxCut.PE && r.pe.oiChg < 0 ? '<span class="badge cut">MAX CUT</span>' : ''}</td>
+        <td>${fmtL(r.pe.oi)}${r.pe.oi === maxOi.PE ? '<span class="badge hioi">HI OI</span>' : ''}</td>
+        <td class="${r.pe.unusualVol ? 'wt' : ''}">${fmtL(r.pe.volume)}${r.pe.unusualVol ? '<span class="badge vol">VOL</span>' : ''}</td>
+        <td class="${chgP}">${r.pe.chgPct >= 0 ? '+' : ''}${r.pe.chgPct.toFixed(2)}%</td>
+        <td><b>${fmtPx(r.pe.ltp)}</b><span class="cls ${r.pe.classify.code}">${r.pe.classify.label}</span></td>
+      </tr>`;
+    }).join('');
+
+    // centre ATM on load once
+    if (!state.centered) {
+      state.centered = true;
+      requestAnimationFrame(() => {
+        const tr = $('#chainBody').querySelector('tr.atm');
+        if (tr) $('#chainWrap').scrollTop = tr.offsetTop - 160;
+      });
+    }
+  }
+
+  /* ---------- (7) scanner ---------- */
+  const condHtml = (c) => {
+    const m = c.ok ? 'ok' : c.pend ? 'pend' : 'gy';
+    const mark = c.ok ? '✓' : c.pend ? '…' : '✗';
+    return `<div class="cond"><span class="m ${m}">${mark}</span><span>${c.t}${c.note ? ` <span class="mu">(${c.note})</span>` : ''}</span></div>`;
+  };
+  function renderScanner() {
+    const sg = state.sig;
+    const vchip = (v) => v === 'YES' ? 'YES' : v === 'NO' ? 'NO' : v === 'WAIT' ? 'WAIT' : 'GREY';
+    $('#ceV').textContent = sg.ce.verdict; $('#ceV').className = 'verdictchip ' + vchip(sg.ce.verdict);
+    $('#peV').textContent = sg.pe.verdict; $('#peV').className = 'verdictchip ' + vchip(sg.pe.verdict);
+    $('#rgV').textContent = sg.range.verdict === 'YES' ? 'RANGE' : 'NONE';
+    $('#rgV').className = 'verdictchip ' + (sg.range.verdict === 'YES' ? 'WAIT' : 'GREY');
+    $('#ceConds').innerHTML = sg.ce.list.map(condHtml).join('');
+    $('#peConds').innerHTML = sg.pe.list.map(condHtml).join('');
+    $('#rgConds').innerHTML = sg.range.list.map(condHtml).join('');
+    const [s1, s2] = sg.range.ladder;
+    $('#rgLadder').textContent = sg.range.verdict === 'YES'
+      ? `RANGE DETECTED\n\n${fmtK(s1)}  ${'─'.repeat(14)}  ${fmtK(s2)}`
+      : 'No stable range between walls.';
+    const tone = (v) => v === 'YES' ? 'up' : v === 'NO' ? 'dn' : 'wt';
+    $('#ceAct').textContent = sg.ce.action; $('#ceAct').className = 'action ' + tone(sg.ce.verdict);
+    $('#peAct').textContent = sg.pe.action; $('#peAct').className = 'action ' + tone(sg.pe.verdict);
+    $('#rgAct').textContent = sg.range.action;
+    $('#rgAct').className = 'action ' + (sg.range.verdict === 'YES' ? 'wt' : '');
+  }
+
+  /* ---------- (8) alerts ---------- */
+  function renderAlerts() {
+    const a = state.sig.alerts;
+    $('#boZone').textContent = a.zoneR ? `${fmtK(a.zoneR)} CE resistance zone` : '—';
+    $('#bdZone').textContent = a.zoneS ? `${fmtK(a.zoneS)} PE support zone` : '—';
+    $('#boConds').innerHTML = a.bo.map(condHtml).join('');
+    $('#bdConds').innerHTML = a.bd.map(condHtml).join('');
+    $('#boConf').className = 'conf up' + (a.boConf ? ' show' : '');
+    $('#bdConf').className = 'conf dn' + (a.bdConf ? ' show' : '');
+  }
+
+  /* ---------- (12) market context ---------- */
+  function renderContext() {
+    const ind = state.sig.structure.ind, sp = state.snap.spot;
+    const items = [
+      ['15m Trend', ind.trend15m, ind.trend15m === 'Bullish' ? 'up' : ind.trend15m === 'Bearish' ? 'dn' : 'gy'],
+      ['1H Trend', ind.trend1h, ind.trend1h === 'Bullish' ? 'up' : ind.trend1h === 'Bearish' ? 'dn' : 'gy'],
+      ['VWAP', ind.vwap.toFixed(0), sp.ltp > ind.vwap ? 'up' : 'dn'],
+      ['RSI 14', ind.rsi.toFixed(1), ind.rsi > 55 ? 'up' : ind.rsi < 45 ? 'dn' : 'wt'],
+      ['ATR (15m)', ind.atr.toFixed(1), 'mu'],
+      ['Volume vs Avg', ind.volVsAvg.toFixed(2) + '×', ind.volVsAvg > 1.2 ? 'up' : ind.volVsAvg < 0.7 ? 'gy' : 'wt'],
+      ['India VIX', sp.vix.toFixed(2), sp.vix > 16 ? 'dn' : sp.vix < 11 ? 'up' : 'gy'],
+    ];
+    // agreement count among direction-bearing ticks
+    const dirItems = items.slice(0, 4);
+    const upN = dirItems.filter(i => i[2] === 'up').length, dnN = dirItems.filter(i => i[2] === 'dn').length;
+    const agreeN = Math.max(upN, dnN);
+    $('#ctxAgree').textContent = `Overall confirmation: ${agreeN}/4 · ${upN > dnN ? 'bullish lean' : dnN > upN ? 'bearish lean' : 'conflicting'}`;
+    $('#ctxGrid').innerHTML = items.map(([k, v, t]) =>
+      `<div style="display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line2);padding-bottom:4px">
+        <span class="mu" style="font-size:10.5px">${k}</span><b class="num ${t}" style="font-size:11.5px">${v}</b></div>`).join('');
+  }
+
+  /* ---------- (9) contracts + (10) plan ---------- */
+  function renderContracts() {
+    const dir = state.plan && state.plan.dirRaw;
+    const cs = Signals.contracts(state.snap, dir || (state.sig.structure.verdict === 'BEARISH' ? 'Bearish' : 'Bullish'));
+    if (!cs.rows.length) {
+      $('#cnSide').textContent = 'awaiting direction';
+      $('#cnBody').innerHTML = '<tr><td colspan="9" class="mu" style="text-align:center;padding:14px">Insufficient confirmation — no side selected</td></tr>';
+      return;
+    }
+    $('#cnSide').textContent = `${dir || 'Structure lean'} side · ${cs.side} · liquidity & spread highlighted`;
+    $('#cnBody').innerHTML = cs.rows.map(r => `
+      <tr>
+        <td>${fmtK(r.strike)} ${r.side} <span class="mu" style="font-weight:500">${r.label}</span></td>
+        <td><b>${fmtPx(r.leg.ltp)}</b></td>
+        <td>${r.leg.delta.toFixed(2)}</td>
+        <td class="dn">${r.leg.thetaDay.toFixed(2)}</td>
+        <td>${(r.leg.iv * 100).toFixed(1)}</td>
+        <td>${fmtL(r.leg.volume)}</td>
+        <td>${fmtL(r.leg.oi)}</td>
+        <td class="${r.spreadPct > 4 ? 'dn' : r.spreadPct > 2.2 ? 'wt' : ''}">₹${r.spread.toFixed(2)} (${r.spreadPct.toFixed(1)}%)</td>
+        <td><span class="liq ${r.liq}">${r.liqLbl}</span></td>
+      </tr>`).join('');
+  }
+
+  function renderPlan() {
+    const p = state.plan;
+    $('#plStatus').textContent = p.status;
+    $('#plDir').textContent = p.dir;
+    $('#plDir').className = 'v ' + (p.dir === 'Bullish' ? 'up' : p.dir === 'Bearish' ? 'dn' : 'gy');
+    $('#plTrig').textContent = p.trig;
+    $('#plCtr').textContent = p.ctr;
+    $('#plEntry').textContent = p.entry;
+    $('#plSl').textContent = p.sl;
+    $('#plT1').textContent = p.t1;
+    $('#plT2').textContent = p.t2;
+    $('#plInv').textContent = p.inv;
+    const tag = $('#planTag');
+    if (p.confirmed) { tag.textContent = 'CONFIRMED PLAN'; tag.className = 'tag up'; }
+    else if (p.dirRaw) { tag.textContent = 'DRAFT — UNCONFIRMED'; tag.className = 'tag wt'; }
+    else { tag.textContent = 'NO PLAN'; tag.className = 'tag gy'; }
+  }
+
+  /* ---------- (11) risk calculator ---------- */
+  function riskCalc(syncFromPlan) {
+    const g = (id) => Number($(id).value) || 0;
+    if (syncFromPlan && state.plan && state.plan.entryPrem) {
+      $('#rkEntry').value = state.plan.entryPrem.toFixed(2);
+      $('#rkSl').value = state.plan.slPrem.toFixed(2);
+      $('#rkTgt').value = state.plan.t1Prem.toFixed(2);
+      $('#rkLot').value = state.snap.meta.lotSize;
+    }
+    const cap = g('#rkCap'), pct = g('#rkPct'), entry = g('#rkEntry'), sl = g('#rkSl'), tgt = g('#rkTgt'), lot = g('#rkLot') || 75, lots = Math.max(1, g('#rkLots'));
+    const maxRisk = cap * pct / 100;
+    const qty = lots * lot;
+    const capReq = entry * qty;
+    const loss = Math.max(0, (entry - sl)) * qty;
+    const pft = Math.max(0, (tgt - entry)) * qty;
+    const rr = loss > 0 ? pft / loss : 0;
+    const maxLots = Math.max(0, Math.floor(maxRisk / (Math.max(entry - sl, 0.01) * lot)));
+    $('#roMax').textContent = '₹' + fmtK(maxRisk);
+    $('#roQty').textContent = fmtK(qty);
+    $('#roCap').textContent = '₹' + fmtK(capReq);
+    $('#roLoss').textContent = '₹' + fmtK(loss);
+    $('#roPft').textContent = '₹' + fmtK(pft);
+    $('#roRR').textContent = rr ? '1 : ' + rr.toFixed(2) : '—';
+    $('#roMaxLots').textContent = fmtK(maxLots);
+    const w = $('#rkWarn');
+    if (loss > maxRisk) {
+      w.className = 'riskwarn bad show';
+      w.textContent = `⚠ Risk ₹${fmtK(loss)} exceeds your max ₹${fmtK(maxRisk)} (${pct}%). Reduce to ≤ ${maxLots} lot(s) or tighten SL.`;
+    } else if (capReq > cap) {
+      w.className = 'riskwarn bad show';
+      w.textContent = `⚠ Capital required ₹${fmtK(capReq)} exceeds trading capital ₹${fmtK(cap)}.`;
+    } else {
+      w.className = 'riskwarn ok show';
+      w.textContent = `Risk within limits (₹${fmtK(loss)} ≤ ₹${fmtK(maxRisk)}). Still a scenario — not a guaranteed outcome.`;
+    }
+  }
+
+  /* ---------- (13) signal log ---------- */
+  function logStageTransitions() {
+    const sg = state.sig;
+    const now = Date.now();
+    if (state.stagePrev === sg.stage) return;
+    if (now - (state.lastLogAt || 0) < 15000 && sg.stage !== 'CONFIRMATION') { state.stagePrev = sg.stage; return; }
+    const p = state.plan;
+    const dir = sg.ce.verdict === 'YES' ? 'Bullish' : sg.pe.verdict === 'YES' ? 'Bearish' : (p && p.dirRaw) || '—';
+    const strike = p && p.ctrStrike ? p.ctrStrike + ' ' + (p.side || '') : '—';
+    const row = {
+      spot: state.snap.spot.ltp.toFixed(2),
+      dir, strike,
+      signal: sg.stage,
+      reason: sg.stageWhy || sg.ce.action || '',
+      entry: p && p.entryPrem ? '₹' + p.entryPrem.toFixed(2) : '—',
+      sl: p && p.slPrem ? '₹' + p.slPrem.toFixed(2) : '—',
+      target: p && p.t1Prem ? '₹' + p.t1Prem.toFixed(2) : '—',
+    };
+    if (sg.stage === 'CONFIRMATION' && p && p.entryPrem) {
+      SignalLog.add({
+        ...row, result: 'RUN',
+        _track: {
+          entry: p.entryPrem, sl: p.slPrem, t1: p.t1Prem, t2: p.t2Prem,
+          invLevel: state.sig.alerts.zoneR || state.sig.alerts.zoneS,
+          dir: p.dirRaw, strike: p.ctrStrike, side: p.side,
+        },
+      });
+      state.lastLogAt = now;
+    } else if (sg.stage !== 'OBSERVATION' || Math.abs(state.sig.structure.score) >= 1.5) {
+      SignalLog.add(row);
+      state.lastLogAt = now;
+    }
+    state.stagePrev = sg.stage;
+    renderLog();
+  }
+
+  function updateLogResults() {
+    const snap = state.snap;
+    let changed = false;
+    for (const r of SignalLog.get()) {
+      const t = r._track;
+      if (!t || r.result !== 'RUN') continue;
+      const row = snap.chain.find(x => x.strike === t.strike);
+      const leg = row && row[t.side];
+      if (!leg) continue;
+      const prem = leg.ltp;
+      const S = snap.spot.ltp;
+      let res = null;
+      if (prem >= t.t2) res = 'T2';
+      else if (prem >= t.t1) res = 'T1';
+      else if (prem <= t.sl) res = 'SL';
+      else if (t.dir === 'Bullish' && t.invLevel != null && S < t.invLevel - 35) res = 'INV';
+      else if (t.dir === 'Bearish' && t.invLevel != null && S > t.invLevel + 35) res = 'INV';
+      if (res) { SignalLog.update(r.id, { result: res }); changed = true; }
+    }
+    if (changed) renderLog();
+  }
+
+  function renderLog() {
+    const rows = SignalLog.get();
+    $('#logBody').innerHTML = rows.length ? rows.map(r => `
+      <tr>
+        <td>${new Date(r.ts).toLocaleTimeString('en-GB', { timeZone: IST, hour12: false })}</td>
+        <td>${r.spot}</td>
+        <td class="${r.dir === 'Bullish' ? 'up' : r.dir === 'Bearish' ? 'dn' : 'mu'}">${r.dir}</td>
+        <td>${r.strike}</td>
+        <td>${r.signal}</td>
+        <td class="reason" title="${(r.reason || '').replace(/"/g, '')}">${r.reason || ''}</td>
+        <td>${r.entry}</td><td class="dn">${r.sl}</td><td class="up">${r.target}</td>
+        <td><span class="res ${r.result}">${r.result === 'LOG' ? 'LOGGED' : r.result === 'RUN' ? 'RUNNING' : r.result === 'INV' ? 'INVALIDATED' : r.result === 'SL' ? 'STOPPED' : r.result + ' HIT'}</span></td>
+      </tr>`).join('') : '<tr><td colspan="10" class="mu" style="text-align:center;padding:14px">No setups logged yet — log fills as the scanner forms or confirms setups.</td></tr>';
+  }
+
+  /* ---------- refresh ---------- */
+  function refresh() {
+    let snap = state.provider.getSnapshot();
+    snap = Analytics.decorate(snap);
+    state.snap = snap;
+    state.sig = Signals.setups(snap);
+    state.plan = Signals.plan(snap, state.sig);
+    renderHeader(); renderStructure(); renderLevels(); renderPcr();
+    renderChain(); renderScanner(); renderAlerts(); renderContext();
+    renderContracts(); renderPlan(); renderLog();
+    logStageTransitions();
+    updateLogResults();
+    if (state.plan.entryPrem && !state.riskTouched) riskCalc(true);
+    else riskCalc(false);
+    state.nextAt = Date.now() + state.interval;
+  }
+
+  /* ---------- events ---------- */
+  function bind() {
+    $('#btnAuto').addEventListener('click', () => {
+      state.auto = !state.auto;
+      $('#btnAuto').classList.toggle('on', state.auto);
+      $('#btnAuto').textContent = state.auto ? 'AUTO' : 'PAUSED';
+      state.nextAt = Date.now() + state.interval;
+    });
+    $('#btnNow').addEventListener('click', refresh);
+    $('#selInt').addEventListener('change', (e) => { state.interval = Number(e.target.value); state.nextAt = Date.now() + state.interval; });
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'INPUT') return;
+      if (e.code === 'Space') { e.preventDefault(); $('#btnAuto').click(); }
+      if (e.key === 'r' || e.key === 'R') refresh();
+    });
+    ['#rkCap', '#rkPct', '#rkEntry', '#rkSl', '#rkTgt', '#rkLot', '#rkLots'].forEach(id =>
+      $(id).addEventListener('input', () => { state.riskTouched = true; riskCalc(false); }));
+    $('#btnClrLog').addEventListener('click', () => { SignalLog.clear(); renderLog(); });
+  }
+
+  function boot() {
+    state.provider.init();
+    bind();
+    refresh();
+    setInterval(() => state.provider.tick(), 1000);
+    setInterval(() => { if (state.auto && Date.now() >= state.nextAt) refresh(); }, 250);
+    // keep "Updated" clock fresh even without a data refresh
+    setInterval(() => { if (state.snap) $('#hUpd').textContent = istHMS() + ' IST'; }, 1000);
+  }
+
+  return { boot, state, refresh };
+})();
+
+App.boot();
+</script>
+</body>
+</html>
