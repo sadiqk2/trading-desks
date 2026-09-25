@@ -38,6 +38,7 @@ sadiqk2/trading-desks            ← GitHub Pages site root
 ├─ index.html                    ← landing hub  → sadiqk2.github.io/trading-desks/
 ├─ nifty-options-desk/           ← options desk → sadiqk2.github.io/trading-desks/nifty-options-desk/
 ├─ nse-pulse/                    ← most active  → sadiqk2.github.io/trading-desks/nse-pulse/
+├─ bridge/                       ← local NSE live bridge (run `node bridge/nse-bridge.js` on your machine)
 └─ publish.sh                    ← create repo → push → enable Pages → print live URL
 ```
 

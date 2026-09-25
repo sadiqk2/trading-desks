@@ -12,6 +12,15 @@ node server.js          # → http://localhost:8081   (PORT=… to change)
 
 `index.html` is self-contained and also opens directly in a browser.
 
+## Live NSE data
+
+```bash
+node bridge/nse-bridge.js                 # from the repo root — live nseindia.com → 127.0.0.1:8082
+NSE_FIXTURE=1 node bridge/nse-bridge.js   # demo pipeline with the bundled genuine snapshot
+```
+
+The dashboard auto-detects the bridge and shows **LIVE · NSE INDIA** (or **FIXTURE DATA**); without it the honest **SIM FEED** badge shows and the seeded simulator keeps running.
+
 ## What it does
 
 | # | Panel | Function |

@@ -26,6 +26,15 @@ LIVE=0 node server.js     # skip live-NSE probing entirely
 
 `index.html` is fully self-contained — you can open it directly in a browser too.
 
+## Live NSE data
+
+```bash
+node bridge/nse-bridge.js                 # from the repo root — live nseindia.com → 127.0.0.1:8082
+NSE_FIXTURE=1 node bridge/nse-bridge.js   # demo pipeline with the bundled genuine snapshot
+```
+
+The tape auto-detects the bridge (badge **LIVE · nseindia.com most active contracts** / **FIXTURE** / **SIM**).
+
 ## Feed modes
 
 | Mode | When | What you see |
