@@ -1189,25 +1189,30 @@ function renderMeta() {
 
 /* -------- refresh loop -------- */
 async function probeFeed() {
-  try {
-    const r = await fetch('/api/health', { cache: 'no-store' });
-    const j = await r.json();
-    state.remoteMode = j.mode === 'live' ? 'live' : 'sim';
-    state.feedLabel = j.mode === 'live'
-      ? 'LIVE · nseindia.com most active contracts'
-      : `SIM · tick engine seeded from NSE ${SEED_ASOF}`;
-    return state.remoteMode;
-  } catch {
-    state.remoteMode = 'sim';
-    state.feedLabel = `SIM · tick engine seeded from NSE ${SEED_ASOF}` + (location.protocol === 'file:' ? ' (static mode)' : '');
-    return 'sim';
+  for (const base of ['', 'http://127.0.0.1:8082']) {
+    try {
+      const r = await fetch(base + '/api/health', { cache: 'no-store' });
+      const j = await r.json();
+      if (j && j.mode === 'live') {
+        state.apiBase = base;
+        state.remoteMode = 'live';
+        state.feedLabel = (j.fixture || /fixture/i.test(String(j.source || '')))
+          ? 'FIXTURE · genuine NSE snapshot bundle (pipeline mode)'
+          : 'LIVE · nseindia.com most active contracts';
+        return 'live';
+      }
+    } catch (e) { /* try next base */ }
   }
+  state.remoteMode = 'sim';
+  state.apiBase = '';
+  state.feedLabel = `SIM · tick engine seeded from NSE ${SEED_ASOF}` + (location.protocol === 'file:' ? ' (static mode)' : '') + ' — run node bridge/nse-bridge.js for live data';
+  return 'sim';
 }
 
 async function getSnapshot() {
   if (state.remoteMode === 'live') {
     try {
-      const r = await fetch('/api/snapshot', { cache: 'no-store' });
+      const r = await fetch((state.apiBase || '') + '/api/snapshot', { cache: 'no-store' });
       const j = await r.json();
       if (j.meta && j.meta.mode === 'live' && j.contracts) {
         // merge live rows into engine-shaped objects (history kept client-side)
@@ -1285,13 +1290,13 @@ function toggleAuto() {
 /* -------- boot -------- */
 (async function boot() {
   await probeFeed();
-  Engine.warmup(150, 3000);
+  if (state.remoteMode !== 'live') Engine.warmup(150, 3000);
   // default select most active NIFTY option
   const star = Engine.contracts.find(c => c.symbol === 'NIFTY' && c.opt === 'PE' && c.strike === 23100) || Engine.contracts[0];
   state.selectedId = star.id;
   await refresh();
   setInterval(() => { $('#clock').innerHTML = istTime() + '<small>IST</small>'; }, 250);
-  setInterval(() => { Engine.tick(); }, 1000);          // continuous tape
+  setInterval(() => { if (state.remoteMode !== 'live') Engine.tick(); }, 1000);          // continuous tape (sim mode)
   setInterval(probeFeed, 60000);                        // re-probe live availability
   requestAnimationFrame(uiLoop);
 })();

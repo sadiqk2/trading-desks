@@ -18,6 +18,19 @@ seeded from genuine NSE snapshots (25-Sep-2026, 10:40 IST); each project documen
 schema its provider must return, so a live broker feed (Kite / Upstox / NSE proxy) drops in without
 UI changes — see each folder's `README.md` and the `LiveProvider` slots.
 
+## Real NSE data — live mode
+
+Both dashboards probe for a live NSE source at start-up (app server → `http://127.0.0.1:8082` → built-in simulator) and label the feed honestly: **LIVE · NSE INDIA** / **FIXTURE DATA** / **SIM FEED**.
+
+NSE's CDN blocks data-centre IPs, so live collection runs through a zero-dependency bridge **on your own machine** (residential/Indian connection works):
+
+```bash
+node bridge/nse-bridge.js                 # live nseindia.com data → http://127.0.0.1:8082
+NSE_FIXTURE=1 node bridge/nse-bridge.js   # demo the pipeline with the bundled genuine snapshot
+```
+
+The dashboards — including the GitHub Pages site — detect the bridge automatically (it serves CORS + Private-Network headers; `127.0.0.1` is exempt from mixed-content blocking). No UI changes: the data layer was designed swappable.
+
 ## Repository layout
 
 ```

@@ -848,6 +848,9 @@ const Analytics = (() => {
 
   function decorate(snap) {
     for (const row of snap.chain) {
+      // unify ce/pe + CE/PE — JSON transports duplicate the aliases into separate objects
+      row.CE = row.CE || row.ce; row.ce = row.CE;
+      row.PE = row.PE || row.pe; row.pe = row.PE;
       for (const s of ['CE', 'PE']) {
         const leg = row[s];
         leg.classify = classify(leg);
@@ -1327,11 +1330,14 @@ const App = (() => {
     stEl.textContent = m.marketStatus === 'OPEN' ? 'OPEN' : 'CLOSED';
     stEl.className = 'status ' + (m.marketStatus === 'OPEN' ? 'open' : 'closed');
     const feedEl = $('#feedLbl');
-    feedEl.textContent = m.mode === 'live' ? 'LIVE FEED' : 'SIM FEED';
-    feedEl.className = m.mode === 'live' ? 'lbl-sim lbl-live' : 'lbl-sim';
-    $('#ftFeed').textContent = m.mode === 'live'
-      ? `${m.provider} live option-chain provider`
-      : `mock provider — chain seeded from NSE 25-Sep-2026 10:40 IST, live tick simulation (swap LiveProvider for a broker API)`;
+    const isLive = m.mode === 'live';
+    const isFix = isLive && /fixture/i.test(String(m.source || ''));
+    feedEl.textContent = isLive ? (isFix ? 'FIXTURE DATA' : 'LIVE · NSE INDIA') : 'SIM FEED';
+    feedEl.className = isLive && !isFix ? 'lbl-sim lbl-live' : 'lbl-sim';
+    $('#ftFeed').textContent = isLive
+      ? (isFix ? 'fixture bundle — genuine NSE snapshot 25-Sep-2026 10:40 IST (pipeline test mode)'
+               : `live nseindia.com option chain — ${m.source || 'nseindia.com'}`)
+      : 'simulator seeded from NSE 25-Sep-2026 10:40 IST — run `node bridge/nse-bridge.js` for live NSE data';
   }
 
   /* ---------- (2) structure panel ---------- */
@@ -1676,8 +1682,9 @@ const App = (() => {
   }
 
   /* ---------- refresh ---------- */
-  function refresh() {
-    let snap = state.provider.getSnapshot();
+  async function refresh() {
+    let snap = await state.provider.getSnapshot();
+    if (!snap) snap = MockOptionChainProvider.getSnapshot();
     snap = Analytics.decorate(snap);
     state.snap = snap;
     state.sig = Signals.setups(snap);
@@ -1712,12 +1719,21 @@ const App = (() => {
     $('#btnClrLog').addEventListener('click', () => { SignalLog.clear(); renderLog(); });
   }
 
-  function boot() {
-    state.provider.init();
+  async function boot() {
     bind();
-    refresh();
+    const ok = await RemoteNseProvider.init();
+    state.provider = ok ? RemoteNseProvider : MockOptionChainProvider;
+    await state.provider.init();
+    await refresh();
     setInterval(() => state.provider.tick(), 1000);
     setInterval(() => { if (state.auto && Date.now() >= state.nextAt) refresh(); }, 250);
+    // go live automatically if the bridge comes up later
+    setInterval(async () => {
+      if (state.provider !== RemoteNseProvider && await RemoteNseProvider.init()) {
+        state.provider = RemoteNseProvider;
+        refresh();
+      }
+    }, 60000);
     // keep "Updated" clock fresh even without a data refresh
     setInterval(() => { if (state.snap) $('#hUpd').textContent = istHMS() + ' IST'; }, 1000);
   }

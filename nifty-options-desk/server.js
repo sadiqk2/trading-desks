@@ -30,11 +30,14 @@ const PUBLIC_DIR = __dirname; // index.html sits at the project root (GitHub-Pag
    Leg = { ltp, prevClose, chgPct, volume, oi, oiChg, iv, bid, ask, delta, thetaDay, prevOi, volAvg }
    ------------------------------------------------------------------ */
 async function fetchLiveSnapshot() {
-  // Example skeleton (uncomment & fill with your broker's SDK):
-  //   const kite = new KiteConnect({ api_key: process.env.KITE_KEY });
-  //   const oc = await kite.getOptionChain('NIFTY', expiry);
-  //   return mapToSnapshot(oc);
-  return null; // no live provider configured
+  // Live NSE via the shared bridge module (works when run in the repo layout;
+  // falls back to the client-side simulator when unreachable).
+  try {
+    const live = require(path.join(__dirname, '..', 'bridge', 'nse-live'));
+    return await live.getDeskSnapshot();
+  } catch (e) {
+    return null; // no live source → /api/chain reports 501 and the client uses its simulator
+  }
 }
 
 const MIME = {
