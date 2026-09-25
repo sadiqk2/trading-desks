@@ -1,6 +1,6 @@
 /**
  * NIFTY Options Desk — dev server
- *   • serves public/index.html (self-contained dashboard)
+ *   • serves index.html (self-contained dashboard)
  *   • /api/health  → provider status
  *   • /api/chain   → option-chain Snapshot in the documented schema (README.md)
  *

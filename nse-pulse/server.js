@@ -1,7 +1,7 @@
 /**
  * NSE Pulse — Most Active Contracts
  * Tiny zero-dependency Node server:
- *   - serves the self-contained dashboard (public/index.html)
+ *   - serves the self-contained dashboard (index.html)
  *   - /api/health    → feed status
  *   - /api/snapshot  → most-active-contracts snapshot (live NSE when reachable)
  *   - /api/series    → full tick series for one contract
