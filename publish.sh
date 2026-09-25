@@ -32,15 +32,24 @@ fi
 # make the single authored commit carry the GitHub identity
 git commit --amend --reset-author --no-edit >/dev/null 2>&1 || true
 
-echo "→ create repo ${ME}/${REPO_NAME} (${VISIBILITY})"
-CODE=$(curl -s -o /tmp/gh_repo.json -w "%{http_code}" -H "$AUTH" -H "$ACCEPT" -X POST "$API/user/repos" \
-  -d "{\"name\":\"${REPO_NAME}\",\"description\":\"${DESCRIPTION}\",\"has_pages\":true,\"visibility\":\"${VISIBILITY}\"}")
-if [ "$CODE" = "201" ]; then
-  echo "  created."
-elif [ "$CODE" = "422" ] && jq -e '.errors[]? | select(.code=="already_exists")' /tmp/gh_repo.json >/dev/null; then
-  echo "  already exists — reusing."
+# reuse the repo if it already exists (fine-grained PATs cannot create repos)
+EXISTS=$(curl -s -o /dev/null -w "%{http_code}" -H "$AUTH" -H "$ACCEPT" "$API/repos/${ME}/${REPO_NAME}")
+if [ "$EXISTS" = "200" ]; then
+  echo "→ repo ${ME}/${REPO_NAME} already exists — reusing."
 else
-  echo "  repo create failed (HTTP ${CODE}):"; cat /tmp/gh_repo.json; exit 1
+  echo "→ create repo ${ME}/${REPO_NAME} (${VISIBILITY})"
+  CODE=$(curl -s -o /tmp/gh_repo.json -w "%{http_code}" -H "$AUTH" -H "$ACCEPT" -X POST "$API/user/repos" \
+    -d "{\"name\":\"${REPO_NAME}\",\"description\":\"${DESCRIPTION}\",\"has_pages\":true,\"visibility\":\"${VISIBILITY}\"}")
+  if [ "$CODE" = "201" ]; then
+    echo "  created."
+  elif [ "$CODE" = "422" ] && jq -e '.errors[]? | select(.code=="already_exists")' /tmp/gh_repo.json >/dev/null; then
+    echo "  already exists — reusing."
+  else
+    echo "  repo create failed (HTTP ${CODE}):"; cat /tmp/gh_repo.json
+    echo "  hint: fine-grained PAT needs 'Administration + Repository creation: write',"
+    echo "        or create the empty repo in the web UI and re-run."
+    exit 1
+  fi
 fi
 
 echo "→ push main"
