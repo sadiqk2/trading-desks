@@ -246,6 +246,42 @@
   .res.SL,.res.INV{color:var(--dn);background:var(--dnbg);border:1px solid var(--dnbd)}
   .res.LOG{color:var(--muted);background:var(--greybg);border:1px solid var(--line)}
 
+
+  /* ============================ scalp mode ============================ */
+  .scalp-bar{
+    display:flex;align-items:center;gap:10px;padding:8px 14px;background:linear-gradient(90deg, rgba(240,185,11,.08), rgba(14,203,129,.06));
+    border-bottom:1px solid var(--line);flex-wrap:wrap
+  }
+  .scalp-bar .scalp-title{font-size:10.5px;font-weight:900;letter-spacing:.12em;color:var(--warn);display:flex;align-items:center;gap:6px}
+  .scalp-bar .dot{width:8px;height:8px;border-radius:50%;background:var(--warn);box-shadow:0 0 8px rgba(240,185,11,.6);animation:pulse 1.6s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
+  .scalp-on{color:var(--up)!important;border-color:var(--upbd)!important;background:var(--upbg)!important}
+  .scalp-off{color:var(--muted)!important}
+  .scalp-dash{display:grid;grid-template-columns:1.2fr .9fr .9fr;gap:12px}
+  @media(max-width:1360px){.scalp-dash{grid-template-columns:1fr}}
+  .conf-meter{display:flex;gap:4px;margin:8px 0 6px}
+  .conf-dot{flex:1;height:10px;border-radius:3px;background:var(--panel3);border:1px solid var(--line2);position:relative;overflow:hidden}
+  .conf-dot.on.up{background:var(--up);border-color:var(--up)}
+  .conf-dot.on.dn{background:var(--dn);border-color:var(--dn)}
+  .conf-dot.on.wt{background:var(--warn);border-color:var(--warn)}
+  .conf-dot.on.gy{background:var(--grey);border-color:var(--grey)}
+  .conf-list{display:flex;flex-direction:column;gap:4px;margin-top:8px}
+  .conf-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;background:var(--bg2);border:1px solid var(--line2);font-size:11px}
+  .conf-item.ok{border-color:var(--upbd);background:var(--upbg)}
+  .conf-item.no{border-color:var(--dnbd);background:var(--dnbg)}
+  .conf-item.pend{border-color:var(--warnbd);background:var(--warnbg)}
+  .scalp-ladder-mini{position:relative;height:42px;margin:8px 0;border:1px solid var(--line2);border-radius:5px;background:var(--bg2);overflow:hidden}
+  .flash{animation:flashBg .9s ease}
+  @keyframes flashBg{0%{background:rgba(246,70,93,.18)}100%{background:var(--bg2)}}
+  .paper-btn{flex:1;padding:8px 0;border-radius:4px;font-weight:800;font-size:11px;letter-spacing:.06em;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--txt2)}
+  .paper-btn.long{color:var(--up);border-color:var(--upbd);background:var(--upbg)}
+  .paper-btn.short{color:var(--dn);border-color:var(--dnbd);background:var(--dnbg)}
+  .paper-btn:disabled{opacity:.45;cursor:not-allowed}
+  .spark{width:100%;height:72px;display:block;background:var(--bg2);border:1px solid var(--line2);border-radius:4px}
+  .liq-filter{font-size:9px;font-weight:800;letter-spacing:.08em;padding:2px 6px;border-radius:3px}
+  .liq-filter.ok{color:var(--up);background:var(--upbg);border:1px solid var(--upbd)}
+  .liq-filter.bad{color:var(--dn);background:var(--dnbg);border:1px solid var(--dnbd)}
+
   footer{max-width:1720px;margin:0 auto;padding:4px 16px 24px;color:var(--dim);font-size:10px;
     display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line2);padding-top:12px}
   footer b{color:var(--muted)}
@@ -281,6 +317,14 @@
   <span class="lbl-sim" id="feedLbl">SIM FEED</span>
   <span class="status closed" id="hStatus">—</span>
   <div class="hctl">
+    <button class="btn scalp-off" id="btnScalp" title="Toggle scalp mode (S)">⚡ SCALP</button>
+    <select class="btn" id="selTf" style="display:none" title="Scalp timeframe">
+      <option value="15">15m</option>
+      <option value="5" selected>5m</option>
+      <option value="3">3m</option>
+      <option value="1">1m</option>
+    </select>
+    <button class="btn" id="btnSound" title="Sound alerts" style="display:none">🔊</button>
     <button class="btn on" id="btnAuto">AUTO</button>
     <select class="btn" id="selInt">
       <option value="1000">1s</option>
@@ -292,6 +336,80 @@
 </header>
 
 <main>
+
+  <!-- SCALP DASHBOARD (visible only when SCALP MODE is ON) -->
+  <section class="grid" id="scalpDash" style="display:none">
+    <div class="card c12" style="border-color:rgba(240,185,11,.35)">
+      <header class="hh" style="background:linear-gradient(90deg, rgba(240,185,11,.10), transparent)">
+        <h2>⚡ Scalp Mode</h2><span class="sp"></span>
+        <span class="tag wt" id="scalpTag">STANDBY — 5 checks needed</span>
+        <span class="hint" id="scalpHint">needs 4/5 confirmations — never trades on one signal</span>
+      </header>
+      <div class="bd" style="padding:0">
+        <div class="scalp-bar">
+          <span class="scalp-title"><span class="dot"></span> SCALP RADAR</span>
+          <span class="hint">Timeframe:</span><b class="num" id="scalpTfLbl">5m</b>
+          <span class="hint">Sensitivity:</span>
+          <select class="btn" id="selSens" style="padding:3px 6px;font-size:10.5px"><option value="conservative">Conservative 5/5</option><option value="balanced" selected>Balanced 4/5</option><option value="aggressive">Aggressive 3/5</option></select>
+          <span class="sp"></span>
+          <span class="hint">Tight risk: SL 0.6× ATR · Targets 1 : 1.5 / 1 : 2.2</span>
+          <span class="liq-filter ok" id="scalpLiqLbl">LIQUID ONLY</span>
+        </div>
+        <div class="scalp-dash" style="padding:12px">
+          <!-- left: confluence -->
+          <div>
+            <div style="display:flex;align-items:baseline;gap:8px"><b class="num" id="scalpScore" style="font-size:22px">0/5</b><span class="hint" id="scalpScoreLbl">no edge</span><span class="sp"></span><span class="tag gy" id="scalpVerdict">WAIT</span></div>
+            <div class="conf-meter" id="scalpMeter"></div>
+            <div class="conf-list" id="scalpConds"></div>
+            <div id="scalpAction" class="action wt" style="margin-top:8px">STANDBY — waiting for confluence</div>
+            <svg class="spark" id="scalpSpark" viewBox="0 0 300 72" preserveAspectRatio="none"></svg>
+            <div class="hint" style="margin-top:4px">Spark: price + EMA9 (yellow) + EMA21 (blue) + VWAP (dashed) — <span id="scalpSparkLbl">5m</span> timeframe</div>
+          </div>
+          <!-- middle: micro levels -->
+          <div>
+            <h3 style="font-size:10.5px;letter-spacing:.1em;color:var(--muted);font-weight:800">MICRO LEVELS (scalping)</h3>
+            <div class="scalp-ladder-mini" id="scalpLadder"></div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
+              <div style="background:var(--dnbg);border:1px solid var(--dnbd);border-radius:4px;padding:6px 8px;text-align:center"><div class="hint">Scalp Resistance</div><b class="num dn" id="scalpR" style="font-size:15px">—</b><div class="hint" id="scalpRwhy" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div></div>
+              <div style="background:var(--upbg);border:1px solid var(--upbd);border-radius:4px;padding:6px 8px;text-align:center"><div class="hint">Scalp Support</div><b class="num up" id="scalpS" style="font-size:15px">—</b><div class="hint" id="scalpSwhy" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div></div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:8px">
+              <div style="flex:1;background:var(--bg2);border:1px solid var(--line2);border-radius:4px;padding:6px;text-align:center"><div class="hint">Dist. to R</div><b class="num" id="scalpDistR">—</b></div>
+              <div style="flex:1;background:var(--bg2);border:1px solid var(--line2);border-radius:4px;padding:6px;text-align:center"><div class="hint">Dist. to S</div><b class="num" id="scalpDistS">—</b></div>
+              <div style="flex:1;background:var(--bg2);border:1px solid var(--line2);border-radius:4px;padding:6px;text-align:center"><div class="hint">Momentum</div><b class="num" id="scalpMom">—</b></div>
+            </div>
+            <div class="hint" style="margin-top:6px">Micro levels use nearest high-OI strikes ±100 pts + tight volume check — not round numbers alone.</div>
+          </div>
+          <!-- right: quick trade + journal -->
+          <div>
+            <h3 style="font-size:10.5px;letter-spacing:.1em;color:var(--muted);font-weight:800">QUICK PAPER SCALP</h3>
+            <div style="display:flex;gap:6px;margin-top:6px">
+              <button class="paper-btn long" id="btnPaperLong">▲ PAPER LONG</button>
+              <button class="paper-btn short" id="btnPaperShort">▼ PAPER SHORT</button>
+            </div>
+            <div class="hint" style="margin:6px 0">Paper only — logs a scalp with tight SL/Target. Never places a real order.</div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
+              <div style="background:var(--bg2);border:1px solid var(--line2);border-radius:4px;padding:7px"><div class="hint">Scalp SL</div><b class="num dn" id="scalpSL">—</b><div class="hint" id="scalpSLwhy"></div></div>
+              <div style="background:var(--bg2);border:1px solid var(--line2);border-radius:4px;padding:7px"><div class="hint">Scalp T1 / T2</div><b class="num up" id="scalpTGT">—</b><div class="hint" id="scalpTGTwhy"></div></div>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:6px">
+              <div style="flex:1;background:var(--panel3);border:1px solid var(--line2);border-radius:4px;padding:6px;text-align:center"><div class="hint">RR</div><b class="num" id="scalpRR">—</b></div>
+              <div style="flex:1;background:var(--panel3);border:1px solid var(--line2);border-radius:4px;padding:6px;text-align:center"><div class="hint">Spread</div><b class="num" id="scalpSpread">—</b></div>
+              <div style="flex:1;background:var(--panel3);border:1px solid var(--line2);border-radius:4px;padding:6px;text-align:center"><div class="hint">Liq</div><b class="num" id="scalpLiq">—</b></div>
+            </div>
+            <div style="margin-top:8px;max-height:118px;overflow:auto;border:1px solid var(--line2);border-radius:4px;background:var(--bg2)" id="scalpJournalBox">
+              <table class="ktable" style="font-size:10.5px"><thead><tr><th>Time</th><th>Side</th><th>Entry</th><th>Now</th><th>P&L</th><th>Result</th></tr></thead><tbody id="scalpJournalBody"><tr><td colspan="6" class="mu" style="text-align:center;padding:10px">No paper scalps yet — click PAPER LONG/SHORT to journal.</td></tr></tbody></table>
+            </div>
+            <div style="display:flex;gap:6px;margin-top:6px"><button class="btn" id="btnClearPaper" style="flex:1;padding:4px">CLEAR JOURNAL</button><span class="hint" id="scalpJournalStats"></span></div>
+          </div>
+        </div>
+      </div>
+      <div class="footnote">Scalp mode tightens everything but keeps the same rule: <b>needs multiple confirmations — one indicator never makes a signal</b>. Nothing here is a guarantee.</div>
+    </div>
+  </section>
+
+  <div id="scalpFlash" style="display:none;position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:70;padding:10px 18px;border-radius:6px;font-weight:900;letter-spacing:.06em;font-family:var(--mono);font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.4)"></div>
+
   <!-- ROW A : structure + levels -->
   <section class="grid">
     <div class="card c7" id="cardStructure">
@@ -1277,6 +1395,154 @@ const Signals = (() => {
   return { setups, contracts, plan, atmStrike };
 })();
 
+
+/* ============================================================================
+   SCALP ENGINE — tight, multi-confirmation scalping layer
+   Never generates a scalp on one condition. Requires N/5 checklist.
+   Timeframe: resamples 15m candles into 5m/3m/1m for EMA/VWAP/momentum.
+   ============================================================================ */
+const ScalpEngine = (() => {
+  function resample(candles15m, tf){
+    if(tf===15) return candles15m.slice();
+    const out=[];
+    for(const c of candles15m){
+      const n = 15/tf;
+      // split 15m candle into n equal sub-candles, preserve shape
+      const volPer = Math.round(c.v / n);
+      const range = c.h - c.l;
+      const body = c.c - c.o;
+      for(let i=0;i<n;i++){
+        const t = c.t + i*tf*60*1000;
+        const f = i / n;
+        const o = c.o + body * f;
+        const cc = c.o + body * (f + 1/n);
+        // wiggle high/low around interpolated body
+        const mid = (o+cc)/2;
+        const hh = Math.max(o,cc) + range*0.18*(0.7+Math.random()*0.6);
+        const ll = Math.min(o,cc) - range*0.18*(0.7+Math.random()*0.6);
+        out.push({t,o,h:Math.min(c.h, hh), l:Math.max(c.l, ll), c:cc, v:volPer});
+      }
+    }
+    return out;
+  }
+  function ema(arr, p){
+    if(!arr.length) return null;
+    const a=2/(p+1); let e=arr[0];
+    for(let i=1;i<arr.length;i++) e=arr[i]*a+e*(1-a);
+    return e;
+  }
+  function scalpIndicators(snap, tf){
+    const raw = snap.spot.candles15m;
+    const cs = resample(raw, tf);
+    const closes = cs.map(c=>c.c);
+    const n = closes.length;
+    if(n<25) return {e9: snap.spot.ltp, e21: snap.spot.ltp, vwap: snap.spot.ltp, rsi:50, atr:20, volVsAvg:1, mom:0, cs};
+    // VWAP on TF
+    let pv=0,vv=0; cs.forEach(c=>{ const tp=(c.h+c.l+c.c)/3; pv+=tp*c.v; vv+=c.v; });
+    const vwap = vv? pv/vv : snap.spot.ltp;
+    const e9 = ema(closes.slice(-40), 9);
+    const e21 = ema(closes.slice(-60), 21);
+    // RSI 14 on TF (completed bars)
+    const done = closes.slice(0,-1);
+    const k = Math.min(14, done.length-1);
+    let g=0,l=0;
+    for(let i=done.length-k;i<done.length;i++){ const d=done[i]-done[i-1]; if(d>=0) g+=d; else l-=d; }
+    let ag=k?g/k:0, al=k?l/k:0;
+    for(let i=done.length-k+1;i<done.length;i++){ const d=done[i]-done[i-1]; ag=(ag*13+Math.max(d,0))/14; al=(al*13+Math.max(-d,0))/14; }
+    const rsi = al<1e-9 ? (ag>0?74:50) : 100-100/(1+ag/al);
+    // ATR 14
+    let atr=0,cnt=0; for(let i=Math.max(1,cs.length-14); i<cs.length; i++){ const c=cs[i], pc=cs[i-1]; atr+=Math.max(c.h-c.l, Math.abs(c.h-pc.c), Math.abs(c.l-pc.c)); cnt++; } atr=cnt? atr/cnt : 18;
+    // vol vs avg (pace)
+    const forming = cs[cs.length-1]; const doneCs = cs.slice(0,-1);
+    let av=0, ac=0; for(let i=Math.max(0,doneCs.length-20); i<doneCs.length; i++){ av+=doneCs[i].v; ac++; }
+    const base = ac? av/ac : forming.v;
+    const elapsed = Math.max(0.5, (Date.now()-forming.t)/60000);
+    const volVsAvg = (forming.v * (tf/elapsed))/base;
+    // momentum burst: price distance from e9 + rsi slope
+    const mom = (snap.spot.ltp - e9)/Math.max(atr, 8);
+    return {e9, e21, vwap, rsi, atr, volVsAvg, mom, cs};
+  }
+  function microLevels(snap){
+    const S=snap.spot.ltp;
+    // nearest high-OI walls within 200 pts but prefer ±100, sorted by composite OI score
+    const scored = snap.chain.map(r=>{
+      const cScore = r.ce.oi*0.6 + Math.max(r.ce.oiChg,0)*0.3 + r.ce.volume*0.1;
+      const pScore = r.pe.oi*0.6 + Math.max(r.pe.oiChg,0)*0.3 + r.pe.volume*0.1;
+      return {strike:r.strike, cScore, pScore, ce:r.ce, pe:r.pe};
+    });
+    const ups = scored.filter(x=>x.strike>S).sort((a,b)=> b.cScore - a.cScore);
+    const dns = scored.filter(x=>x.strike<S).sort((a,b)=> b.pScore - a.pScore);
+    // tight scalp pick: best within 120 pts, else best overall
+    const pick = (arr)=>{
+      const tight = arr.filter(x=> Math.abs(x.strike-S)<=120);
+      return (tight[0]||arr[0]||null);
+    };
+    const rPick = pick(ups), sPick = pick(dns);
+    return {
+      r: rPick? rPick.strike : null, rWhy: rPick? `CE OI ${fmtL(rPick.ce.oi)} vol ${fmtL(rPick.ce.volume)}` : '—',
+      s: sPick? sPick.strike : null, sWhy: sPick? `PE OI ${fmtL(sPick.pe.oi)} vol ${fmtL(sPick.pe.volume)}` : '—',
+      rPick, sPick
+    };
+  }
+  function confluence(snap, ind, micro){
+    const S=snap.spot.ltp;
+    const emaBull = ind.e9 > ind.e21 + ind.atr*0.04;
+    const emaBear = ind.e9 < ind.e21 - ind.atr*0.04;
+    const priceAboveVwap = S > ind.vwap + 2;
+    const priceBelowVwap = S < ind.vwap - 2;
+    const volBurst = ind.volVsAvg >= 1.28 || snap.chain.some(r=> r.ce.unusualVol || r.pe.unusualVol);
+    const rsiBullOk = ind.rsi >= 52 && ind.rsi < 72;
+    const rsiBearOk = ind.rsi > 28 && ind.rsi <= 48;
+    const nearR = micro.r && Math.abs(S - micro.r) <= 45;
+    const nearS = micro.s && Math.abs(S - micro.s) <= 45;
+    const oiBull = snap.chain.some(r=> Math.abs(r.strike - (micro.r||S))<=100 && r.ce.classify.code==='SC') || snap.chain.filter(r=> Math.abs(r.strike-S)<=150).filter(r=> r.pe.classify.code==='WR').length>=1;
+    const oiBear = snap.chain.some(r=> Math.abs(r.strike - (micro.s||S))<=100 && r.pe.classify.code==='SC') || snap.chain.filter(r=> Math.abs(r.strike-S)<=150).filter(r=> r.ce.classify.code==='WR').length>=1;
+
+    const bullChecks = [
+      {k:'EMA 9 > 21', ok: emaBull, pend: Math.abs(ind.e9-ind.e21) < ind.atr*0.06, d:`9:${ind.e9.toFixed(0)} 21:${ind.e21.toFixed(0)}`},
+      {k:'Price > VWAP', ok: priceAboveVwap, pend: Math.abs(S-ind.vwap)<=4, d:`VWAP ${ind.vwap.toFixed(0)}`},
+      {k:'RSI 52–72', ok: rsiBullOk, pend: ind.rsi>=48 && ind.rsi<52, d:`RSI ${ind.rsi.toFixed(0)}`},
+      {k:'Volume burst', ok: volBurst, pend: ind.volVsAvg>=0.95 && ind.volVsAvg<1.28, d:`${ind.volVsAvg.toFixed(2)}×`},
+      {k:'OI + level', ok: (nearR || oiBull), pend: !nearR && !oiBull && ind.volVsAvg>1.0, d: nearR? `near ${fmtK(micro.r)}` : oiBull? 'OI confirms' : 'no zone edge'},
+    ];
+    const bearChecks = [
+      {k:'EMA 9 < 21', ok: emaBear, pend: Math.abs(ind.e9-ind.e21) < ind.atr*0.06, d:`9:${ind.e9.toFixed(0)} 21:${ind.e21.toFixed(0)}`},
+      {k:'Price < VWAP', ok: priceBelowVwap, pend: Math.abs(S-ind.vwap)<=4, d:`VWAP ${ind.vwap.toFixed(0)}`},
+      {k:'RSI 28–48', ok: rsiBearOk, pend: ind.rsi>48 && ind.rsi<=52, d:`RSI ${ind.rsi.toFixed(0)}`},
+      {k:'Volume burst', ok: volBurst, pend: ind.volVsAvg>=0.95 && ind.volVsAvg<1.28, d:`${ind.volVsAvg.toFixed(2)}×`},
+      {k:'OI + level', ok: (nearS || oiBear), pend: !nearS && !oiBear && ind.volVsAvg>1.0, d: nearS? `near ${fmtK(micro.s)}` : oiBear? 'OI confirms' : 'no zone edge'},
+    ];
+    return {bullChecks, bearChecks, emaBull, emaBear, priceAboveVwap, priceBelowVwap, volBurst, rsiBullOk, rsiBearOk, ind, micro};
+  }
+  function evaluate(snap, tf, sens){
+    const ind = scalpIndicators(snap, tf);
+    const micro = microLevels(snap);
+    const conf = confluence(snap, ind, micro);
+    const need = sens==='conservative'?5 : sens==='balanced'?4 : 3;
+    const bullOk = conf.bullChecks.filter(c=>c.ok).length;
+    const bearOk = conf.bearChecks.filter(c=>c.ok).length;
+    const bullPend = conf.bullChecks.filter(c=>c.pend).length;
+    const bearPend = conf.bearChecks.filter(c=>c.pend).length;
+    let verdict='WAIT', tone='gy', action='STANDBY — waiting for confluence';
+    let side=null, score=0;
+    // never single-condition: need >= need AND at least one of EMA/VWAP plus volume
+    const bullCore = (conf.emaBull || conf.priceAboveVwap) && conf.volBurst;
+    const bearCore = (conf.emaBear || conf.priceBelowVwap) && conf.volBurst;
+    if(bullOk>=need && bullCore){ verdict='LONG'; tone='up'; side='CE'; score=bullOk; action=`SCALP LONG ${side} — ${bullOk}/5 confirms · tight SL`; }
+    else if(bearOk>=need && bearCore){ verdict='SHORT'; tone='dn'; side='PE'; score=bearOk; action=`SCALP SHORT ${side} — ${bearOk}/5 confirms · tight SL`; }
+    else if(bullOk>=need-1 && bullCore || bearOk>=need-1 && bearCore){ verdict='WAIT'; tone='wt'; score=Math.max(bullOk,bearOk); action=`1 away — ${Math.max(bullOk,bearOk)}/5 · waiting for final confirm`; }
+    else if(bullPend+bullOk>=2 || bearPend+bearOk>=2){ verdict='WAIT'; tone='wt'; score=Math.max(bullOk,bearOk); action=`Building — ${Math.max(bullOk,bearOk)}/5` }
+    // spread/liquidity guard — if spread too wide, downgrade to WAIT
+    const atm = snap.chain.reduce((b,r)=> Math.abs(r.strike-snap.spot.ltp)<Math.abs(b.strike-snap.spot.ltp)?r:b, snap.chain[0]);
+    const leg = side? atm[side] : atm.CE;
+    const spreadPct = leg? (leg.ask-leg.bid)/Math.max(leg.ltp,1)*100 : 99;
+    const thin = spreadPct>4.0 || (leg && leg.volume<110000);
+    if(thin && verdict!=='WAIT'){ verdict='WAIT'; tone='wt'; action+=' · spread/filter blocks — wait for liquid strike'; }
+    return {ind, micro, conf, bullOk, bearOk, need, verdict, tone, side, score, thin, spreadPct, leg, atmStrike: atm.strike};
+  }
+  return {resample, scalpIndicators, microLevels, confluence, evaluate};
+})();
+
 /* format helpers shared by layers */
 function fmtK(n) { return n == null ? '—' : n.toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
 function fmtL(n) { // lakh-ish compact
@@ -1308,11 +1574,210 @@ const SignalLog = (() => {
    ============================================================================ */
 const App = (() => {
   const $ = (s) => document.querySelector(s);
+
+  /* scalp sound + journal */
+  let audioCtx=null;
+  function beep(freq, dur, vol){
+    if(!state.scalpSound) return;
+    try{
+      if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+      const o=audioCtx.createOscillator(), g=audioCtx.createGain();
+      o.type='sine'; o.frequency.value=freq;
+      g.gain.value=vol||0.16; o.connect(g); g.connect(audioCtx.destination);
+      o.start(); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+dur);
+      o.stop(audioCtx.currentTime+dur);
+    }catch(e){}
+  }
+  function flash(msg, tone){
+    const el=$('#scalpFlash');
+    el.textContent=msg; el.style.display='block';
+    el.style.background = tone==='up'? 'var(--up)': tone==='dn'? 'var(--dn)': 'var(--warn)';
+    el.style.color = tone==='up'||tone==='dn'? '#fff':'#111';
+    el.style.border='1px solid '+(tone==='up'?'var(--upbd)': tone==='dn'?'var(--dnbd)':'var(--warnbd)');
+    clearTimeout(flash._t);
+    flash._t=setTimeout(()=> el.style.display='none', 2600);
+  }
+  const SCALP_KEY='niftydesk.scalp.v1';
+  function loadScalpJournal(){ try{ state.scalpJournal=JSON.parse(localStorage.getItem(SCALP_KEY)||'[]'); }catch(e){ state.scalpJournal=[]; } }
+  function saveScalpJournal(){ try{ localStorage.setItem(SCALP_KEY, JSON.stringify(state.scalpJournal.slice(0,60))); }catch(e){} }
+  function paperScalp(dir){
+    if(!state.snap || !state.scalpOn) return;
+    const ev = ScalpEngine.evaluate(state.snap, state.scalpTf, state.scalpSens);
+    const S=state.snap.spot.ltp;
+    const atmRow = state.snap.chain.find(r=>r.strike===ev.atmStrike);
+    const side = dir==='LONG'?'CE':'PE';
+    const leg = atmRow && atmRow[side];
+    if(!leg) return;
+    const entry = leg.ltp;
+    const atr = ev.ind.atr;
+    const slPrem = Math.max(0.05, entry - (entry*0.18 + atr*0.18*0.5)); // tight scalp SL: ~18% + ATR component
+    // for short (PE Long when bearish), same premium logic - long option
+    const sl = slPrem;
+    const t1 = entry + (entry - sl)*1.5;
+    const t2 = entry + (entry - sl)*2.2;
+    const rec = {id: Date.now()+Math.random(), ts:new Date().toISOString(), dir, side, strike:ev.atmStrike, entry, sl, t1, t2, spot:S, tf:state.scalpTf, result:'RUN'};
+    state.scalpJournal.unshift(rec);
+    if(state.scalpJournal.length>60) state.scalpJournal.pop();
+    saveScalpJournal(); renderScalpJournal();
+    flash(`Paper ${dir} logged @ ₹${entry.toFixed(2)}`, dir==='LONG'?'up':'dn');
+    beep(dir==='LONG'?880:440, 0.18, 0.2);
+  }
+  function renderScalpJournal(){
+    const rows=state.scalpJournal;
+    if(!rows.length){
+      $('#scalpJournalBody').innerHTML='<tr><td colspan="6" class="mu" style="text-align:center;padding:10px">No paper scalps yet — click PAPER LONG/SHORT to journal.</td></tr>';
+      $('#scalpJournalStats').textContent='';
+      return;
+    }
+    // update P&L vs current snapshot
+    let win=0, loss=0, run=0;
+    const nowSnap = state.snap;
+    for(const r of rows){
+      if(r.result==='RUN' && nowSnap){
+        const row = nowSnap.chain.find(x=>x.strike===r.strike);
+        const leg = row && row[r.side];
+        if(leg){
+          const cur=leg.ltp;
+          r.cur = cur;
+          r.pnl = ((cur - r.entry)/r.entry*100);
+          if(cur >= r.t2) r.result='T2';
+          else if(cur >= r.t1) r.result='T1';
+          else if(cur <= r.sl) r.result='SL';
+        }
+      }
+      if(r.result==='T1'||r.result==='T2') win++; else if(r.result==='SL') loss++; else if(r.result==='RUN') run++;
+    }
+    $('#scalpJournalBody').innerHTML = rows.slice(0,12).map(r=>`
+      <tr>
+        <td>${new Date(r.ts).toLocaleTimeString('en-GB',{timeZone:IST,hour12:false})}</td>
+        <td class="${r.dir==='LONG'?'up':'dn'}">${r.dir}</td>
+        <td>${r.entry.toFixed(2)}</td>
+        <td>${r.cur? r.cur.toFixed(2):'—'}</td>
+        <td class="${(r.pnl||0)>=0?'up':'dn'}">${r.pnl? (r.pnl>=0?'+':'')+r.pnl.toFixed(1)+'%':'—'}</td>
+        <td><span class="res ${r.result}">${r.result}</span></td>
+      </tr>`).join('');
+    $('#scalpJournalStats').textContent = `${win}W · ${loss}L · ${run} running`;
+  }
+
+  function renderScalp(){
+    if(!state.snap) return;
+    const ev = ScalpEngine.evaluate(state.snap, state.scalpTf, state.scalpSens);
+    const S = state.snap.spot.ltp;
+    $('#scalpTfLbl').textContent = state.scalpTf+'m';
+    $('#scalpSparkLbl').textContent = state.scalpTf+'m';
+    $('#scalpScore').textContent = ev.score + '/5';
+    const lbl = ev.verdict==='LONG'?'bullish scalp' : ev.verdict==='SHORT'?'bearish scalp' : ev.score>=3?'building':'no edge';
+    $('#scalpScoreLbl').textContent = lbl;
+    $('#scalpVerdict').textContent = ev.verdict;
+    $('#scalpVerdict').className = 'tag '+(ev.verdict==='LONG'?'up':ev.verdict==='SHORT'?'dn':ev.verdict==='WAIT'?'wt':'gy');
+    $('#scalpTag').textContent = ev.verdict==='LONG'||ev.verdict==='SHORT'? `CONFIRMED — ${ev.verdict} needs tight SL` : `${ev.score}/5 confirms · need ${ev.need}/5`;
+    $('#scalpTag').className = 'tag '+(ev.verdict==='LONG'?'up':ev.verdict==='SHORT'?'dn':ev.score>=ev.need-1?'wt':'gy');
+    // meter
+    const checks = ev.verdict==='SHORT'? ev.conf.bearChecks : ev.conf.bullChecks;
+    $('#scalpMeter').innerHTML = checks.map(c=> `<span class="conf-dot ${c.ok? 'on '+(ev.verdict==='SHORT'?'dn':'up') : c.pend? 'on wt' : ''}"></span>`).join('');
+    $('#scalpConds').innerHTML = checks.map(c=>{
+      const cls=c.ok?'ok': c.pend?'pend':'no';
+      const mark=c.ok?'✓': c.pend?'…':'✗';
+      return `<div class="conf-item ${cls}"><span class="m ${c.ok?'ok':c.pend?'pend':'gy'}" style="width:14px;height:14px;display:grid;place-items:center;border-radius:3px;font-weight:900;font-size:9px">${mark}</span><span style="flex:1"><b>${c.k}</b> <span class="mu">(${c.d})</span></span></div>`;
+    }).join('');
+    $('#scalpAction').textContent = ev.action;
+    $('#scalpAction').className='action '+(ev.verdict==='LONG'?'up':ev.verdict==='SHORT'?'dn':'wt');
+    // micro levels
+    $('#scalpR').textContent = ev.micro.r? fmtK(ev.micro.r):'—';
+    $('#scalpRwhy').textContent = ev.micro.rWhy;
+    $('#scalpS').textContent = ev.micro.s? fmtK(ev.micro.s):'—';
+    $('#scalpSwhy').textContent = ev.micro.sWhy;
+    $('#scalpDistR').textContent = ev.micro.r? (ev.micro.r - S).toFixed(0)+' pts':'—';
+    $('#scalpDistS').textContent = ev.micro.s? (S - ev.micro.s).toFixed(0)+' pts':'—';
+    $('#scalpMom').textContent = ev.ind.mom>0.6?'▲ strong' : ev.ind.mom<-0.6?'▼ strong' : ev.ind.mom>0.2?'▲ weak':'—';
+    $('#scalpMom').className='num '+(ev.ind.mom>0.3?'up':ev.ind.mom<-0.3?'dn':'mu');
+    // ladder mini
+    const lo = Math.min(ev.micro.s||S-120, S-110)-20, hi=Math.max(ev.micro.r||S+120, S+110)+20;
+    const X=p=> ((p-lo)/(hi-lo))*100;
+    $('#scalpLadder').innerHTML = `
+      <span class="zone" style="left:${X(ev.micro.s||lo)}%;right:${100-X(ev.micro.r||hi)}%;background:${ev.verdict==='LONG'?'rgba(14,203,129,.14)':ev.verdict==='SHORT'?'rgba(246,70,93,.14)':'rgba(255,255,255,.06)'}"></span>
+      ${ev.micro.s? `<span class="mk" style="left:${X(ev.micro.s)}%;background:var(--up)"></span><span class="t" style="left:${X(ev.micro.s)}%;color:var(--up)">${fmtK(ev.micro.s)}</span>`:''}
+      ${ev.micro.r? `<span class="mk" style="left:${X(ev.micro.r)}%;background:var(--dn)"></span><span class="t" style="left:${X(ev.micro.r)}%;color:var(--dn)">${fmtK(ev.micro.r)}</span>`:''}
+      <span class="cur" style="left:${Math.min(94,Math.max(6,X(S)))}%">${S.toFixed(0)}</span>`;
+    // SL/TGT
+    if(ev.leg){
+      const entry=ev.leg.ltp;
+      const sl = Math.max(0.05, entry*0.82 - ev.ind.atr*0.12);
+      const t1 = entry + (entry - sl)*1.5;
+      const t2 = entry + (entry - sl)*2.2;
+      $('#scalpSL').textContent = '₹'+sl.toFixed(2);
+      $('#scalpSLwhy').textContent = `entry ₹${entry.toFixed(2)} · ~${((1-sl/entry)*100).toFixed(1)}%`;
+      $('#scalpTGT').textContent = `₹${t1.toFixed(2)} / ₹${t2.toFixed(2)}`;
+      $('#scalpTGTwhy').textContent = `1:1.5 / 1:2.2`;
+      const rr = (t1-entry)/Math.max(entry-sl,0.01);
+      $('#scalpRR').textContent = '1:'+rr.toFixed(2);
+      $('#scalpSpread').textContent = ev.spreadPct.toFixed(1)+'%';
+      $('#scalpSpread').className='num '+(ev.spreadPct>2.2?'dn':ev.spreadPct>1.4?'wt':'up');
+      $('#scalpLiq').textContent = ev.thin?'THIN':'OK';
+      $('#scalpLiq').className='num '+(ev.thin?'dn':'up');
+      $('#scalpLiqLbl').textContent = ev.thin?'THIN — WAIT':'LIQUID ONLY';
+      $('#scalpLiqLbl').className='liq-filter '+(ev.thin?'bad':'ok');
+      // enable paper buttons only when liquid
+      $('#btnPaperLong').disabled = ev.thin;
+      $('#btnPaperShort').disabled = ev.thin;
+    }
+    // spark
+    renderScalpSpark(ev.ind);
+    // sound + flash on verdict change
+    if(state.scalpPrevVerdict && state.scalpPrevVerdict!==ev.verdict){
+      if(ev.verdict==='LONG' || ev.verdict==='SHORT'){
+        beep(ev.verdict==='LONG'?880:520, 0.22, 0.22);
+        flash(`SCALP ${ev.verdict} — ${ev.score}/5 CONFIRMED`, ev.verdict==='LONG'?'up':'dn');
+      } else if(state.scalpPrevVerdict==='LONG' || state.scalpPrevVerdict==='SHORT'){
+        beep(320, 0.3, 0.14);
+        flash('SCALP INVALIDATED — stand aside', 'wt');
+      }
+    }
+    state.scalpPrevVerdict = ev.verdict;
+    renderScalpJournal();
+  }
+  function renderScalpSpark(ind){
+    const svg=$('#scalpSpark');
+    if(!svg || !ind || !ind.cs) return;
+    const cs=ind.cs.slice(-48);
+    if(cs.length<4) return;
+    const W=300, H=72, pad=6;
+    const xs = cs.map((c,i)=> pad + (i/(cs.length-1))*(W-pad*2));
+    const ys = cs.map(c=>c.c);
+    const vwapYs = [];
+    // compute rolling? just use ind values for lines - approximate
+    let min=Math.min(...ys, ind.e9, ind.e21, ind.vwap)-8, max=Math.max(...ys, ind.e9, ind.e21, ind.vwap)+8;
+    const Y=v=> H-pad - ((v-min)/(max-min||1))*(H-pad*2);
+    const path = (vals, color, width, dash)=>{
+      const d = vals.map((v,i)=> `${i===0?'M':'L'} ${xs[i].toFixed(1)} ${Y(v).toFixed(1)}`).join(' ');
+      return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${width}" ${dash?`stroke-dasharray="${dash}"`:''} opacity=".95"/>`;
+    };
+    const ema9s=[], ema21s=[];
+    // compute ema series for spark
+    let a9=2/10, a21=2/22;
+    let e9=ys[0], e21=ys[0];
+    for(let i=0;i<ys.length;i++){
+      if(i===0){ e9=ys[0]; e21=ys[0]; } else { e9=ys[i]*a9+e9*(1-a9); e21=ys[i]*a21+e21*(1-a21); }
+      ema9s.push(e9); ema21s.push(e21);
+    }
+    const vwapLine = cs.map(()=> ind.vwap);
+    const pricePath = cs.map(c=>c.c);
+    svg.innerHTML = `
+      <rect x="0" y="0" width="${W}" height="${H}" rx="4" fill="var(--bg2)" stroke="var(--line2)"/>
+      ${path(vwapLine, '#8a8f98', 1, '4 3')}
+      ${path(ema21s, '#5a8cff', 1.2, '')}
+      ${path(ema9s, '#f0b90b', 1.4, '')}
+      ${path(pricePath, '#eaecef', 1.6, '')}
+    `;
+  }
+
+
   const fmtPx = (n) => n == null ? '—' : n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
   const state = {
     provider: MockOptionChainProvider,
     snap: null, sig: null, plan: null,
     auto: true, interval: 2000, nextAt: 0,
+    scalpOn: false, scalpTf: 5, scalpSens: 'balanced', scalpSound: true, scalpPrevVerdict: null, scalpJournal: [],
     prev: {}, stagePrev: null, loggedStages: new Set(),
   };
 
@@ -1696,6 +2161,7 @@ const App = (() => {
     updateLogResults();
     if (state.plan.entryPrem && !state.riskTouched) riskCalc(true);
     else riskCalc(false);
+    if(state.scalpOn) renderScalp();
     state.nextAt = Date.now() + state.interval;
   }
 
@@ -1717,6 +2183,27 @@ const App = (() => {
     ['#rkCap', '#rkPct', '#rkEntry', '#rkSl', '#rkTgt', '#rkLot', '#rkLots'].forEach(id =>
       $(id).addEventListener('input', () => { state.riskTouched = true; riskCalc(false); }));
     $('#btnClrLog').addEventListener('click', () => { SignalLog.clear(); renderLog(); });
+    // scalp controls
+    $('#btnScalp').addEventListener('click', () => {
+      state.scalpOn = !state.scalpOn;
+      $('#btnScalp').classList.toggle('scalp-on', state.scalpOn);
+      $('#btnScalp').classList.toggle('scalp-off', !state.scalpOn);
+      $('#btnScalp').textContent = state.scalpOn ? '⚡ SCALP ON' : '⚡ SCALP';
+      $('#scalpDash').style.display = state.scalpOn ? '' : 'none';
+      $('#selTf').style.display = state.scalpOn ? '' : 'none';
+      $('#btnSound').style.display = state.scalpOn ? '' : 'none';
+      if(state.scalpOn) renderScalp();
+    });
+    $('#selTf').addEventListener('change', e=>{ state.scalpTf = Number(e.target.value); if(state.scalpOn) renderScalp(); });
+    $('#selSens').addEventListener('change', e=>{ state.scalpSens = e.target.value; if(state.scalpOn) renderScalp(); });
+    $('#btnSound').addEventListener('click', ()=>{ state.scalpSound=!state.scalpSound; $('#btnSound').textContent = state.scalpSound?'🔊':'🔇'; });
+    document.addEventListener('keydown', e=>{
+      if(e.key.toLowerCase()==='s' && e.target.tagName!=='INPUT'){ e.preventDefault(); $('#btnScalp').click(); }
+    });
+    $('#btnPaperLong').addEventListener('click', ()=> paperScalp('LONG'));
+    $('#btnPaperShort').addEventListener('click', ()=> paperScalp('SHORT'));
+    $('#btnClearPaper').addEventListener('click', ()=>{ state.scalpJournal=[]; saveScalpJournal(); renderScalpJournal(); });
+    loadScalpJournal();
   }
 
   async function boot() {
