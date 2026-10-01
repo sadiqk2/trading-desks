@@ -2,16 +2,15 @@
  * nse-bridge.js — local NSE data bridge (zero dependencies, Node ≥ 18)
  *
  *   node bridge/nse-bridge.js            # live NSE (run on your own machine / Indian IP)
- *   NSE_FIXTURE=1 node bridge/nse-bridge.js   # demo the pipeline with the bundled genuine snapshot
  *
- * Endpoints (CORS + Private-Network enabled so the GitHub Pages site can call it):
+ * Endpoints (CORS + Private-Network enabled for clients that explicitly call this bridge):
  *   GET /api/health   → feed status
  *   GET /api/chain    → NIFTY Options Desk Snapshot (schema in README)
  *   GET /api/snapshot → NSE Pulse most-active-contracts snapshot
  *
- * Both dashboards probe  http://127.0.0.1:8082  automatically and switch their
- * badge to LIVE when this bridge is running — from localhost OR from
- * https://sadiqk2.github.io/trading-desks/ in Chrome/Edge/Firefox.
+ * This bridge provides raw live API access for clients that explicitly call it.
+ * The dashboards use their same-origin Node servers and do not silently fall back
+ * to this bridge or to any local fixture.
  */
 'use strict';
 
@@ -19,17 +18,6 @@ const http = require('http');
 const live = require('./nse-live');
 
 const PORT = Number(process.env.BRIDGE_PORT || 8082);
-const cache = new Map();          // key → { at, data }
-const TTL = 2500;
-
-async function cached(key, fn) {
-  const hit = cache.get(key);
-  if (hit && Date.now() - hit.at < TTL) return hit.data;
-  const data = await fn();
-  cache.set(key, { at: Date.now(), data });
-  return data;
-}
-
 const CORS = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, OPTIONS',
@@ -48,13 +36,16 @@ const server = http.createServer(async (req, res) => {
   if (req.method === 'OPTIONS') { res.writeHead(204, CORS); res.end(); return; }
 
   try {
-    if (url === '/api/health') return send(200, await live.health());
+    if (url === '/api/health') {
+      const health = await live.health();
+      return send(health.mode === 'live' ? 200 : 503, health);
+    }
     if (url === '/api/chain') {
-      const snap = await cached('chain', () => live.getDeskSnapshot());
+      const snap = await live.getDeskSnapshot();
       return send(200, snap);
     }
     if (url === '/api/snapshot') {
-      const snap = await cached('ma', () => live.getMostActive());
+      const snap = await live.getMostActive();
       return send(200, snap);
     }
     send(404, { error: 'unknown endpoint — try /api/health, /api/chain, /api/snapshot' });
@@ -78,6 +69,6 @@ server.listen(PORT, '0.0.0.0', async () => {
     if (snap) console.log(`NIFTY ${snap.spot.ltp}  ·  expiry ${snap.meta.expiry} (${snap.meta.dteText})  ·  ${snap.chain.length} strikes  ·  market ${snap.meta.marketStatus}`);
   } else {
     console.log(`feed: UNAVAILABLE — ${h.error || h.note}`);
-    console.log('→ run from a residential/Indian connection, or demo with:  NSE_FIXTURE=1 node bridge/nse-bridge.js');
+    console.log('→ run from a residential/Indian connection. No fixture or generated fallback is enabled.');
   }
 });

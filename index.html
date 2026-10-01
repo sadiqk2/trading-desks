@@ -42,29 +42,27 @@
 <body>
   <header>
     <h1>TRADING <span>DESKS</span></h1>
-    <p>Self-contained market analytics terminals · runs fully client-side</p>
+    <p>NSE market dashboards · live data requires the local Node server</p>
   </header>
   <div class="grid">
     <a class="card" href="nifty-options-desk/">
       <span class="tag t1">OPTIONS ANALYTICS</span>
       <h2>NIFTY Options Desk</h2>
-      <p class="d">Option-chain terminal: market structure with evidence ladder, OI-based S/R,
-      per-strike buildup/writing classification, CE/PE/RANGE setup scanner, breakout alerts,
-      contract selector, trade plans and a risk calculator.</p>
+      <p class="d">NSE option-chain observations, source-derived levels and indicators, scenario planning,
+      contract details, and a risk calculator. Missing live data is shown as unavailable.</p>
       <span class="go">open desk →</span>
     </a>
     <a class="card" href="nse-pulse/">
       <span class="tag t2">MOST ACTIVE CONTRACTS</span>
       <h2>NSE Pulse</h2>
-      <p class="d">Real-time most-active-contracts flow: premium-traded leaderboard, CE-vs-PE
-      premium flow, live price charts and per-contract BUY / SELL / HOLD signals with
-      auto-refresh.</p>
+      <p class="d">NSE most-active contracts with source-reported quote, turnover, and open-interest
+      fields, plus descriptive price/OI observations. No substitute data is shown on feed failure.</p>
       <span class="go">open pulse →</span>
     </a>
   </div>
   <footer>
     Educational analytics · not investment advice · derivatives carry substantial risk of loss<br/>
-    Data: simulated live feeds seeded from genuine NSE snapshots — plug a broker API for live data
+    Data: live NSE responses via the local Node servers · GitHub Pages cannot serve the live API
   </footer>
 </body>
 </html>

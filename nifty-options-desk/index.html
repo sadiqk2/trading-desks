@@ -62,9 +62,13 @@
   .btn.on{color:var(--up);border-color:var(--upbd);background:var(--upbg)}
   .btn.warn{color:var(--warn);border-color:var(--warnbd);background:var(--warnbg)}
   select.btn{padding:6px 4px}
-  .lbl-sim{font-size:9px;letter-spacing:.14em;color:var(--warn);border:1px solid var(--warnbd);background:var(--warnbg);
+  .lbl-feed{font-size:9px;letter-spacing:.14em;color:var(--warn);border:1px solid var(--warnbd);background:var(--warnbg);
     padding:3px 8px;border-radius:3px;font-weight:800}
   .lbl-live{color:var(--up);border-color:var(--upbd);background:var(--upbg)}
+  .feed-unavailable{display:none;padding:18px;color:var(--muted);line-height:1.6}
+  .feed-unavailable b{color:var(--txt)}
+  body.no-live main>.grid{display:none}
+  body.no-live #feedUnavailable{display:block}
 
   /* ============================ layout ============================ */
   main{padding:12px 14px 26px;display:flex;flex-direction:column;gap:12px;max-width:1720px;margin:0 auto}
@@ -211,6 +215,7 @@
   .liq.L{color:var(--up);background:var(--upbg);border:1px solid var(--upbd)}
   .liq.M{color:var(--warn);background:var(--warnbg);border:1px solid var(--warnbd)}
   .liq.T{color:var(--dn);background:var(--dnbg);border:1px solid var(--dnbd)}
+  .liq.U{color:var(--muted);background:var(--greybg);border:1px solid var(--line)}
 
   /* ============================ plan / risk ============================ */
   .planrow{display:grid;grid-template-columns:132px 1fr;gap:6px;padding:4.5px 0;border-bottom:1px solid var(--line2);align-items:baseline}
@@ -241,46 +246,8 @@
   table.log td{padding:5px 9px;font-family:var(--mono);font-size:11px;text-align:left;border-bottom:1px solid var(--line2);color:var(--txt2)}
   table.log td.reason{font-family:var(--sans);font-size:10.5px;color:var(--muted);max-width:340px;overflow:hidden;text-overflow:ellipsis}
   .res{font-family:var(--sans);font-size:9px;font-weight:900;letter-spacing:.06em;padding:2px 6px;border-radius:2px}
-  .res.RUN{color:var(--warn);background:var(--warnbg);border:1px solid var(--warnbd)}
-  .res.T1,.res.T2{color:var(--up);background:var(--upbg);border:1px solid var(--upbd)}
-  .res.SL,.res.INV{color:var(--dn);background:var(--dnbg);border:1px solid var(--dnbd)}
-  .res.LOG{color:var(--muted);background:var(--greybg);border:1px solid var(--line)}
+  .res.OBSERVED{color:var(--muted);background:var(--greybg);border:1px solid var(--line)}
 
-
-  /* ============================ scalp mode ============================ */
-  .scalp-bar{
-    display:flex;align-items:center;gap:10px;padding:8px 14px;background:linear-gradient(90deg, rgba(240,185,11,.08), rgba(14,203,129,.06));
-    border-bottom:1px solid var(--line);flex-wrap:wrap
-  }
-  .scalp-bar .scalp-title{font-size:10.5px;font-weight:900;letter-spacing:.12em;color:var(--warn);display:flex;align-items:center;gap:6px}
-  .scalp-bar .dot{width:8px;height:8px;border-radius:50%;background:var(--warn);box-shadow:0 0 8px rgba(240,185,11,.6);animation:pulse 1.6s infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.45}}
-  .scalp-on{color:var(--up)!important;border-color:var(--upbd)!important;background:var(--upbg)!important}
-  .scalp-off{color:var(--muted)!important}
-  .scalp-dash{display:grid;grid-template-columns:1.2fr .9fr .9fr;gap:12px}
-  @media(max-width:1360px){.scalp-dash{grid-template-columns:1fr}}
-  .conf-meter{display:flex;gap:4px;margin:8px 0 6px}
-  .conf-dot{flex:1;height:10px;border-radius:3px;background:var(--panel3);border:1px solid var(--line2);position:relative;overflow:hidden}
-  .conf-dot.on.up{background:var(--up);border-color:var(--up)}
-  .conf-dot.on.dn{background:var(--dn);border-color:var(--dn)}
-  .conf-dot.on.wt{background:var(--warn);border-color:var(--warn)}
-  .conf-dot.on.gy{background:var(--grey);border-color:var(--grey)}
-  .conf-list{display:flex;flex-direction:column;gap:4px;margin-top:8px}
-  .conf-item{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:4px;background:var(--bg2);border:1px solid var(--line2);font-size:11px}
-  .conf-item.ok{border-color:var(--upbd);background:var(--upbg)}
-  .conf-item.no{border-color:var(--dnbd);background:var(--dnbg)}
-  .conf-item.pend{border-color:var(--warnbd);background:var(--warnbg)}
-  .scalp-ladder-mini{position:relative;height:42px;margin:8px 0;border:1px solid var(--line2);border-radius:5px;background:var(--bg2);overflow:hidden}
-  .flash{animation:flashBg .9s ease}
-  @keyframes flashBg{0%{background:rgba(246,70,93,.18)}100%{background:var(--bg2)}}
-  .paper-btn{flex:1;padding:8px 0;border-radius:4px;font-weight:800;font-size:11px;letter-spacing:.06em;cursor:pointer;border:1px solid var(--line);background:var(--panel2);color:var(--txt2)}
-  .paper-btn.long{color:var(--up);border-color:var(--upbd);background:var(--upbg)}
-  .paper-btn.short{color:var(--dn);border-color:var(--dnbd);background:var(--dnbg)}
-  .paper-btn:disabled{opacity:.45;cursor:not-allowed}
-  .spark{width:100%;height:72px;display:block;background:var(--bg2);border:1px solid var(--line2);border-radius:4px}
-  .liq-filter{font-size:9px;font-weight:800;letter-spacing:.08em;padding:2px 6px;border-radius:3px}
-  .liq-filter.ok{color:var(--up);background:var(--upbg);border:1px solid var(--upbd)}
-  .liq-filter.bad{color:var(--dn);background:var(--dnbg);border:1px solid var(--dnbd)}
 
   footer{max-width:1720px;margin:0 auto;padding:4px 16px 24px;color:var(--dim);font-size:10px;
     display:flex;gap:16px;flex-wrap:wrap;border-top:1px solid var(--line2);padding-top:12px}
@@ -297,7 +264,7 @@
   }
 </style>
 </head>
-<body>
+<body class="no-live">
 
 <header>
   <div class="brand">
@@ -314,22 +281,14 @@
     <div class="hm"><div class="k">Updated</div><div class="v" id="hUpd">—</div></div>
   </div>
   <div class="hgrow"></div>
-  <span class="lbl-sim" id="feedLbl">SIM FEED</span>
+  <span class="lbl-feed" id="feedLbl">CONNECTING TO LIVE NSE</span>
   <span class="status closed" id="hStatus">—</span>
   <div class="hctl">
-    <button class="btn scalp-off" id="btnScalp" title="Toggle scalp mode (S)">⚡ SCALP</button>
-    <select class="btn" id="selTf" style="display:none" title="Scalp timeframe">
-      <option value="15">15m</option>
-      <option value="5" selected>5m</option>
-      <option value="3">3m</option>
-      <option value="1">1m</option>
-    </select>
-    <button class="btn" id="btnSound" title="Sound alerts" style="display:none">🔊</button>
     <button class="btn on" id="btnAuto">AUTO</button>
     <select class="btn" id="selInt">
-      <option value="1000">1s</option>
-      <option value="2000" selected>2s</option>
-      <option value="5000">5s</option>
+      <option value="5000" selected>5s</option>
+      <option value="10000">10s</option>
+      <option value="30000">30s</option>
     </select>
     <button class="btn" id="btnNow" title="Refresh (R)">↻ REFRESH</button>
   </div>
@@ -337,78 +296,11 @@
 
 <main>
 
-  <!-- SCALP DASHBOARD (visible only when SCALP MODE is ON) -->
-  <section class="grid" id="scalpDash" style="display:none">
-    <div class="card c12" style="border-color:rgba(240,185,11,.35)">
-      <header class="hh" style="background:linear-gradient(90deg, rgba(240,185,11,.10), transparent)">
-        <h2>⚡ Scalp Mode</h2><span class="sp"></span>
-        <span class="tag wt" id="scalpTag">STANDBY — 5 checks needed</span>
-        <span class="hint" id="scalpHint">needs 4/5 confirmations — never trades on one signal</span>
-      </header>
-      <div class="bd" style="padding:0">
-        <div class="scalp-bar">
-          <span class="scalp-title"><span class="dot"></span> SCALP RADAR</span>
-          <span class="hint">Timeframe:</span><b class="num" id="scalpTfLbl">5m</b>
-          <span class="hint">Sensitivity:</span>
-          <select class="btn" id="selSens" style="padding:3px 6px;font-size:10.5px"><option value="conservative">Conservative 5/5</option><option value="balanced" selected>Balanced 4/5</option><option value="aggressive">Aggressive 3/5</option></select>
-          <span class="sp"></span>
-          <span class="hint">Tight risk: SL 0.6× ATR · Targets 1 : 1.5 / 1 : 2.2</span>
-          <span class="liq-filter ok" id="scalpLiqLbl">LIQUID ONLY</span>
-        </div>
-        <div class="scalp-dash" style="padding:12px">
-          <!-- left: confluence -->
-          <div>
-            <div style="display:flex;align-items:baseline;gap:8px"><b class="num" id="scalpScore" style="font-size:22px">0/5</b><span class="hint" id="scalpScoreLbl">no edge</span><span class="sp"></span><span class="tag gy" id="scalpVerdict">WAIT</span></div>
-            <div class="conf-meter" id="scalpMeter"></div>
-            <div class="conf-list" id="scalpConds"></div>
-            <div id="scalpAction" class="action wt" style="margin-top:8px">STANDBY — waiting for confluence</div>
-            <svg class="spark" id="scalpSpark" viewBox="0 0 300 72" preserveAspectRatio="none"></svg>
-            <div class="hint" style="margin-top:4px">Spark: price + EMA9 (yellow) + EMA21 (blue) + VWAP (dashed) — <span id="scalpSparkLbl">5m</span> timeframe</div>
-          </div>
-          <!-- middle: micro levels -->
-          <div>
-            <h3 style="font-size:10.5px;letter-spacing:.1em;color:var(--muted);font-weight:800">MICRO LEVELS (scalping)</h3>
-            <div class="scalp-ladder-mini" id="scalpLadder"></div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px">
-              <div style="background:var(--dnbg);border:1px solid var(--dnbd);border-radius:4px;padding:6px 8px;text-align:center"><div class="hint">Scalp Resistance</div><b class="num dn" id="scalpR" style="font-size:15px">—</b><div class="hint" id="scalpRwhy" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div></div>
-              <div style="background:var(--upbg);border:1px solid var(--upbd);border-radius:4px;padding:6px 8px;text-align:center"><div class="hint">Scalp Support</div><b class="num up" id="scalpS" style="font-size:15px">—</b><div class="hint" id="scalpSwhy" style="white-space:nowrap;overflow:hidden;text-overflow:ellipsis"></div></div>
-            </div>
-            <div style="display:flex;gap:6px;margin-top:8px">
-              <div style="flex:1;background:var(--bg2);border:1px solid var(--line2);border-radius:4px;padding:6px;text-align:center"><div class="hint">Dist. to R</div><b class="num" id="scalpDistR">—</b></div>
-              <div style="flex:1;background:var(--bg2);border:1px solid var(--line2);border-radius:4px;padding:6px;text-align:center"><div class="hint">Dist. to S</div><b class="num" id="scalpDistS">—</b></div>
-              <div style="flex:1;background:var(--bg2);border:1px solid var(--line2);border-radius:4px;padding:6px;text-align:center"><div class="hint">Momentum</div><b class="num" id="scalpMom">—</b></div>
-            </div>
-            <div class="hint" style="margin-top:6px">Micro levels use nearest high-OI strikes ±100 pts + tight volume check — not round numbers alone.</div>
-          </div>
-          <!-- right: quick trade + journal -->
-          <div>
-            <h3 style="font-size:10.5px;letter-spacing:.1em;color:var(--muted);font-weight:800">QUICK PAPER SCALP</h3>
-            <div style="display:flex;gap:6px;margin-top:6px">
-              <button class="paper-btn long" id="btnPaperLong">▲ PAPER LONG</button>
-              <button class="paper-btn short" id="btnPaperShort">▼ PAPER SHORT</button>
-            </div>
-            <div class="hint" style="margin:6px 0">Paper only — logs a scalp with tight SL/Target. Never places a real order.</div>
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px">
-              <div style="background:var(--bg2);border:1px solid var(--line2);border-radius:4px;padding:7px"><div class="hint">Scalp SL</div><b class="num dn" id="scalpSL">—</b><div class="hint" id="scalpSLwhy"></div></div>
-              <div style="background:var(--bg2);border:1px solid var(--line2);border-radius:4px;padding:7px"><div class="hint">Scalp T1 / T2</div><b class="num up" id="scalpTGT">—</b><div class="hint" id="scalpTGTwhy"></div></div>
-            </div>
-            <div style="display:flex;gap:6px;margin-top:6px">
-              <div style="flex:1;background:var(--panel3);border:1px solid var(--line2);border-radius:4px;padding:6px;text-align:center"><div class="hint">RR</div><b class="num" id="scalpRR">—</b></div>
-              <div style="flex:1;background:var(--panel3);border:1px solid var(--line2);border-radius:4px;padding:6px;text-align:center"><div class="hint">Spread</div><b class="num" id="scalpSpread">—</b></div>
-              <div style="flex:1;background:var(--panel3);border:1px solid var(--line2);border-radius:4px;padding:6px;text-align:center"><div class="hint">Liq</div><b class="num" id="scalpLiq">—</b></div>
-            </div>
-            <div style="margin-top:8px;max-height:118px;overflow:auto;border:1px solid var(--line2);border-radius:4px;background:var(--bg2)" id="scalpJournalBox">
-              <table class="ktable" style="font-size:10.5px"><thead><tr><th>Time</th><th>Side</th><th>Entry</th><th>Now</th><th>P&L</th><th>Result</th></tr></thead><tbody id="scalpJournalBody"><tr><td colspan="6" class="mu" style="text-align:center;padding:10px">No paper scalps yet — click PAPER LONG/SHORT to journal.</td></tr></tbody></table>
-            </div>
-            <div style="display:flex;gap:6px;margin-top:6px"><button class="btn" id="btnClearPaper" style="flex:1;padding:4px">CLEAR JOURNAL</button><span class="hint" id="scalpJournalStats"></span></div>
-          </div>
-        </div>
-      </div>
-      <div class="footnote">Scalp mode tightens everything but keeps the same rule: <b>needs multiple confirmations — one indicator never makes a signal</b>. Nothing here is a guarantee.</div>
-    </div>
+  <section class="card feed-unavailable" id="feedUnavailable" role="status" aria-live="polite">
+    <b>Live NSE data is unavailable.</b> Start this desk's Node server on a network that can reach NSE.
+    No embedded sample prices, saved snapshots, or generated market values are used.
+    <div class="hint" id="feedUnavailableDetail">Start <code>node nifty-options-desk/server.js</code> on a connection that can reach NSE. Static hosting has no live API.</div>
   </section>
-
-  <div id="scalpFlash" style="display:none;position:fixed;top:58px;left:50%;transform:translateX(-50%);z-index:70;padding:10px 18px;border-radius:6px;font-weight:900;letter-spacing:.06em;font-family:var(--mono);font-size:12px;box-shadow:0 8px 24px rgba(0,0,0,.4)"></div>
 
   <!-- ROW A : structure + levels -->
   <section class="grid">
@@ -561,7 +453,7 @@
           </tr></thead>
           <tbody id="cnBody"></tbody>
         </table>
-        <div class="hint" style="margin-top:8px">Spread &amp; liquidity highlighted to avoid illiquid contracts. Selection aid only — <b style="color:var(--muted)">no orders are ever placed</b>.</div>
+        <div class="hint" style="margin-top:8px">Metrics are shown only when supplied by the live NSE source. No order execution or paper trading is performed.</div>
       </div>
     </div>
 
@@ -585,13 +477,13 @@
       <header class="hh"><h2>Risk Calculator</h2><span class="sp"></span></header>
       <div class="bd">
         <div class="riskgrid">
-          <div class="field"><label>Capital ₹</label><input id="rkCap" type="number" value="200000" /></div>
-          <div class="field"><label>Max Risk %</label><input id="rkPct" type="number" value="2" step="0.5" /></div>
+          <div class="field"><label>Capital ₹</label><input id="rkCap" type="number" min="0" /></div>
+          <div class="field"><label>Max Risk %</label><input id="rkPct" type="number" min="0" step="0.5" /></div>
           <div class="field"><label>Entry Premium</label><input id="rkEntry" type="number" step="0.05" /></div>
           <div class="field"><label>SL Premium</label><input id="rkSl" type="number" step="0.05" /></div>
           <div class="field"><label>Target Premium</label><input id="rkTgt" type="number" step="0.05" /></div>
-          <div class="field"><label>Lot Size</label><input id="rkLot" type="number" value="75" /></div>
-          <div class="field"><label>Number of Lots</label><input id="rkLots" type="number" value="1" min="1" /></div>
+          <div class="field"><label>Lot Size</label><input id="rkLot" type="number" min="1" placeholder="source / enter" /></div>
+          <div class="field"><label>Number of Lots</label><input id="rkLots" type="number" min="1" /></div>
         </div>
         <div class="riskout">
           <div class="o"><span>Max ₹ Risk</span><b class="num" id="roMax">—</b></div>
@@ -610,14 +502,14 @@
   <!-- ROW E : log -->
   <section class="grid">
     <div class="card c12">
-      <header class="hh"><h2>Historical Signal Log</h2><span class="sp"></span>
-        <span class="hint">every generated setup is recorded — review it before trusting the screen</span>
+      <header class="hh"><h2>Live Signal Observation Log</h2><span class="sp"></span>
+        <span class="hint">records only observations computed from received live NSE snapshots; no simulated trade outcomes</span>
         <button class="btn" id="btnClrLog" style="padding:3px 8px">CLEAR</button></header>
       <div class="logwrap">
         <table class="log">
           <thead><tr>
             <th>Time</th><th>NIFTY</th><th>Direction</th><th>Strike</th><th>Signal</th><th>Reason</th>
-            <th>Entry</th><th>SL</th><th>Target</th><th>Result</th>
+            <th>Scenario entry</th><th>Scenario SL</th><th>Scenario target</th><th>Status</th>
           </tr></thead>
           <tbody id="logBody"></tbody>
         </table>
@@ -639,8 +531,8 @@
      await provider.init()
      provider.getSnapshot() -> Snapshot
    Snapshot {
-     meta   : { provider, mode:'sim'|'live', asOf:ISO, ist:'HH:MM:SS IST', marketStatus,
-                expiry:'29-Sep-2026', expiryISO, dteDays, dteText, lotSize }
+     meta   : { provider, mode:'live', source, asOf:ISO|null, ist, marketStatus,
+                expiry:string|null, expiryISO, dteDays, dteText, lotSize }
      spot   : { ltp, chg, chgPct, prevClose, dayOpen, dayHigh, dayLow, vwap,
                 rsi14, atr14, volVsAvg, trend15m, trend1h, vix,
                 candles15m: [{t,o,h,l,c,v}] }        // t = candle open epoch ms
@@ -651,302 +543,52 @@
      //   'LB' long buildup · 'WR' writing/short buildup · 'SC' short covering · 'LU' long unwinding
    }
    A live provider (Kite / Upstox / NSE via server proxy) only has to map its feed
-   into this shape — see README.md. server.js ships a documented /api/chain adapter.
+   into this shape — the same-origin server endpoint provides the live NSE adapter.
    ============================================================================ */
 'use strict';
 
-/* ---------- math helpers ---------- */
+/* ---------- live-data helpers + provider ---------- */
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-const lerp = (a, b, t) => a + (b - a) * t;
-function randn() { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
-function ncdf(x) {
-  const t = 1 / (1 + 0.2316419 * Math.abs(x));
-  const d = 0.3989422804014327 * Math.exp(-x * x / 2);
-  const p = d * t * (0.319381530 + t * (-0.356563782 + t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
-  return x >= 0 ? 1 - p : p;
-}
-const npdf = (x) => 0.3989422804014327 * Math.exp(-x * x / 2);
-
-/* ---------- Black–Scholes (chain synthesis + Greeks display) ---------- */
-function bs(S, K, T, r, sig, type) {
-  T = Math.max(T, 1 / (365 * 48)); sig = clamp(sig, 0.03, 2.5);
-  const st = sig * Math.sqrt(T);
-  const d1 = (Math.log(S / K) + (r + sig * sig / 2) * T) / st;
-  const d2 = d1 - st;
-  let px, delta, thetaY;
-  if (type === 'CE') {
-    px = S * ncdf(d1) - K * Math.exp(-r * T) * ncdf(d2);
-    delta = ncdf(d1);
-    thetaY = -(S * npdf(d1) * sig) / (2 * Math.sqrt(T)) - r * K * Math.exp(-r * T) * ncdf(d2);
-  } else {
-    px = K * Math.exp(-r * T) * ncdf(-d2) - S * ncdf(-d1);
-    delta = ncdf(d1) - 1;
-    thetaY = -(S * npdf(d1) * sig) / (2 * Math.sqrt(T)) + r * K * Math.exp(-r * T) * ncdf(-d2);
-  }
-  return { px: Math.max(px, 0.05), delta, thetaDay: thetaY / 365 };
-}
-
-/* ---------- IST clock ---------- */
 const IST = 'Asia/Kolkata';
 const istHMS = (d = new Date()) => new Intl.DateTimeFormat('en-GB', { timeZone: IST, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(d);
 const istHM = (d = new Date()) => new Intl.DateTimeFormat('en-GB', { timeZone: IST, hour: '2-digit', minute: '2-digit', hour12: false }).format(d);
-function istParts(d = new Date()) {
-  const f = new Intl.DateTimeFormat('en-GB', { timeZone: IST, hour: '2-digit', minute: '2-digit', weekday: 'short', day: '2-digit', month: 'short', year: 'numeric' });
-  const o = {}; f.formatToParts(d).forEach(p => { if (p.type !== 'literal') o[p.type] = p.value; });
-  return o;
-}
-function istDateISO(d = new Date()) {
-  const f = new Intl.DateTimeFormat('en-GB', { timeZone: IST, year: 'numeric', month: '2-digit', day: '2-digit' });
-  const o = {}; f.formatToParts(d).forEach(p => { if (p.type !== 'literal') o[p.type] = p.value; });
-  return `${o.year}-${o.month}-${o.day}`;
-}
+const fmtOptional = (n, digits = 2) => Number.isFinite(n) ? n.toFixed(digits) : '—';
 
-/* ============================================================================
-   MockOptionChainProvider — seeded from the genuine NSE option-chain snapshot
-   of 25-Sep-2026 10:40 IST (spot 23,068.60, expiry 29-Sep-2026).  Missing
-   strikes synthesised via Black–Scholes with a realistic IV smile.
-   ============================================================================ */
-const MockOptionChainProvider = (() => {
-  const R = 0.065, LOT = 75;
-  const SPOT0 = 23068.60, PREV_CLOSE = 23060.35, OPEN = 23052.10;
-  const EXPIRY_LABEL = '29-Sep-2026', EXPIRY_ISO = '2026-09-29T15:30:00+05:30';
+const RemoteNseProvider = (() => {
+  let initialized = false;
+  let status = 'CONNECTING TO LIVE NSE';
 
-  /* Genuine NSE rows [strike, 'CE'|'PE', ltp, chgPct, volume, oi, oiChg, iv] */
-  const REAL = [
-    [23100,'PE',106.60,-12.08,2202243,242175, -2630,13.4],
-    [23000,'PE', 69.20,-15.66,1907165,298313,22640,13.1],
-    [23100,'CE',117.00,-11.09,1688890,252350,12350,13.2],
-    [23050,'PE', 86.35,-13.48,1599764,158184,14180,13.3],
-    [23200,'CE', 70.70,-16.77,1211614,264110,21530,13.6],
-    [23150,'CE', 91.85,-14.04, 931689,132573,18330,13.4],
-    [23300,'CE', 39.10,-24.30, 846315,224890, -8210,14.2],
-    [22900,'PE', 43.15,-20.02, 819142,129129,  6610,13.9],
-    [23050,'CE',146.00, -9.01, 741170, 79058,  3830,13.1],
-    [23000,'CE',179.25, -6.35, 698603,105865,  5210,13.0],
-    [23150,'PE',131.50, -9.37, 690942, 68682, -5420,13.3],
-    [23200,'PE',159.90, -8.37, 670110,103946,  7260,13.8],
-    [23250,'CE', 53.25,-19.80, 639676,161352,  9110,13.9],
-    [22800,'PE', 27.30,-23.31, 635482,149546,  8840,14.6],
-    [23500,'CE', 11.10,-39.18, 607811,246830, 26430,15.4],
-    [22950,'PE', 54.65,-17.63, 574299, 72236,  1830,13.6],
-    [23400,'CE', 20.60,-33.23, 558639,185684, 15220,14.8],
-    [22850,'PE', 33.95,-21.95, 405133, 82339,  3120,14.2],
-    [23350,'CE', 28.50,-28.30, 404529, 88833, -4310,14.5],
-  ];
-  const realMap = new Map(REAL.map(r => [r[0] + r[1], { ltp: r[2], chgPct: r[3], volume: r[4], oi: r[5], oiChg: r[6], iv: r[7] }]));
-
-  const STRIKES = [];
-  for (let k = 22700; k <= 23500; k += 50) STRIKES.push(k);
-
-  const st = {
-    spot: SPOT0, drift: 0, tick: 0,
-    chain: [], candles: [], forming: null,
-    vix: 13.75, startedAt: Date.now(),
-  };
-
-  function ivSmile(K, S) {
-    const m = (K - S) / S;
-    const base = 13.4 + Math.pow(Math.abs(m) * 55, 1.75) + (m < 0 ? 0.9 : 0);   // put skew
-    return clamp(base, 12, 30) / 100;
+  async function init() {
+    initialized = true;
+    status = 'CONNECTING TO LIVE NSE';
+    return true;
   }
 
-  function liqProfile(K) {
-    const d = Math.abs(K - SPOT0) / 50;
-    return Math.exp(-d * 0.14);
-  }
-
-  function mkLeg(K, side) {
-    const real = realMap.get(K + side);
-    const T = dteYears();
-    const iv = real ? real.iv / 100 : ivSmile(K, SPOT0);
-    const g = bs(SPOT0, K, T, R, iv, side);
-    const ltp = real ? real.ltp : g.px;
-    const chgPct = real ? real.chgPct : (side === 'CE' ? -12 - randn() * 4 : -11 - randn() * 4);
-    const volume = real ? real.volume : Math.round(820000 * liqProfile(K) * (0.55 + Math.random() * 0.5));
-    // synthetic OI walls: calls peak at 23,200 (real), puts peak at 23,000 (real)
-    let oi;
-    if (real) oi = real.oi;
-    else if (side === 'CE') oi = Math.round(46000 + 200000 * Math.exp(-Math.pow(K - 23250, 2) / 120000) + 30000 * liqProfile(K) + Math.random() * 20000);
-    else oi = Math.round(28000 + 240000 * Math.exp(-Math.pow(K - 22980, 2) / 90000) + 25000 * liqProfile(K) + Math.random() * 15000);
-    const oiChg = real ? real.oiChg : Math.round((Math.random() - 0.42) * oi * 0.12);
-    const spreadHalf = Math.max(0.05, ltp * (liqProfile(K) > 0.7 ? 0.012 : liqProfile(K) > 0.35 ? 0.025 : 0.045));
-    return {
-      side, ltp, prevClose: ltp / (1 + chgPct / 100), chgPct,
-      volume, volAvg: Math.round(volume / 2.2), oi, oiChg, prevOi: oi - oiChg,
-      iv, bid: Math.max(0.05, ltp - spreadHalf), ask: ltp + spreadHalf,
-      delta: g.delta, thetaDay: g.thetaDay,
-      _regime: Math.floor(Math.random() * 4), _regimeT: 40 + Math.floor(Math.random() * 240),
-      _volBase: Math.max(2, volume / 22500), _dvEma: Math.max(2, volume / 22500), _spike: false,
-    };
-  }
-
-  function dteYears() {
-    const ms = new Date(EXPIRY_ISO).getTime() - Date.now();
-    return Math.max(ms, 36e5) / (365 * 24 * 36e5); // ≥ 1h
-  }
-
-  function buildCandles() {
-    /* completed 15m candles from 09:15 IST to the current boundary (or a full
-       synthetic session when viewed outside market hours) */
-    st.candles = [];
-    const now = new Date();
-    const p = istParts(now);
-    // candle boundaries use the IST calendar date (numeric ISO form — ICU-safe)
-    const dayStr = istDateISO(now);
-    const at = (hhmm) => new Date(`${dayStr}T${hhmm}:00+05:30`).getTime();
-    let t0 = at('09:15'), tEnd = Date.now();
-    if (tEnd - t0 > 6 * 36e5 || tEnd < t0) { t0 = tEnd - 40 * 15 * 6e4; t0 = Math.floor(t0 / 9e5) * 9e5; }
-    let px = OPEN, i = 0;
-    for (let t = t0; t + 9e5 <= tEnd; t += 9e5, i++) {
-      const o = px;
-      const drift = 3.0 * Math.sin(i / 5.5) + randn() * 7;
-      const c = o + drift;
-      const h = Math.max(o, c) + Math.abs(randn()) * 4;
-      const l = Math.min(o, c) - Math.abs(randn()) * 4;
-      const v = Math.round(210000 * (0.6 + Math.abs(drift) / 8 + Math.random() * 0.55));
-      st.candles.push({ t, o, h, l, c, v });
-      px = c;
-    }
-    // constant shift so the last close == current spot (keeps the walk shape intact)
-    const k = st.candles.length - 1;
-    if (k >= 0) {
-      const shift = st.spot - st.candles[k].c;
-      st.candles.forEach((cd) => { cd.o += shift; cd.h += shift; cd.l += shift; cd.c += shift; });
-    }
-    const nowB = Math.floor(Date.now() / 9e5) * 9e5;
-    // forming candle: volume already elapsed in this bar (pace-consistent start)
-    const avgV = st.candles.length
-      ? st.candles.slice(-20).reduce((a, c) => a + c.v, 0) / Math.min(20, st.candles.length)
-      : 210000;
-    const elapsedMin = clamp((Date.now() - nowB) / 6e4, 0, 15);
-    st.forming = { t: nowB, o: st.spot, h: st.spot, l: st.spot, c: st.spot, v: Math.round(avgV * elapsedMin / 15) };
-  }
-
-  function init() {
-    st.chain = STRIKES.map(K => {
-      const row = { strike: K, ce: mkLeg(K, 'CE'), pe: mkLeg(K, 'PE') };
-      row.CE = row.ce; row.PE = row.pe;   // alias refs so row['CE'|'CE'.toLowerCase()] both work
-      return row;
-    });
-    buildCandles();
-  }
-
-  function rollCandle() {
-    const b = Math.floor(Date.now() / 9e5) * 9e5;
-    if (st.forming.t !== b) {
-      st.candles.push(st.forming);
-      if (st.candles.length > 220) st.candles.shift();
-      st.forming = { t: b, o: st.spot, h: st.spot, l: st.spot, c: st.spot, v: 0 };
-    }
-  }
-
-  function tick() {
-    st.tick++;
-    rollCandle();
-    // spot: slow regime drift + mean reversion into 23,040–23,180 band + noise
-    if (st.tick % 150 === 0) st.drift = randn() * 0.00004;
-    const bandMid = 23110;
-    const rev = (bandMid - st.spot) * 2.2e-6;
-    const ds = st.drift + rev + randn() * 0.00022;
-    const before = st.spot;
-    st.spot = Math.max(22600, st.spot * Math.exp(ds));
-    const dSpot = st.spot - before;
-
-    st.forming.h = Math.max(st.forming.h, st.spot);
-    st.forming.l = Math.min(st.forming.l, st.spot);
-    st.forming.c = st.spot;
-    st.forming.v += 400 + Math.round(Math.abs(dSpot) * 40);
-
-    st.vix = clamp(st.vix + randn() * 0.03 + Math.abs(dSpot) * 0.002, 10.5, 21);
-
-    const T = dteYears();
-    for (const row of st.chain) {
-      for (const side of ['CE', 'PE']) {
-        const leg = row[side];
-        // reprice: delta * dSpot − theta + vega noise
-        const th = leg.thetaDay / 4500;                    // accelerated melt for a live demo
-        const ivSh = (dSpot < 0 ? (side === 'PE' ? 0.00025 : -0.0001) : (side === 'PE' ? -0.0001 : 0.00012));
-        leg.iv = clamp(leg.iv + ivSh + randn() * 0.0004, 0.08, 0.6);
-        const g = bs(st.spot, row.strike, T, R, leg.iv, side);
-        leg.delta = g.delta; leg.thetaDay = g.thetaDay;
-        leg.ltp = Math.max(0.05, leg.ltp + leg.delta * dSpot - th + leg.ltp * 0.004 * randn());
-        leg.chgPct = (leg.ltp - leg.prevClose) / leg.prevClose * 100;
-
-        // volume: bursty, with unusual-volume spikes
-        const burst = Math.exp(randn() * 0.55) * (1 + Math.min(5, Math.abs(dSpot) * 400));
-        const dv = Math.max(0, Math.round(leg._volBase * burst * 2.2));
-        leg._dvEma = leg._dvEma * 0.95 + 0.05 * dv;
-        leg._spike = dv > leg._dvEma * 3 && dv > 30;
-        leg.volume += dv;
-
-        // OI regimes → genuine buildup / writing / covering / unwinding patterns
-        if (--leg._regimeT <= 0) { leg._regime = Math.floor(Math.random() * 4); leg._regimeT = 35 + Math.floor(Math.random() * 220); }
-        const pUp = leg.ltp - (leg._prevTick || leg.ltp) >= 0;
-        leg._prevTick = leg.ltp;
-        const sc = dv * (0.4 + Math.random());
-        let dOi = 0;
-        if (leg._regime === 0) dOi = pUp ? sc : -sc * 0.3;
-        else if (leg._regime === 1) dOi = pUp ? -sc * 0.3 : sc;
-        else if (leg._regime === 2) dOi = pUp ? -sc * 0.8 : sc * 0.2;
-        else dOi = pUp ? sc * 0.2 : -sc * 0.8;
-        dOi = Math.round(dOi + randn() * 8);
-        leg.oi = Math.max(0, leg.oi + dOi);
-        leg.oiChg += dOi;
-
-        // quotes
-        const half = Math.max(0.05, leg.ltp * (liqProfile(row.strike) > 0.7 ? 0.012 : liqProfile(row.strike) > 0.35 ? 0.025 : 0.045)) * (0.9 + Math.random() * 0.3);
-        leg.bid = Math.max(0.05, leg.ltp - half); leg.ask = leg.ltp + half;
+  async function getSnapshot() {
+    if (!initialized) await init();
+    try {
+      const response = await fetch('/api/chain', { cache: 'no-store' });
+      const snapshot = await response.json().catch(() => null);
+      if (!response.ok) throw new Error(snapshot?.error || `Live NSE request failed (${response.status})`);
+      if (snapshot?.meta?.mode !== 'live' || snapshot?.meta?.source !== 'nseindia.com' ||
+          !Number.isFinite(snapshot?.spot?.ltp) || !Array.isArray(snapshot.chain) || snapshot.chain.length === 0) {
+        throw new Error(snapshot?.error || 'NSE returned an incomplete option-chain snapshot');
       }
+      status = 'LIVE · NSE INDIA';
+      return snapshot;
+    } catch (error) {
+      status = `LIVE NSE UNAVAILABLE — ${String(error && error.message || error)}`;
+      return null;
     }
   }
 
-  function candleList() {
-    return st.candles.concat([st.forming]);
-  }
-
-  function getSnapshot() {
-    const p = istParts(new Date());
-    const mins = istHMS().split(':').map(Number);
-    const mm = mins[0] * 60 + mins[1];
-    const wd = p.weekday;
-    const weekend = wd === 'Sat' || wd === 'Sun';
-    const status = weekend || mm < 555 || mm >= 930 ? 'CLOSED' : 'OPEN';
-    const expMs = new Date(EXPIRY_ISO).getTime();
-    const leftMs = Math.max(0, expMs - Date.now());
-    const dH = Math.floor(leftMs / 36e5), dM = Math.floor((leftMs % 36e5) / 6e4);
-    const chg = st.spot - PREV_CLOSE;
-    return {
-      meta: {
-        provider: 'mock', mode: 'sim', asOf: new Date().toISOString(),
-        ist: istHMS() + ' IST', marketStatus: status,
-        expiry: EXPIRY_LABEL, expiryISO: EXPIRY_ISO,
-        dteDays: leftMs / 864e5,
-        dteText: `${Math.floor(leftMs / 864e5)}d ${String(dH % 24).padStart(2, '0')}h ${String(dM).padStart(2, '0')}m`,
-        lotSize: LOT,
-      },
-      spot: {
-        ltp: st.spot, chg, chgPct: chg / PREV_CLOSE * 100,
-        prevClose: PREV_CLOSE, dayOpen: OPEN,
-        dayHigh: Math.max(...candleList().map(c => c.h)), dayLow: Math.min(...candleList().map(c => c.l)),
-        candles15m: candleList(),
-        vix: st.vix,
-      },
-      chain: st.chain,
-    };
-  }
-
-  return { init, tick, getSnapshot, name: 'mock' };
+  return {
+    name: 'nse',
+    init,
+    getSnapshot,
+    get status() { return status; },
+  };
 })();
-
-/* LiveNseProvider — drop-in replacement shape (implemented against server.js):
-   const LiveProvider = {
-     name:'nse', async init(){}, async getSnapshot(){
-       const r = await fetch('/api/chain');        // server normalises to Snapshot schema
-       return r.json();
-     }
-   };
-   The UI code below only ever calls init()/getSnapshot() — swap the provider and
-   every panel keeps working without redesign. */
 
 /* ============================================================================
    LAYER 2 — ANALYTICS  (pure functions over a Snapshot)
@@ -955,141 +597,196 @@ const Analytics = (() => {
 
   /* ---- (5) OI interpretation: option price change × OI change ---- */
   function classify(leg) {
-    const p = leg.chgPct, o = leg.oiChg, oPct = leg.prevOi ? (o / leg.prevOi) * 100 : 0;
-    const pu = p > 0.35, pd = p < -0.35, ou = oPct > 0.3, od = oPct < -0.3;
-    if (pu && ou) return { code: 'LB', label: 'LONG BUILDUP', tone: 'up' };
-    if (pd && ou) return { code: 'WR', label: leg.side === 'CE' ? 'CALL WRITING' : 'PUT WRITING', tone: 'dn' };
-    if (pu && od) return { code: 'SC', label: 'SHORT COVERING', tone: 'wt' };
-    if (pd && od) return { code: 'LU', label: 'LONG UNWINDING', tone: 'gy' };
+    if (!Number.isFinite(leg.chgPct) || !Number.isFinite(leg.oiChg) ||
+        !Number.isFinite(leg.prevOi) || leg.prevOi === 0) {
+      return { code: 'NA', label: 'UNAVAILABLE — SOURCE FIELDS MISSING', tone: 'gy' };
+    }
+    const priceChange = leg.chgPct;
+    const oiChangePct = (leg.oiChg / leg.prevOi) * 100;
+    const priceUp = priceChange > 0.35, priceDown = priceChange < -0.35;
+    const oiUp = oiChangePct > 0.3, oiDown = oiChangePct < -0.3;
+    if (priceUp && oiUp) return { code: 'LB', label: 'LONG BUILDUP', tone: 'up' };
+    if (priceDown && oiUp) return { code: 'WR', label: leg.side === 'CE' ? 'CALL WRITING' : 'PUT WRITING', tone: 'dn' };
+    if (priceUp && oiDown) return { code: 'SC', label: 'SHORT COVERING', tone: 'wt' };
+    if (priceDown && oiDown) return { code: 'LU', label: 'LONG UNWINDING', tone: 'gy' };
     return { code: 'NT', label: 'NO CLEAR EDGE', tone: 'gy' };
   }
 
   function decorate(snap) {
     for (const row of snap.chain) {
-      // unify ce/pe + CE/PE — JSON transports duplicate the aliases into separate objects
       row.CE = row.CE || row.ce; row.ce = row.CE;
       row.PE = row.PE || row.pe; row.pe = row.PE;
-      for (const s of ['CE', 'PE']) {
-        const leg = row[s];
+      for (const side of ['CE', 'PE']) {
+        const leg = row[side];
+        leg.side = side;
         leg.classify = classify(leg);
-        leg.oiChgPct = leg.prevOi ? (leg.oiChg / leg.prevOi) * 100 : 0;
-        leg.spread = leg.ask - leg.bid;
-        leg.spreadPct = leg.ltp ? (leg.spread / leg.ltp) * 100 : 99;
-        leg.unusualVol = !!leg._spike || (!leg._volBase && leg.volume > leg.volAvg * 2.2);
+        leg.oiChgPct = Number.isFinite(leg.prevOi) && leg.prevOi !== 0 && Number.isFinite(leg.oiChg)
+          ? (leg.oiChg / leg.prevOi) * 100 : null;
+        leg.spread = Number.isFinite(leg.ask) && Number.isFinite(leg.bid) ? leg.ask - leg.bid : null;
+        leg.spreadPct = Number.isFinite(leg.spread) && leg.ltp > 0 ? (leg.spread / leg.ltp) * 100 : null;
+        // A volume-spike label needs a source-supplied average; day volume alone is not enough.
+        leg.unusualVol = Number.isFinite(leg.volAvg) && leg.volAvg > 0 &&
+          Number.isFinite(leg.volume) && leg.volume > leg.volAvg * 2.2;
       }
     }
     return snap;
   }
 
-  /* ---- indicators (VWAP / RSI / ATR / trends) ---- */
+  /* ---- indicators from source-provided 15m candle data ---- */
   function indicators(snap) {
-    const cs = snap.spot.candles15m;
+    const sourceCandles = Array.isArray(snap.spot.candles15m) ? snap.spot.candles15m : [];
+    const cs = sourceCandles.filter(c => c && Number.isFinite(c.t) &&
+      Number.isFinite(c.o) && Number.isFinite(c.h) && Number.isFinite(c.l) && Number.isFinite(c.c));
     const n = cs.length;
-    if (n < 3) return { vwap: snap.spot.ltp, rsi: 50, atr: 20, trend15m: 'Sideways', trend1h: 'Sideways', volVsAvg: 1, paTone: 'gy', paText: 'building history', e5: snap.spot.ltp, e20: snap.spot.ltp };
+    const unavailable = {
+      vwap: null, rsi: null, atr: null, trend15m: 'Unavailable', trend1h: 'Unavailable',
+      volVsAvg: null, paTone: 'gy', paText: 'insufficient source candles', e5: null, e20: null,
+    };
+    if (n < 2) return unavailable;
+
     let pv = 0, vv = 0;
-    cs.forEach(c => { const tp = (c.h + c.l + c.c) / 3; pv += tp * c.v; vv += c.v; });
-    const vwap = vv ? pv / vv : snap.spot.ltp;
-
+    for (const candle of cs) {
+      if (Number.isFinite(candle.v) && candle.v > 0) {
+        pv += ((candle.h + candle.l + candle.c) / 3) * candle.v;
+        vv += candle.v;
+      }
+    }
+    const vwap = vv > 0 ? pv / vv : null;
     const closes = cs.map(c => c.c);
-    // RSI(14) Wilder on completed closes (forming bar excluded)
-    const doneCloses = cs.slice(0, -1).map(c => c.c);
-    const cl = doneCloses.length >= 5 ? doneCloses : closes;
-    let g = 0, l = 0;
-    const k = Math.min(14, cl.length - 1);
-    for (let i = cl.length - k; i < cl.length; i++) { const d = cl[i] - cl[i - 1]; if (d >= 0) g += d; else l -= d; }
-    let ag = k ? g / k : 0, al = k ? l / k : 0;
-    for (let i = cl.length - k + 1; i < cl.length; i++) {
-      const d = cl[i] - cl[i - 1];
-      ag = (ag * 13 + Math.max(d, 0)) / 14; al = (al * 13 + Math.max(-d, 0)) / 14;
-    }
-    const rsi = al < 1e-9 ? (ag > 0 ? 78 : 50) : 100 - 100 / (1 + ag / al);
+    const ema = (values, period) => {
+      if (!values.length) return null;
+      const alpha = 2 / (period + 1);
+      let value = values[0];
+      for (let i = 1; i < values.length; i++) value = values[i] * alpha + value * (1 - alpha);
+      return value;
+    };
 
-    // ATR(14)
-    let atr = 0, cnt = 0;
+    let rsi = null;
+    const completedCloses = closes.slice(0, -1);
+    if (completedCloses.length >= 15) {
+      const window = completedCloses.slice(-15);
+      let gains = 0, losses = 0;
+      for (let i = 1; i < window.length; i++) {
+        const change = window[i] - window[i - 1];
+        if (change >= 0) gains += change; else losses -= change;
+      }
+      const avgGain = gains / 14, avgLoss = losses / 14;
+      rsi = avgLoss === 0 ? (avgGain > 0 ? 100 : 50) : 100 - 100 / (1 + avgGain / avgLoss);
+    }
+
+    let atr = null;
+    const ranges = [];
     for (let i = Math.max(1, n - 14); i < n; i++) {
-      const c = cs[i], pc = cs[i - 1];
-      atr += Math.max(c.h - c.l, Math.abs(c.h - pc.c), Math.abs(c.l - pc.c)); cnt++;
+      const candle = cs[i], previous = cs[i - 1];
+      ranges.push(Math.max(candle.h - candle.l, Math.abs(candle.h - previous.c), Math.abs(candle.l - previous.c)));
     }
-    atr = cnt ? atr / cnt : 25;
+    if (ranges.length) atr = ranges.reduce((sum, value) => sum + value, 0) / ranges.length;
 
-    const emaS = (arr, p) => { const a = 2 / (p + 1); let e = arr[0]; for (let i = 1; i < arr.length; i++) e = arr[i] * a + e * (1 - a); return e; };
-    const e5 = emaS(closes.slice(-30), 5), e9 = emaS(closes.slice(-30), 9);
-    const e20 = emaS(closes.slice(-80), 20);
-    const trend15m = e5 > e20 + atr * 0.08 ? 'Bullish' : e5 < e20 - atr * 0.08 ? 'Bearish' : 'Sideways';
-    // 1H proxy: EMA on 4×-aggregated closes
-    const hc = [];
-    for (let i = 0; i < n; i += 4) hc.push(cs[Math.min(i + 3, n - 1)].c);
-    const eh1 = emaS(hc.slice(-30), 3), eh2 = emaS(hc.slice(-60), 8);
-    const trend1h = eh1 > eh2 + atr * 0.15 ? 'Bullish' : eh1 < eh2 - atr * 0.15 ? 'Bearish' : 'Sideways';
+    const e5 = closes.length >= 5 ? ema(closes.slice(-30), 5) : null;
+    const e20 = closes.length >= 20 ? ema(closes.slice(-80), 20) : null;
+    const trend15m = Number.isFinite(e5) && Number.isFinite(e20) && Number.isFinite(atr)
+      ? (e5 > e20 + atr * 0.08 ? 'Bullish' : e5 < e20 - atr * 0.08 ? 'Bearish' : 'Sideways')
+      : 'Unavailable';
 
-    // volume vs avg: pace-projected forming candle vs 20 completed bars
+    const hourlyCloses = [];
+    for (let i = 3; i < n; i += 4) hourlyCloses.push(closes[i]);
+    const trend1h = hourlyCloses.length >= 8 && Number.isFinite(atr)
+      ? (() => {
+          const fast = ema(hourlyCloses.slice(-30), 3), slow = ema(hourlyCloses.slice(-60), 8);
+          return fast > slow + atr * 0.15 ? 'Bullish' : fast < slow - atr * 0.15 ? 'Bearish' : 'Sideways';
+        })()
+      : 'Unavailable';
+
+    let volVsAvg = null;
     const forming = cs[n - 1];
-    const done = cs.slice(0, -1);
-    let av = 0, ac = 0;
-    for (let i = Math.max(0, done.length - 20); i < done.length; i++) { av += done[i].v; ac++; }
-    const base = ac ? av / ac : Math.max(1, forming.v);
-    const elapsedMin = clamp((Date.now() - forming.t) / 60000, 0.5, 15);
-    const volVsAvg = (forming.v * (15 / elapsedMin)) / base;
-
-    // price action: HH/HL vs LH/LL over last 6 completed candles
-    const w = cs.slice(-7);
-    let hh = 0, hl = 0, lh = 0, ll = 0;
-    for (let i = 1; i < w.length; i++) {
-      if (w[i].h > w[i - 1].h) hh++; if (w[i].l > w[i - 1].l) hl++;
-      if (w[i].h < w[i - 1].h) lh++; if (w[i].l < w[i - 1].l) ll++;
+    const observedVolumes = cs.slice(0, -1).map(c => c.v).filter(v => Number.isFinite(v) && v > 0);
+    if (Number.isFinite(forming.v) && forming.v >= 0 && observedVolumes.length >= 2) {
+      const base = observedVolumes.reduce((sum, value) => sum + value, 0) / observedVolumes.length;
+      const elapsedMin = clamp((Date.now() - forming.t) / 60000, 0.5, 15);
+      if (base > 0) volVsAvg = (forming.v * (15 / elapsedMin)) / base;
     }
-    const paTone = hh >= 4 && hl >= 3 ? 'up' : lh >= 4 && ll >= 3 ? 'dn' : 'gy';
-    const paText = paTone === 'up' ? 'HH/HL sequence' : paTone === 'dn' ? 'LH/LL sequence' : 'chop / mixed candles';
+
+    let paTone = 'gy', paText = 'insufficient source candles';
+    if (cs.length >= 7) {
+      const window = cs.slice(-7);
+      let higherHigh = 0, higherLow = 0, lowerHigh = 0, lowerLow = 0;
+      for (let i = 1; i < window.length; i++) {
+        if (window[i].h > window[i - 1].h) higherHigh++;
+        if (window[i].l > window[i - 1].l) higherLow++;
+        if (window[i].h < window[i - 1].h) lowerHigh++;
+        if (window[i].l < window[i - 1].l) lowerLow++;
+      }
+      paTone = higherHigh >= 4 && higherLow >= 3 ? 'up' : lowerHigh >= 4 && lowerLow >= 3 ? 'dn' : 'gy';
+      paText = paTone === 'up' ? 'HH/HL sequence' : paTone === 'dn' ? 'LH/LL sequence' : 'chop / mixed candles';
+    }
 
     return { vwap, rsi, atr, trend15m, trend1h, volVsAvg, paTone, paText, e5, e20 };
   }
 
   /* ---- (3) key levels from OI walls, OI change, volume, price action ---- */
   function levels(snap) {
-    const S = snap.spot.ltp;
+    const spot = snap.spot.ltp;
+    if (!Number.isFinite(spot) || !Array.isArray(snap.chain)) {
+      return { strongS: null, strongSwhy: '—', immS: null, immSwhy: '—', immR: null, immRwhy: '—', strongR: null, strongRwhy: '—', dayLow: null, dayHigh: null };
+    }
     const score = (row, side) => {
       const leg = row[side];
-      const oiN = leg.oi / 300000;
-      const addN = Math.max(leg.oiChg, 0) / 60000;
-      const cutN = Math.max(-leg.oiChg, 0) / 60000;
-      const volN = leg.volume / 1200000;
-      const roundB = row.strike % 100 === 0 ? 0.55 : row.strike % 50 === 0 ? 0.2 : 0;
-      return { s: oiN * 0.5 + addN * 0.2 + volN * 0.12 + cutN * 0.08 + roundB, leg, strike: row.strike };
+      if (!leg || !Number.isFinite(row.strike) || !Number.isFinite(leg.oi) ||
+          !Number.isFinite(leg.oiChg) || !Number.isFinite(leg.volume)) return null;
+      const scoreValue = (leg.oi / 300000) * 0.5 +
+        (Math.max(leg.oiChg, 0) / 60000) * 0.2 +
+        (leg.volume / 1200000) * 0.12 +
+        (Math.max(-leg.oiChg, 0) / 60000) * 0.08;
+      return { s: scoreValue, leg, strike: row.strike };
     };
-    const sup = snap.chain.filter(r => r.strike < S).map(r => score(r, 'PE')).sort((a, b) => b.s - a.s);
-    const res = snap.chain.filter(r => r.strike > S).map(r => score(r, 'CE')).sort((a, b) => b.s - a.s);
-
-    const why = (x, kind) => x ? `${kind} OI ${fmtL(x.leg.oi)}${x.leg.oiChg >= 0 ? ' (+' : ' ('}${fmtL(x.leg.oiChg)}) · vol ${fmtL(x.leg.volume)}${x.strike % 100 === 0 ? ' · round level' : ''}` : '—';
-
-    const strongS = sup[0] || null;
-    const strongR = res[0] || null;
-    // immediate = nearest level with meaningful OI (slight gap from spot), else strong
-    const immS = sup.filter(x => x.strike <= S - 10).sort((a, b) => b.strike - a.strike)[0] || strongS;
-    const immR = res.filter(x => x.strike >= S + 10).sort((a, b) => a.strike - b.strike)[0] || strongR;
-
+    const sup = snap.chain.filter(row => row.strike < spot).map(row => score(row, 'PE')).filter(Boolean).sort((a, b) => b.s - a.s);
+    const res = snap.chain.filter(row => row.strike > spot).map(row => score(row, 'CE')).filter(Boolean).sort((a, b) => b.s - a.s);
+    const why = (item, kind) => item
+      ? `${kind} OI ${fmtL(item.leg.oi)}${item.leg.oiChg >= 0 ? ' (+' : ' ('}${fmtL(item.leg.oiChg)}) · vol ${fmtL(item.leg.volume)}`
+      : 'unavailable — incomplete source OI/volume data';
+    const strongS = sup[0] || null, strongR = res[0] || null;
+    const immS = sup.filter(item => item.strike < spot).sort((a, b) => b.strike - a.strike)[0] || null;
+    const immR = res.filter(item => item.strike > spot).sort((a, b) => a.strike - b.strike)[0] || null;
     return {
-      strongS: strongS && strongS.strike, strongSwhy: why(strongS, 'put'),
-      immS: immS && immS.strike, immSwhy: why(immS, 'put'),
-      immR: immR && immR.strike, immRwhy: why(immR, 'call'),
-      strongR: strongR && strongR.strike, strongRwhy: why(strongR, 'call'),
+      strongS: strongS ? strongS.strike : null, strongSwhy: why(strongS, 'put'),
+      immS: immS ? immS.strike : null, immSwhy: why(immS, 'put'),
+      immR: immR ? immR.strike : null, immRwhy: why(immR, 'call'),
+      strongR: strongR ? strongR.strike : null, strongRwhy: why(strongR, 'call'),
       dayLow: snap.spot.dayLow, dayHigh: snap.spot.dayHigh,
     };
   }
 
   /* ---- (6) PCR ---- */
   function pcr(snap) {
-    let ceOi = 0, peOi = 0, ceV = 0, peV = 0, ceAdd = 0, peAdd = 0, ceCut = 0, peCut = 0;
-    const atm = snap.chain.reduce((best, r) => Math.abs(r.strike - snap.spot.ltp) < Math.abs(best - snap.spot.ltp) ? r.strike : best, snap.chain[0].strike);
-    let aCeOi = 0, aPeOi = 0;
-    for (const r of snap.chain) {
-      ceOi += r.ce.oi; peOi += r.pe.oi; ceV += r.ce.volume; peV += r.pe.volume;
-      if (r.ce.oiChg >= 0) ceAdd += r.ce.oiChg; else ceCut -= r.ce.oiChg;
-      if (r.pe.oiChg >= 0) peAdd += r.pe.oiChg; else peCut -= r.pe.oiChg;
-      if (Math.abs(r.strike - atm) <= 100) { aCeOi += r.ce.oi; aPeOi += r.pe.oi; }
-    }
+    const chain = Array.isArray(snap.chain) ? snap.chain.filter(row => row && Number.isFinite(row.strike)) : [];
+    const unavailable = { oi: null, vol: null, atm: null, netChg: null, ceAdd: null, peAdd: null, ceCut: null, peCut: null };
+    if (!chain.length || !Number.isFinite(snap.spot.ltp)) return unavailable;
+
+    const sumField = (rows, side, field, transform = value => value) => {
+      if (!rows.length || rows.some(row => !row[side] || !Number.isFinite(row[side][field]))) return null;
+      return rows.reduce((sum, row) => sum + transform(row[side][field]), 0);
+    };
+    const ceOi = sumField(chain, 'ce', 'oi'), peOi = sumField(chain, 'pe', 'oi');
+    const ceVolume = sumField(chain, 'ce', 'volume'), peVolume = sumField(chain, 'pe', 'volume');
+    const ceAdd = sumField(chain, 'ce', 'oiChg', value => Math.max(value, 0));
+    const peAdd = sumField(chain, 'pe', 'oiChg', value => Math.max(value, 0));
+    const ceCut = sumField(chain, 'ce', 'oiChg', value => Math.max(-value, 0));
+    const peCut = sumField(chain, 'pe', 'oiChg', value => Math.max(-value, 0));
+
+    const sorted = chain.slice().sort((a, b) => a.strike - b.strike);
+    const atmIndex = sorted.reduce((bestIndex, row, index) =>
+      Math.abs(row.strike - snap.spot.ltp) < Math.abs(sorted[bestIndex].strike - snap.spot.ltp) ? index : bestIndex, 0);
+    const atmRows = sorted.slice(Math.max(0, atmIndex - 2), Math.min(sorted.length, atmIndex + 3));
+    const atmCeOi = sumField(atmRows, 'ce', 'oi'), atmPeOi = sumField(atmRows, 'pe', 'oi');
+    const ratio = (numerator, denominator) => Number.isFinite(numerator) && Number.isFinite(denominator) && denominator > 0
+      ? numerator / denominator : null;
+    const ceNet = Number.isFinite(ceAdd) && Number.isFinite(ceCut) ? ceAdd - ceCut : null;
+    const peNet = Number.isFinite(peAdd) && Number.isFinite(peCut) ? peAdd - peCut : null;
     return {
-      oi: peOi / (ceOi || 1), vol: peV / (ceV || 1), atm: aPeOi / (aCeOi || 1),
-      netChg: (peAdd - peCut) / (ceAdd - ceCut || 1),
+      oi: ratio(peOi, ceOi),
+      vol: ratio(peVolume, ceVolume),
+      atm: ratio(atmPeOi, atmCeOi),
+      netChg: ratio(peNet, ceNet),
       ceAdd, peAdd, ceCut, peCut,
     };
   }
@@ -1097,58 +794,71 @@ const Analytics = (() => {
   /* ---- (2) evidence rows for the structure panel ---- */
   function evidence(snap) {
     const ind = indicators(snap), lv = levels(snap), pc = pcr(snap);
-    const S = snap.spot.ltp;
-
-    // OI behaviour census for the ±3-strike band
-    const band = snap.chain.filter(r => Math.abs(r.strike - S) <= 150);
-    let callWr = 0, putWr = 0, callSC = 0, putSC = 0, callLU = 0, putLU = 0;
-    band.forEach(r => {
-      const c = r.ce.classify.code, p = r.pe.classify.code;
-      if (c === 'WR') callWr++; if (p === 'WR') putWr++;
-      if (c === 'SC') callSC++; if (p === 'SC') putSC++;
-      if (c === 'LU') callLU++; if (p === 'LU') putLU++;
+    const spot = snap.spot.ltp;
+    const chain = Array.isArray(snap.chain) ? snap.chain.filter(row => row && Number.isFinite(row.strike)).slice().sort((a, b) => a.strike - b.strike) : [];
+    const atmIndex = chain.length && Number.isFinite(spot)
+      ? chain.reduce((bestIndex, row, index) => Math.abs(row.strike - spot) < Math.abs(chain[bestIndex].strike - spot) ? index : bestIndex, 0)
+      : -1;
+    const band = atmIndex >= 0 ? chain.slice(Math.max(0, atmIndex - 3), Math.min(chain.length, atmIndex + 4)) : [];
+    const classificationAvailable = band.length > 0 && band.every(row => row.ce.classify.code !== 'NA' && row.pe.classify.code !== 'NA');
+    let callWr = 0, putWr = 0, callSC = 0, putSC = 0;
+    band.forEach(row => {
+      if (row.ce.classify.code === 'WR') callWr++;
+      if (row.pe.classify.code === 'WR') putWr++;
+      if (row.ce.classify.code === 'SC') callSC++;
+      if (row.pe.classify.code === 'SC') putSC++;
     });
 
-    const vwapTone = S > ind.vwap + 2 ? 'up' : S < ind.vwap - 2 ? 'dn' : 'gy';
-    const rsiTone = ind.rsi > 55 ? 'up' : ind.rsi < 45 ? 'dn' : 'gy';
-    const volTone = ind.volVsAvg > 1.2 ? (snap.spot.chg >= 0 ? 'up' : 'dn') : ind.volVsAvg < 0.7 ? 'gy' : 'wt';
-    const trendTone = ind.trend15m === 'Bullish' && ind.trend1h !== 'Bearish' ? 'up'
-      : ind.trend15m === 'Bearish' && ind.trend1h !== 'Bullish' ? 'dn'
-      : 'gy';
-    // OI structure: building on which side?
-    const oiTone = pc.peAdd > pc.ceAdd * 1.12 ? 'up' : pc.ceAdd > pc.peAdd * 1.12 ? 'dn' : 'gy';
+    const vwapAvailable = Number.isFinite(ind.vwap);
+    const rsiAvailable = Number.isFinite(ind.rsi);
+    const volumeAvailable = Number.isFinite(ind.volVsAvg);
+    const trendAvailable = ind.trend15m !== 'Unavailable';
+    const paAvailable = ind.paText !== 'insufficient source candles';
+    const oiAddsAvailable = Number.isFinite(pc.peAdd) && Number.isFinite(pc.ceAdd);
+    const vwapTone = !vwapAvailable ? 'gy' : spot > ind.vwap + 2 ? 'up' : spot < ind.vwap - 2 ? 'dn' : 'gy';
+    const rsiTone = !rsiAvailable ? 'gy' : ind.rsi > 55 ? 'up' : ind.rsi < 45 ? 'dn' : 'gy';
+    const volTone = !volumeAvailable ? 'gy' : ind.volVsAvg > 1.2 ? (snap.spot.chg >= 0 ? 'up' : 'dn') : ind.volVsAvg < 0.7 ? 'gy' : 'wt';
+    const trendTone = !trendAvailable ? 'gy' : ind.trend15m === 'Bullish' ? 'up' : ind.trend15m === 'Bearish' ? 'dn' : 'gy';
+    const oiTone = !oiAddsAvailable ? 'gy' : pc.peAdd > pc.ceAdd * 1.12 ? 'up' : pc.ceAdd > pc.peAdd * 1.12 ? 'dn' : 'gy';
+    const oiValue = !oiAddsAvailable ? 'Unavailable' : oiTone === 'up' ? 'Put-heavy adds' : oiTone === 'dn' ? 'Call-heavy adds' : 'Balanced adds';
+    const classText = (count, ready) => !ready ? 'Unavailable' : count ? `${count} strikes` : 'Not active';
 
     const rows = [
-      { k: 'Trend', v: ind.trend15m, tone: trendTone, d: `15m ${ind.trend15m} · 1H ${ind.trend1h}`, s: trendTone === 'up' ? 1 : trendTone === 'dn' ? -1 : 0 },
-      { k: 'OI Structure', v: oiTone === 'up' ? 'Put-heavy adds' : oiTone === 'dn' ? 'Call-heavy adds' : 'Balanced adds', tone: oiTone, d: `PE+${fmtL(pc.peAdd)} vs CE+${fmtL(pc.ceAdd)}`, s: oiTone === 'up' ? 1 : oiTone === 'dn' ? -1 : 0 },
-      { k: 'Call Writing', v: callWr ? `${callWr} strikes` : 'Not active', tone: callWr >= 2 ? 'dn' : callWr ? 'wt' : 'gy', d: 'writing = resistance', s: callWr >= 2 ? -1 : callWr ? -0.5 : 0 },
-      { k: 'Put Writing', v: putWr ? `${putWr} strikes` : 'Not active', tone: putWr >= 2 ? 'up' : putWr ? 'wt' : 'gy', d: 'writing = support', s: putWr >= 2 ? 1 : putWr ? 0.5 : 0 },
-      { k: 'Call Short Cov.', v: callSC ? `${callSC} strikes` : 'Not active', tone: callSC ? 'up' : 'gy', d: 'CE OI↓ + price↑', s: callSC ? 0.5 : 0 },
-      { k: 'Put Short Cov.', v: putSC ? `${putSC} strikes` : 'Not active', tone: putSC ? 'dn' : 'gy', d: 'PE OI↓ + price↑', s: putSC ? -0.5 : 0 },
-      { k: 'Volume', v: `${ind.volVsAvg.toFixed(2)}× avg`, tone: volTone, d: 'vs 20-bar average', s: volTone === 'up' ? 1 : volTone === 'dn' ? -1 : 0 },
-      { k: 'RSI 14', v: ind.rsi.toFixed(1), tone: rsiTone, d: ind.rsi > 75 ? 'overbought risk' : ind.rsi < 25 ? 'oversold risk' : '15m basis', s: ind.rsi > 75 || ind.rsi < 25 ? 0 : rsiTone === 'up' ? 1 : rsiTone === 'dn' ? -1 : 0 },
-      { k: 'VWAP', v: ind.vwap.toFixed(1), tone: vwapTone, d: S > ind.vwap ? 'price above' : 'price below', s: vwapTone === 'up' ? 1 : vwapTone === 'dn' ? -1 : 0 },
-      { k: 'Price Action', v: ind.paText, tone: ind.paTone, d: 'last 6 × 15m candles', s: ind.paTone === 'up' ? 1 : ind.paTone === 'dn' ? -1 : 0 },
+      { k: 'Trend', v: trendAvailable ? ind.trend15m : 'Unavailable', tone: trendTone, d: `15m ${ind.trend15m} · 1H ${ind.trend1h}`, s: trendTone === 'up' ? 1 : trendTone === 'dn' ? -1 : 0, available: trendAvailable },
+      { k: 'OI Structure', v: oiValue, tone: oiTone, d: oiAddsAvailable ? `PE+${fmtL(pc.peAdd)} vs CE+${fmtL(pc.ceAdd)}` : 'source OI change unavailable', s: oiTone === 'up' ? 1 : oiTone === 'dn' ? -1 : 0, available: oiAddsAvailable },
+      { k: 'Call Writing', v: classText(callWr, classificationAvailable), tone: classificationAvailable ? (callWr >= 2 ? 'dn' : callWr ? 'wt' : 'gy') : 'gy', d: classificationAvailable ? 'writing = resistance' : 'source price/OI fields unavailable', s: classificationAvailable ? (callWr >= 2 ? -1 : callWr ? -0.5 : 0) : 0, available: classificationAvailable },
+      { k: 'Put Writing', v: classText(putWr, classificationAvailable), tone: classificationAvailable ? (putWr >= 2 ? 'up' : putWr ? 'wt' : 'gy') : 'gy', d: classificationAvailable ? 'writing = support' : 'source price/OI fields unavailable', s: classificationAvailable ? (putWr >= 2 ? 1 : putWr ? 0.5 : 0) : 0, available: classificationAvailable },
+      { k: 'Call Short Cov.', v: classText(callSC, classificationAvailable), tone: classificationAvailable && callSC ? 'up' : 'gy', d: classificationAvailable ? 'CE OI↓ + price↑' : 'source price/OI fields unavailable', s: classificationAvailable && callSC ? 0.5 : 0, available: classificationAvailable },
+      { k: 'Put Short Cov.', v: classText(putSC, classificationAvailable), tone: classificationAvailable && putSC ? 'dn' : 'gy', d: classificationAvailable ? 'PE OI↓ + price↑' : 'source price/OI fields unavailable', s: classificationAvailable && putSC ? -0.5 : 0, available: classificationAvailable },
+      { k: 'Volume', v: volumeAvailable ? `${ind.volVsAvg.toFixed(2)}× avg` : 'Unavailable', tone: volTone, d: volumeAvailable ? 'vs source candle volume' : 'source candle volume unavailable', s: volTone === 'up' ? 1 : volTone === 'dn' ? -1 : 0, available: volumeAvailable },
+      { k: 'RSI 14', v: rsiAvailable ? ind.rsi.toFixed(1) : 'Unavailable', tone: rsiTone, d: !rsiAvailable ? 'insufficient source candles' : ind.rsi > 75 ? 'overbought risk' : ind.rsi < 25 ? 'oversold risk' : '15m basis', s: rsiAvailable && (ind.rsi > 75 || ind.rsi < 25) ? 0 : rsiTone === 'up' ? 1 : rsiTone === 'dn' ? -1 : 0, available: rsiAvailable },
+      { k: 'VWAP', v: vwapAvailable ? ind.vwap.toFixed(1) : 'Unavailable', tone: vwapTone, d: !vwapAvailable ? 'source candle volume unavailable' : spot > ind.vwap ? 'price above' : 'price below', s: vwapTone === 'up' ? 1 : vwapTone === 'dn' ? -1 : 0, available: vwapAvailable },
+      { k: 'Price Action', v: paAvailable ? ind.paText : 'Unavailable', tone: paAvailable ? ind.paTone : 'gy', d: 'source 15m candles', s: ind.paTone === 'up' ? 1 : ind.paTone === 'dn' ? -1 : 0, available: paAvailable },
     ];
-
-    const score = rows.reduce((a, r) => a + r.s, 0);
-    return { rows, score, ind, lv, pc };
+    const score = rows.reduce((sum, row) => sum + (row.available ? row.s : 0), 0);
+    const sourceGroups = [trendAvailable, oiAddsAvailable, Number.isFinite(snap.spot.chgPct)].filter(Boolean).length;
+    return { rows, score, ind, lv, pc, sourceGroups, classificationAvailable, oiAddsAvailable };
   }
 
   /* ---- (2) market structure verdict + signal strength ---- */
   function structure(snap) {
     const ev = evidence(snap);
-    const S = snap.spot.ltp, { ind, lv } = ev;
-    let verdict, tone, agree = 0;
-    const confined = lv.immR && lv.immS && S < lv.immR - 25 && S > lv.immS + 25 && (lv.immR - lv.immS) < 300;
-
-    if (ev.score >= 3.2 && ind.trend15m !== 'Bearish') { verdict = 'BULLISH'; tone = 'up'; agree = ev.rows.filter(r => r.s > 0).length; }
-    else if (ev.score <= -3.2 && ind.trend15m !== 'Bullish') { verdict = 'BEARISH'; tone = 'dn'; agree = ev.rows.filter(r => r.s < 0).length; }
-    else if (confined) { verdict = 'RANGE-BOUND'; tone = 'wt'; agree = ev.rows.filter(r => r.s === 0).length; }
-    else if (Math.abs(ev.score) >= 1.2) { verdict = 'NEUTRAL / INSUFFICIENT'; tone = 'gy'; agree = Math.max(1, ev.rows.filter(r => r.s !== 0).length - 3); }
-    else { verdict = 'NEUTRAL / INSUFFICIENT'; tone = 'gy'; agree = 0; }
-
-    const strength = verdict === 'NEUTRAL / INSUFFICIENT' ? Math.min(3, agree) : Math.min(10, agree);
+    const spot = snap.spot.ltp, { ind, lv, pc } = ev;
+    const enoughSourceData = Number.isFinite(spot) && Number.isFinite(snap.spot.chgPct) &&
+      ev.oiAddsAvailable && ind.trend15m !== 'Unavailable';
+    const confined = enoughSourceData && Number.isFinite(lv.immR) && Number.isFinite(lv.immS) &&
+      spot < lv.immR - 25 && spot > lv.immS + 25 && (lv.immR - lv.immS) < 300;
+    let verdict = 'NEUTRAL / INSUFFICIENT', tone = 'gy', agree = 0;
+    if (enoughSourceData && ev.score >= 3.2 && ind.trend15m !== 'Bearish') {
+      verdict = 'BULLISH'; tone = 'up'; agree = ev.rows.filter(row => row.available && row.s > 0).length;
+    } else if (enoughSourceData && ev.score <= -3.2 && ind.trend15m !== 'Bullish') {
+      verdict = 'BEARISH'; tone = 'dn'; agree = ev.rows.filter(row => row.available && row.s < 0).length;
+    } else if (confined) {
+      verdict = 'RANGE-BOUND'; tone = 'wt'; agree = ev.rows.filter(row => row.available && row.s === 0).length;
+    } else if (enoughSourceData) {
+      agree = ev.rows.filter(row => row.available && row.s !== 0).length;
+    }
+    const strength = Math.min(verdict === 'NEUTRAL / INSUFFICIENT' ? 3 : 10, agree);
     return { verdict, tone, strength, ...ev };
   }
 
@@ -1161,129 +871,145 @@ const Analytics = (() => {
    A signal is never generated from a single condition.
    ============================================================================ */
 const Signals = (() => {
-  const mem = { wasAboveR: false, wasBelowS: false, lastInvAt: 0, invWhy: '' };
-
   /* condition helper: state ∈ ok | no | pend | gy */
+  const mem = { wasAboveR: false, wasBelowS: false, lastInvAt: 0, invWhy: '' };
+  const reset = () => Object.assign(mem, { wasAboveR: false, wasBelowS: false, lastInvAt: 0, invWhy: '' });
+
   function setups(snap) {
     const st = Analytics.structure(snap);
-    const S = snap.spot.ltp;
+    const spot = snap.spot.ltp;
     const { ind, lv, pc } = st;
     const nearR = lv.immR, nearS = lv.immS;
+    const hasSpot = Number.isFinite(spot);
+    const hasVwap = Number.isFinite(ind.vwap);
+    const hasRsi = Number.isFinite(ind.rsi);
+    const hasVolume = Number.isFinite(ind.volVsAvg);
+    const trendAvailable = ind.trend15m !== 'Unavailable';
+    const candles = Array.isArray(snap.spot.candles15m) ? snap.spot.candles15m : [];
+    const completed = candles.slice(0, -1).filter(c => c && Number.isFinite(c.c));
+    const lastDone = completed[completed.length - 1];
+    const hasCompletedClose = !!lastDone;
 
-    // breakout progress states
-    const crossedR = nearR && S > nearR;
-    const nearRZone = nearR && S > nearR - 40;
-    const crossedS = nearS && S < nearS;
-    const nearSZone = nearS && S < nearS + 40;
+    const ordered = Array.isArray(snap.chain) ? snap.chain.slice().sort((a, b) => a.strike - b.strike) : [];
+    const rowsNear = (strike, steps = 2) => {
+      if (!Number.isFinite(strike) || !ordered.length) return [];
+      const center = ordered.reduce((best, row, index) =>
+        Math.abs(row.strike - strike) < Math.abs(ordered[best].strike - strike) ? index : best, 0);
+      return ordered.slice(Math.max(0, center - steps), Math.min(ordered.length, center + steps + 1));
+    };
+    const zoneR = rowsNear(nearR), zoneS = rowsNear(nearS);
+    const rClassAvailable = zoneR.length > 0 && zoneR.every(row => row.ce.classify.code !== 'NA');
+    const sClassAvailable = zoneS.length > 0 && zoneS.every(row => row.pe.classify.code !== 'NA');
+    const callSCnearR = rClassAvailable && zoneR.some(row => row.ce.classify.code === 'SC');
+    const callWrNearR = rClassAvailable && zoneR.some(row => row.ce.classify.code === 'WR');
+    const putWrNearS = sClassAvailable && zoneS.some(row => row.pe.classify.code === 'WR');
+    const putSCnearS = sClassAvailable && zoneS.some(row => row.pe.classify.code === 'SC');
+    const oiAddsAvailable = Number.isFinite(pc.peAdd) && Number.isFinite(pc.ceAdd);
+    const crossedR = Number.isFinite(nearR) && hasSpot && spot > nearR;
+    const crossedS = Number.isFinite(nearS) && hasSpot && spot < nearS;
+    const step = ordered.length > 1
+      ? ordered.slice(1).map((row, index) => row.strike - ordered[index].strike).filter(value => value > 0).sort((a, b) => a - b)[0]
+      : null;
+    const nearRZone = Number.isFinite(step) && Number.isFinite(nearR) && hasSpot && spot > nearR - step;
+    const nearSZone = Number.isFinite(step) && Number.isFinite(nearS) && hasSpot && spot < nearS + step;
+    const closeAboveR = hasCompletedClose && Number.isFinite(nearR) && lastDone.c > nearR;
+    const closeBelowS = hasCompletedClose && Number.isFinite(nearS) && lastDone.c < nearS;
 
-    // close-basis confirmations use the last COMPLETED 15m candle
-    const done = snap.spot.candles15m.slice(0, -1);
-    const lastDone = done[done.length - 1];
-    const closeAboveR = lastDone && nearR && lastDone.c > nearR;
-    const closeBelowS = lastDone && nearS && lastDone.c < nearS;
-
-    // OI behaviours near the zone (±2 strikes)
-    const inZone = (k) => snap.chain.filter(r => Math.abs(r.strike - k) <= 100);
-    const zoneR = nearR ? inZone(nearR) : [];
-    const zoneS = nearS ? inZone(nearS) : [];
-    const callSCnearR = zoneR.some(r => r.ce.classify.code === 'SC');
-    const callWrNearR = zoneR.filter(r => r.ce.classify.code === 'WR').length >= 1;
-    const putWrNearS = zoneS.some(r => r.pe.classify.code === 'WR');
-    const putSCnearS = zoneS.some(r => r.pe.classify.code === 'SC');
-
-    /* ---------------- CE conditions (7) ---------------- */
     const ce = [
-      { t: 'NIFTY trend bullish', ok: st.ind.trend15m === 'Bullish', pend: st.ind.trend15m === 'Sideways', note: `15m ${ind.trend15m}` },
-      { t: 'Price above VWAP', ok: S > ind.vwap + 1, pend: Math.abs(S - ind.vwap) <= 3, note: `VWAP ${ind.vwap.toFixed(0)}` },
-      { t: nearR ? `Breakout of ${fmtK(nearR)} resistance` : 'Breakout (level pending)', ok: closeAboveR && crossedR, pend: crossedR && !closeAboveR, note: crossedR ? (closeAboveR ? '15m closed above' : 'crossed — candle forming') : nearRZone ? 'approaching' : 'untouched' },
-      { t: 'Call short covering', ok: callSCnearR, pend: false, note: callSCnearR ? 'CE OI↓ price↑ near R' : 'not seen near R' },
-      { t: 'Put writing (support building)', ok: putWrNearS || pc.peAdd > pc.ceAdd, pend: pc.peAdd > pc.ceAdd * 0.8 && !putWrNearS, note: `PE adds ₹${fmtL(pc.peAdd)}` },
-      { t: 'Volume confirmation', ok: ind.volVsAvg >= 1.2, pend: ind.volVsAvg >= 0.8 && ind.volVsAvg < 1.2, note: `${ind.volVsAvg.toFixed(2)}× avg` },
-      { t: 'RSI confirmation (52–75)', ok: ind.rsi >= 52 && ind.rsi < 75, pend: ind.rsi >= 48 && ind.rsi < 52, note: `RSI ${ind.rsi.toFixed(0)}` },
+      { t: 'NIFTY trend bullish', ok: ind.trend15m === 'Bullish', pend: ind.trend15m === 'Sideways', available: trendAvailable, note: `15m ${ind.trend15m}` },
+      { t: 'Price above VWAP', ok: hasVwap && hasSpot && spot > ind.vwap, pend: hasVwap && hasSpot && Math.abs(spot - ind.vwap) <= 3, available: hasVwap && hasSpot, note: `VWAP ${fmtOptional(ind.vwap, 0)}` },
+      { t: Number.isFinite(nearR) ? `Breakout of ${fmtK(nearR)} resistance` : 'Breakout (level unavailable)', ok: closeAboveR && crossedR, pend: crossedR && !closeAboveR, available: Number.isFinite(nearR) && hasCompletedClose, note: crossedR ? (closeAboveR ? '15m closed above' : 'crossed — candle forming') : nearRZone ? 'approaching' : Number.isFinite(nearR) ? 'untouched' : 'source level unavailable' },
+      { t: 'Call short covering', ok: callSCnearR, pend: false, available: rClassAvailable, note: !rClassAvailable ? 'source price/OI fields unavailable' : callSCnearR ? 'CE OI↓ price↑ near R' : 'not seen near R' },
+      { t: 'Put writing (support building)', ok: putWrNearS || (oiAddsAvailable && pc.peAdd > pc.ceAdd), pend: oiAddsAvailable && pc.peAdd > pc.ceAdd * 0.8 && !putWrNearS, available: sClassAvailable || oiAddsAvailable, note: `PE OI adds ${fmtL(pc.peAdd)} contracts` },
+      { t: 'Volume confirmation', ok: hasVolume && ind.volVsAvg >= 1.2, pend: hasVolume && ind.volVsAvg >= 0.8 && ind.volVsAvg < 1.2, available: hasVolume, note: `${fmtOptional(ind.volVsAvg)}× avg` },
+      { t: 'RSI confirmation (52–75)', ok: hasRsi && ind.rsi >= 52 && ind.rsi < 75, pend: hasRsi && ind.rsi >= 48 && ind.rsi < 52, available: hasRsi, note: `RSI ${fmtOptional(ind.rsi, 0)}` },
     ];
-    /* ---------------- PE conditions (mirror) ---------------- */
     const pe = [
-      { t: 'NIFTY trend bearish', ok: ind.trend15m === 'Bearish', pend: ind.trend15m === 'Sideways', note: `15m ${ind.trend15m}` },
-      { t: 'Price below VWAP', ok: S < ind.vwap - 1, pend: Math.abs(S - ind.vwap) <= 3, note: `VWAP ${ind.vwap.toFixed(0)}` },
-      { t: nearS ? `Breakdown of ${fmtK(nearS)} support` : 'Breakdown (level pending)', ok: closeBelowS && crossedS, pend: crossedS && !closeBelowS, note: crossedS ? (closeBelowS ? '15m closed below' : 'crossed — candle forming') : nearSZone ? 'approaching' : 'untouched' },
-      { t: 'Put short covering', ok: putSCnearS, pend: false, note: putSCnearS ? 'PE OI↓ price↑ near S' : 'not seen near S' },
-      { t: 'Call writing (resistance building)', ok: callWrNearR || pc.ceAdd > pc.peAdd, pend: pc.ceAdd > pc.peAdd * 0.8 && !callWrNearR, note: `CE adds ₹${fmtL(pc.ceAdd)}` },
-      { t: 'Volume confirmation', ok: ind.volVsAvg >= 1.2, pend: ind.volVsAvg >= 0.8 && ind.volVsAvg < 1.2, note: `${ind.volVsAvg.toFixed(2)}× avg` },
-      { t: 'RSI confirmation (25–48)', ok: ind.rsi > 25 && ind.rsi <= 48, pend: ind.rsi > 48 && ind.rsi <= 52, note: `RSI ${ind.rsi.toFixed(0)}` },
+      { t: 'NIFTY trend bearish', ok: ind.trend15m === 'Bearish', pend: ind.trend15m === 'Sideways', available: trendAvailable, note: `15m ${ind.trend15m}` },
+      { t: 'Price below VWAP', ok: hasVwap && hasSpot && spot < ind.vwap, pend: hasVwap && hasSpot && Math.abs(spot - ind.vwap) <= 3, available: hasVwap && hasSpot, note: `VWAP ${fmtOptional(ind.vwap, 0)}` },
+      { t: Number.isFinite(nearS) ? `Breakdown of ${fmtK(nearS)} support` : 'Breakdown (level unavailable)', ok: closeBelowS && crossedS, pend: crossedS && !closeBelowS, available: Number.isFinite(nearS) && hasCompletedClose, note: crossedS ? (closeBelowS ? '15m closed below' : 'crossed — candle forming') : nearSZone ? 'approaching' : Number.isFinite(nearS) ? 'untouched' : 'source level unavailable' },
+      { t: 'Put short covering', ok: putSCnearS, pend: false, available: sClassAvailable, note: !sClassAvailable ? 'source price/OI fields unavailable' : putSCnearS ? 'PE OI↓ price↑ near S' : 'not seen near S' },
+      { t: 'Call writing (resistance building)', ok: callWrNearR || (oiAddsAvailable && pc.ceAdd > pc.peAdd), pend: oiAddsAvailable && pc.ceAdd > pc.peAdd * 0.8 && !callWrNearR, available: rClassAvailable || oiAddsAvailable, note: `CE OI adds ${fmtL(pc.ceAdd)} contracts` },
+      { t: 'Volume confirmation', ok: hasVolume && ind.volVsAvg >= 1.2, pend: hasVolume && ind.volVsAvg >= 0.8 && ind.volVsAvg < 1.2, available: hasVolume, note: `${fmtOptional(ind.volVsAvg)}× avg` },
+      { t: 'RSI confirmation (25–48)', ok: hasRsi && ind.rsi > 25 && ind.rsi <= 48, pend: hasRsi && ind.rsi > 48 && ind.rsi <= 52, available: hasRsi, note: `RSI ${fmtOptional(ind.rsi, 0)}` },
     ];
 
-    const crit = 2; // breakout condition index is mandatory for YES
+    const breakoutIndex = 2;
     function verdictOf(list) {
-      const okN = list.filter(c => c.ok).length;
-      const pendN = list.filter(c => c.pend).length;
-      const breakoutOk = list[crit].ok;
-      if (breakoutOk && okN >= 5) return 'YES';
-      // NO only when nothing is forming AND nothing confirmed — otherwise WAIT
-      if (okN <= 1 && pendN <= 1 && !list[crit].pend && !list[crit].ok) return 'NO';
+      const okCount = list.filter(item => item.ok).length;
+      const pendingCount = list.filter(item => item.pend).length;
+      const availableCount = list.filter(item => item.available).length;
+      if (availableCount < 5 || !list[breakoutIndex].available) return 'WAIT';
+      if (list[breakoutIndex].ok && okCount >= 5) return 'YES';
+      if (okCount <= 1 && pendingCount <= 1 && !list[breakoutIndex].pend && !list[breakoutIndex].ok) return 'NO';
       return 'WAIT';
     }
     let ceV = verdictOf(ce), peV = verdictOf(pe);
 
-    /* invalidation memory: level was taken out and then lost again */
     let ceInv = false, peInv = false;
     if (crossedR) mem.wasAboveR = true;
     if (crossedS) mem.wasBelowS = true;
-    if (mem.wasAboveR && !crossedR && nearR && S < nearR - 25) {
+    if (mem.wasAboveR && !crossedR && Number.isFinite(nearR) && hasSpot && spot < nearR - 25) {
       mem.wasAboveR = false; ceInv = true; mem.lastInvAt = Date.now();
       mem.invWhy = `CE setup invalidated — price lost ${fmtK(nearR)}`;
     }
-    if (mem.wasBelowS && !crossedS && nearS && S > nearS + 25) {
+    if (mem.wasBelowS && !crossedS && Number.isFinite(nearS) && hasSpot && spot > nearS + 25) {
       mem.wasBelowS = false; peInv = true; mem.lastInvAt = Date.now();
       mem.invWhy = `PE setup invalidated — price reclaimed ${fmtK(nearS)}`;
     }
     if (ceInv && ceV !== 'YES') ceV = 'NO';
     if (peInv && peV !== 'YES') peV = 'NO';
 
-    /* ---------------- RANGE ---------------- */
-    const rgOn = lv.immR && lv.immS && !crossedR && !crossedS &&
-      (lv.immR - lv.immS) >= 60 && (lv.immR - lv.immS) <= 320 &&
-      ind.trend15m === 'Sideways' && Math.abs(S - (lv.immR + lv.immS) / 2) < (lv.immR - lv.immS) * 0.42;
+    const rangeAvailable = trendAvailable && Number.isFinite(lv.immR) && Number.isFinite(lv.immS) && hasSpot;
+    const rangeWidth = rangeAvailable ? lv.immR - lv.immS : null;
+    const rgOn = rangeAvailable && ind.trend15m === 'Sideways' && !crossedR && !crossedS &&
+      rangeWidth >= 60 && rangeWidth <= 320 && Math.abs(spot - (lv.immR + lv.immS) / 2) < rangeWidth * 0.42;
     const rg = [
-      { t: 'Price trapped between walls', ok: rgOn, pend: !crossedR && !crossedS && !rgOn, note: '' },
-      { t: 'No breakout/breakdown in progress', ok: !crossedR && !crossedS, pend: false, note: '' },
-      { t: '15m trend sideways', ok: ind.trend15m === 'Sideways', pend: false, note: `15m ${ind.trend15m}` },
+      { t: 'Price trapped between walls', ok: !!rgOn, pend: rangeAvailable && !crossedR && !crossedS && !rgOn, available: rangeAvailable, note: rangeAvailable ? '' : 'source levels / trend unavailable' },
+      { t: 'No breakout/breakdown in progress', ok: !crossedR && !crossedS, pend: false, available: hasSpot && (Number.isFinite(nearR) || Number.isFinite(nearS)), note: '' },
+      { t: '15m trend sideways', ok: ind.trend15m === 'Sideways', pend: false, available: trendAvailable, note: `15m ${ind.trend15m}` },
     ];
 
-    /* ---------------- breakout / breakdown alert checklists (5 each) ---------------- */
+    const oiDecreaseAt = (zone, side) => zone.length > 0 && zone.every(row => Number.isFinite(row[side].oiChg))
+      ? zone.some(row => row[side].oiChg < 0 || row[side].classify.code === 'SC') : null;
+    const priceHoldingAt = (zone, side) => zone.length > 0 && zone.every(row =>
+      Number.isFinite(row[side].chgPct) && Number.isFinite(row[side].ltp) && Number.isFinite(row[side].prevClose))
+      ? zone.some(row => row[side].chgPct > -8 && row[side].ltp > row[side].prevClose * 0.95) : null;
+    const boOi = rClassAvailable ? oiDecreaseAt(zoneR, 'ce') : null;
+    const boPrice = priceHoldingAt(zoneR, 'ce');
+    const bdOi = sClassAvailable ? oiDecreaseAt(zoneS, 'pe') : null;
+    const bdPrice = priceHoldingAt(zoneS, 'pe');
     const bo = [
-      { t: `NIFTY crosses ${fmtK(nearR)}`, ok: !!crossedR, pend: nearRZone, note: `spot ${S.toFixed(0)}` },
-      { t: '15m candle closes above', ok: !!closeAboveR, pend: crossedR && !closeAboveR, note: 'close-basis' },
-      { t: 'Call OI decreases', ok: nearR ? zoneR.some(r => r.ce.oiChg < 0 || r.ce.classify.code === 'SC') : false, pend: false, note: 'OI↓ at zone' },
-      { t: 'Call price increases', ok: nearR ? zoneR.some(r => r.ce.chgPct > -8 && r.ce.ltp > r.ce.prevClose * 0.95) : false, pend: false, note: 'CE holding/bidding' },
-      { t: 'Volume increases', ok: ind.volVsAvg >= 1.15, pend: ind.volVsAvg >= 0.85, note: `${ind.volVsAvg.toFixed(2)}×` },
+      { t: Number.isFinite(nearR) ? `NIFTY crosses ${fmtK(nearR)}` : 'NIFTY resistance unavailable', ok: crossedR, pend: nearRZone, available: Number.isFinite(nearR) && hasSpot, note: hasSpot ? `spot ${fmtOptional(spot, 0)}` : 'spot unavailable' },
+      { t: '15m candle closes above', ok: closeAboveR, pend: crossedR && !closeAboveR, available: Number.isFinite(nearR) && hasCompletedClose, note: hasCompletedClose ? 'completed source candle' : 'source candle history unavailable' },
+      { t: 'Call OI decreases', ok: boOi === true, pend: false, available: boOi !== null, note: boOi === null ? 'source OI change unavailable' : 'OI↓ at zone' },
+      { t: 'Call price increases', ok: boPrice === true, pend: false, available: boPrice !== null, note: boPrice === null ? 'source option price change unavailable' : 'CE holding/bidding' },
+      { t: 'Volume increases', ok: hasVolume && ind.volVsAvg >= 1.15, pend: hasVolume && ind.volVsAvg >= 0.85, available: hasVolume, note: `${fmtOptional(ind.volVsAvg)}×` },
     ];
     const bd = [
-      { t: `NIFTY crosses below ${fmtK(nearS)}`, ok: !!crossedS, pend: nearSZone, note: `spot ${S.toFixed(0)}` },
-      { t: '15m candle closes below', ok: !!closeBelowS, pend: crossedS && !closeBelowS, note: 'close-basis' },
-      { t: 'Put OI decreases', ok: nearS ? zoneS.some(r => r.pe.oiChg < 0 || r.pe.classify.code === 'SC') : false, pend: false, note: 'OI↓ at zone' },
-      { t: 'Put price increases', ok: nearS ? zoneS.some(r => r.pe.chgPct > -8 && r.pe.ltp > r.pe.prevClose * 0.95) : false, pend: false, note: 'PE holding/bidding' },
-      { t: 'Volume increases', ok: ind.volVsAvg >= 1.15, pend: ind.volVsAvg >= 0.85, note: `${ind.volVsAvg.toFixed(2)}×` },
+      { t: Number.isFinite(nearS) ? `NIFTY crosses below ${fmtK(nearS)}` : 'NIFTY support unavailable', ok: crossedS, pend: nearSZone, available: Number.isFinite(nearS) && hasSpot, note: hasSpot ? `spot ${fmtOptional(spot, 0)}` : 'spot unavailable' },
+      { t: '15m candle closes below', ok: closeBelowS, pend: crossedS && !closeBelowS, available: Number.isFinite(nearS) && hasCompletedClose, note: hasCompletedClose ? 'completed source candle' : 'source candle history unavailable' },
+      { t: 'Put OI decreases', ok: bdOi === true, pend: false, available: bdOi !== null, note: bdOi === null ? 'source OI change unavailable' : 'OI↓ at zone' },
+      { t: 'Put price increases', ok: bdPrice === true, pend: false, available: bdPrice !== null, note: bdPrice === null ? 'source option price change unavailable' : 'PE holding/bidding' },
+      { t: 'Volume increases', ok: hasVolume && ind.volVsAvg >= 1.15, pend: hasVolume && ind.volVsAvg >= 0.85, available: hasVolume, note: `${fmtOptional(ind.volVsAvg)}×` },
     ];
-    const boConf = bo.filter(c => c.ok).length >= 4 && bo[0].ok && bo[1].ok;
-    const bdConf = bd.filter(c => c.ok).length >= 4 && bd[0].ok && bd[1].ok;
+    const boConf = bo.filter(item => item.ok).length >= 4 && bo[0].ok && bo[1].ok;
+    const bdConf = bd.filter(item => item.ok).length >= 4 && bd[0].ok && bd[1].ok;
 
-    /* ---------------- action texts ---------------- */
-    const ceAct = ceInv ? ceV === 'YES' ? `CONFIRMED — review ATM CE (${fmtK(atmStrike(snap))} CE)` : `CE SETUP INVALIDATED — price lost ${fmtK(nearR)}`
-      : ceV === 'YES' ? `CONFIRMED — review ATM CE (${fmtK(atmStrike(snap))} CE)`
-      : ceV === 'WAIT' ? (crossedR ? 'WAIT FOR 15M CLOSE ABOVE ' + fmtK(nearR) : `WAIT FOR ${nearR ? fmtK(nearR) : '—'} BREAKOUT`)
-      : ceV === 'NO' ? 'CE SETUP INVALID / OPPOSITE TAPE' : 'STAND ASIDE';
-    const peAct = peInv && peV !== 'YES' ? `PE SETUP INVALIDATED — price reclaimed ${fmtK(nearS)}`
-      : peV === 'YES' ? `CONFIRMED — review ATM PE (${fmtK(atmStrike(snap))} PE)`
-      : peV === 'WAIT' ? (crossedS ? 'WAIT FOR 15M CLOSE BELOW ' + fmtK(nearS) : `WAIT FOR ${nearS ? fmtK(nearS) : '—'} BREAKDOWN`)
-      : peV === 'NO' ? 'PE SETUP INVALID / OPPOSITE TAPE' : 'STAND ASIDE';
+    const atm = atmStrike(snap);
+    const ceAct = ceInv ? `CE SETUP INVALIDATED — price lost ${fmtK(nearR)}`
+      : ceV === 'YES' ? `CONFIRMED — review ATM CE (${fmtK(atm)} CE)`
+      : ceV === 'WAIT' ? (ce.filter(item => item.available).length < 5 ? 'WAIT — insufficient live source data' : crossedR ? `WAIT FOR 15M CLOSE ABOVE ${fmtK(nearR)}` : `WAIT FOR ${Number.isFinite(nearR) ? fmtK(nearR) : '—'} BREAKOUT`)
+      : 'CE SETUP INVALID / OPPOSITE TAPE';
+    const peAct = peInv ? `PE SETUP INVALIDATED — price reclaimed ${fmtK(nearS)}`
+      : peV === 'YES' ? `CONFIRMED — review ATM PE (${fmtK(atm)} PE)`
+      : peV === 'WAIT' ? (pe.filter(item => item.available).length < 5 ? 'WAIT — insufficient live source data' : crossedS ? `WAIT FOR 15M CLOSE BELOW ${fmtK(nearS)}` : `WAIT FOR ${Number.isFinite(nearS) ? fmtK(nearS) : '—'} BREAKDOWN`)
+      : 'PE SETUP INVALID / OPPOSITE TAPE';
 
-    /* ---------------- stage machine ---------------- */
     let stage = 'OBSERVATION', stageTone = 'obs', stageWhy = '';
-    const heavyOiObs = snap.chain.some(r => r.ce.oi > 220000 || r.pe.oi > 220000);
-    const freshInv = Date.now() - mem.lastInvAt < 90000;
-    if ((ceInv || peInv) && ceV !== 'YES' && peV !== 'YES') {
-      stage = 'INVALIDATED'; stageTone = 'inv'; stageWhy = mem.invWhy;
-    } else if (freshInv && ceV !== 'YES' && peV !== 'YES' && !(boConf || bdConf)) {
+    const heavyOiObs = snap.chain.some(row => Number.isFinite(row.ce.oi) && row.ce.oi > 220000 || Number.isFinite(row.pe.oi) && row.pe.oi > 220000);
+    const freshInv = mem.lastInvAt > 0 && Date.now() - mem.lastInvAt < 90000;
+    if ((ceInv || peInv || freshInv) && ceV !== 'YES' && peV !== 'YES' && !(boConf || bdConf)) {
       stage = 'INVALIDATED'; stageTone = 'inv'; stageWhy = mem.invWhy;
     } else if (ceV === 'YES' || peV === 'YES') {
       stage = 'CONFIRMATION'; stageTone = 'conf';
@@ -1291,20 +1017,24 @@ const Signals = (() => {
     } else if (boConf || bdConf) {
       stage = 'CONFIRMATION'; stageTone = 'conf'; stageWhy = boConf ? 'Bullish breakout confirmed' : 'Bearish breakdown confirmed';
     } else if ((crossedR || crossedS) && ((crossedR && !closeAboveR) || (crossedS && !closeBelowS))) {
-      stage = 'SETUP FORMING'; stageTone = 'form'; stageWhy = 'level crossed on forming candle — waiting for 15m close';
+      stage = 'SETUP FORMING'; stageTone = 'form'; stageWhy = 'level crossed on forming source candle — waiting for close';
     } else if (ceV === 'WAIT' || peV === 'WAIT') {
       stage = 'SETUP FORMING'; stageTone = 'form';
-      stageWhy = ceV === 'WAIT' && peV === 'WAIT' ? 'conditions incomplete on both sides' : ceV === 'WAIT' ? 'CE conditions accumulating' : 'PE conditions accumulating';
+      stageWhy = ce.filter(item => item.available).length < 5 && pe.filter(item => item.available).length < 5
+        ? 'insufficient live source history for setup confirmation'
+        : ceV === 'WAIT' && peV === 'WAIT' ? 'conditions incomplete on both sides' : ceV === 'WAIT' ? 'CE conditions accumulating' : 'PE conditions accumulating';
     } else if (ceV === 'NO' && peV === 'NO') {
       stage = 'INVALIDATED'; stageTone = 'inv'; stageWhy = 'conditions failed on both sides — stand aside';
     } else if (heavyOiObs) {
-      stage = 'OBSERVATION'; stageTone = 'obs'; stageWhy = 'heavy OI pockets — context only, no setup yet';
+      stage = 'OBSERVATION'; stageTone = 'obs'; stageWhy = 'OI pockets in live chain — context only, no setup yet';
+    } else {
+      stageWhy = 'observing verified NSE source data';
     }
 
     return {
       ce: { list: ce, verdict: ceV, action: ceAct },
       pe: { list: pe, verdict: peV, action: peAct },
-      range: { list: rg, verdict: rgOn ? 'YES' : 'WAIT', ladder: [lv.immS, lv.immR], action: rgOn ? 'Avoid chasing CE/PE in the middle of the range — trade edges only.' : 'No clean range — prefer directional confirmation.' },
+      range: { list: rg, verdict: rgOn ? 'YES' : 'WAIT', ladder: [lv.immS, lv.immR], action: rgOn ? 'Range conditions are present in source data; this is an observation, not a recommendation.' : 'No confirmed range — source data may be incomplete.' },
       alerts: { bo, bd, boConf, bdConf, zoneR: nearR, zoneS: nearS },
       stage, stageTone, stageWhy, structure: st,
     };
@@ -1312,70 +1042,90 @@ const Signals = (() => {
 
   /* ---- (9) contract selector + (10) trade plan ---- */
   function atmStrike(snap) {
-    return snap.chain.reduce((best, r) => Math.abs(r.strike - snap.spot.ltp) < Math.abs(best - snap.spot.ltp) ? r.strike : best, snap.chain[0].strike);
+    const spot = snap && snap.spot && snap.spot.ltp;
+    const strikes = Array.isArray(snap && snap.chain)
+      ? snap.chain.map(row => row && row.strike).filter(Number.isFinite)
+      : [];
+    if (!Number.isFinite(spot) || !strikes.length) return null;
+    return strikes.reduce((best, strike) => Math.abs(strike - spot) < Math.abs(best - spot) ? strike : best, strikes[0]);
   }
 
   function contracts(snap, dir) {
     if (dir !== 'Bullish' && dir !== 'Bearish') return { side: null, rows: [] };
     const side = dir === 'Bullish' ? 'CE' : 'PE';
+    const sorted = Array.isArray(snap && snap.chain)
+      ? snap.chain.filter(row => row && Number.isFinite(row.strike)).slice().sort((a, b) => a.strike - b.strike)
+      : [];
     const atm = atmStrike(snap);
+    const atmIndex = sorted.findIndex(row => row.strike === atm);
+    if (atmIndex < 0) return { side, rows: [] };
+
     const picks = dir === 'Bullish'
-      ? [['Slight ITM', atm - 100], ['ATM', atm], ['OTM', atm + 100]]
-      : [['Slight ITM', atm + 100], ['ATM', atm], ['OTM', atm - 100]];
-    const rows = picks.map(([label, k]) => {
-      const row = snap.chain.find(r => r.strike === k);
-      if (!row) return null;
-      const leg = row[side];
-      const spread = leg.ask - leg.bid;
-      const spreadPct = leg.ltp ? (spread / leg.ltp) * 100 : 99;
+      ? [{ label: 'Slight ITM', index: atmIndex - 1 }, { label: 'ATM', index: atmIndex }, { label: 'OTM', index: atmIndex + 1 }]
+      : [{ label: 'Slight ITM', index: atmIndex + 1 }, { label: 'ATM', index: atmIndex }, { label: 'OTM', index: atmIndex - 1 }];
+    const rows = picks.map(({ label, index }) => {
+      const row = sorted[index];
+      const leg = row && row[side];
+      if (!leg || !Number.isFinite(leg.ltp) || leg.ltp <= 0) return null;
+      const hasQuote = Number.isFinite(leg.bid) && leg.bid > 0 && Number.isFinite(leg.ask) && leg.ask > 0 && leg.ask >= leg.bid;
+      const spread = hasQuote ? leg.ask - leg.bid : null;
+      const spreadPct = hasQuote ? (spread / leg.ltp) * 100 : null;
+      const hasLiquidityData = Number.isFinite(leg.volume) && Number.isFinite(leg.oi);
       let liq = 'T', liqLbl = 'THIN — AVOID';
-      if (spreadPct <= 2.2 && leg.volume > 350000 && leg.oi > 60000) { liq = 'L'; liqLbl = 'LIQUID'; }
-      else if (spreadPct <= 4.5 && leg.volume > 120000) { liq = 'M'; liqLbl = 'MODERATE'; }
-      return { label, strike: k, side, leg, spread, spreadPct, liq, liqLbl };
+      if (!Number.isFinite(spreadPct) || !hasLiquidityData) {
+        liq = 'U'; liqLbl = 'INCOMPLETE SOURCE DATA — AVOID';
+      } else if (spreadPct <= 2.2 && leg.volume > 350000 && leg.oi > 60000) {
+        liq = 'L'; liqLbl = 'LIQUID';
+      } else if (spreadPct <= 4.5 && leg.volume > 120000) {
+        liq = 'M'; liqLbl = 'MODERATE';
+      }
+      return { label, strike: row.strike, side, leg, spread, spreadPct, liq, liqLbl };
     }).filter(Boolean);
     return { side, rows };
   }
 
   function plan(snap, sig) {
-    const st = sig.structure;
-    const S = snap.spot.ltp, lv = st.lv;
+    const st = sig && sig.structure;
+    const S = snap && snap.spot && snap.spot.ltp;
+    const lv = st && st.lv;
     let dir = null, confirmed = false;
-    if (sig.ce.verdict === 'YES') { dir = 'Bullish'; confirmed = true; }
-    else if (sig.pe.verdict === 'YES') { dir = 'Bearish'; confirmed = true; }
-    else if (st.verdict === 'BULLISH') dir = 'Bullish';
-    else if (st.verdict === 'BEARISH') dir = 'Bearish';
+    if (sig && sig.ce && sig.ce.verdict === 'YES') { dir = 'Bullish'; confirmed = true; }
+    else if (sig && sig.pe && sig.pe.verdict === 'YES') { dir = 'Bearish'; confirmed = true; }
+    else if (st && st.verdict === 'BULLISH') dir = 'Bullish';
+    else if (st && st.verdict === 'BEARISH') dir = 'Bearish';
 
     const empty = {
-      status: 'insufficient confirmation — no plan shown', dir: '—', trig: '—', ctr: '—',
+      status: 'insufficient source data or confirmation — no plan shown', dir: '—', trig: '—', ctr: '—',
       entry: '—', sl: '—', t1: '—', t2: '—', inv: '—', confirmed: false, dirRaw: null, ctrStrike: null, side: null,
     };
-    if (!dir) return empty;
+    if (!dir || !Number.isFinite(S) || !lv) return empty;
 
     const cs = contracts(snap, dir);
-    const prefer = cs.rows.find(r => r.label === 'ATM') || cs.rows[0];
-    if (!prefer) return empty;
-    const entryPrem = prefer.leg.ltp;
-    const slPrem = Math.max(0.05, entryPrem * 0.7);
+    const prefer = cs.rows.find(row => row.label === 'ATM');
+    if (!prefer || !Number.isFinite(prefer.leg.ltp) || prefer.leg.ltp <= 0 ||
+        !Number.isFinite(prefer.leg.bid) || !Number.isFinite(prefer.leg.ask) || prefer.leg.ask < prefer.leg.bid) return empty;
 
-    let trig, t1S, t2S, invTxt;
-    const roundS = Math.round(S / 50) * 50;
-    if (dir === 'Bullish') {
-      const zR = sig.alerts.zoneR || lv.immR || roundS + 50;
-      trig = sig.alerts.zoneR ? `15m close above ${fmtK(zR)}` : '15m close above immediate resistance';
-      t1S = lv.strongR && lv.strongR > zR ? lv.strongR : zR + 100;
-      t2S = t1S + 100;
-      invTxt = `NIFTY closes back below ${fmtK(zR)}`;
-    } else {
-      const zS = sig.alerts.zoneS || lv.immS || roundS - 50;
-      trig = sig.alerts.zoneS ? `15m close below ${fmtK(zS)}` : '15m close below immediate support';
-      t1S = lv.strongS && lv.strongS < zS ? lv.strongS : zS - 100;
-      t2S = t1S - 100;
-      invTxt = `NIFTY closes back above ${fmtK(zS)}`;
-    }
-    // premium targets via delta linearisation
-    const d = Math.abs(prefer.leg.delta) || 0.5;
-    const t1Prem = Math.max(slPrem + 0.05, entryPrem + (dir === 'Bullish' ? (t1S - S) : (S - t1S)) * d);
-    const t2Prem = Math.max(slPrem + 0.05, entryPrem + (dir === 'Bullish' ? (t2S - S) : (S - t2S)) * d);
+    const entryPrem = prefer.leg.ltp;
+    const slPrem = entryPrem * 0.7;
+    const zone = dir === 'Bullish'
+      ? (Number.isFinite(sig.alerts && sig.alerts.zoneR) ? sig.alerts.zoneR : lv.immR)
+      : (Number.isFinite(sig.alerts && sig.alerts.zoneS) ? sig.alerts.zoneS : lv.immS);
+    if (!Number.isFinite(zone)) return empty;
+
+    const rawTarget = dir === 'Bullish' ? lv.strongR : lv.strongS;
+    const targetIsAhead = Number.isFinite(rawTarget) && (dir === 'Bullish' ? rawTarget > zone : rawTarget < zone);
+    const t1S = targetIsAhead ? rawTarget : null;
+    const trig = dir === 'Bullish' ? `15m close above ${fmtK(zone)}` : `15m close below ${fmtK(zone)}`;
+    const invTxt = dir === 'Bullish'
+      ? `NIFTY closes back below ${fmtK(zone)}`
+      : `NIFTY closes back above ${fmtK(zone)}`;
+
+    // Premium targets are estimates only when the live source supplies a usable delta.
+    const delta = Number.isFinite(prefer.leg.delta) ? Math.abs(prefer.leg.delta) : null;
+    const underlyingMove = Number.isFinite(t1S) ? (dir === 'Bullish' ? t1S - S : S - t1S) : null;
+    const t1Prem = Number.isFinite(delta) && delta > 0 && delta <= 1 && Number.isFinite(underlyingMove) && underlyingMove > 0
+      ? entryPrem + underlyingMove * delta : null;
+    const t2Prem = null;
 
     return {
       status: confirmed ? 'CONFIRMED — scenario plan (not a recommendation)' : 'SETUP FORMING — draft plan, wait for confirmation',
@@ -1383,170 +1133,23 @@ const Signals = (() => {
       trig,
       ctr: `${fmtK(prefer.strike)} ${prefer.side} (${prefer.label})`,
       ctrStrike: prefer.strike, side: prefer.side,
-      entry: `after confirmation near ₹${entryPrem.toFixed(2)} premium (ask ₹${prefer.leg.ask.toFixed(2)})`,
-      sl: `premium ₹${slPrem.toFixed(2)} (~30%) or underlying invalidation`,
-      t1: `premium ₹${t1Prem.toFixed(2)} · NIFTY ${fmtK(t1S)}`,
-      t2: `premium ₹${t2Prem.toFixed(2)} · NIFTY ${fmtK(t2S)}`,
+      entry: `after confirmation near ₹${fmtOptional(entryPrem)} premium (ask ₹${fmtOptional(prefer.leg.ask)})`,
+      sl: `premium ₹${fmtOptional(slPrem)} (~30%) or underlying invalidation`,
+      t1: Number.isFinite(t1Prem) ? `estimated premium ₹${fmtOptional(t1Prem)} · NIFTY ${fmtK(t1S)}` : Number.isFinite(t1S) ? `NIFTY ${fmtK(t1S)} OI level · option target unavailable` : 'no further source OI level / option target unavailable',
+      t2: 'unavailable — no second source-derived target',
       inv: invTxt,
       entryPrem, slPrem, t1Prem, t2Prem, liq: prefer.liqLbl,
     };
   }
 
-  return { setups, contracts, plan, atmStrike };
+  return { setups, contracts, plan, atmStrike, reset };
 })();
 
-
-/* ============================================================================
-   SCALP ENGINE — tight, multi-confirmation scalping layer
-   Never generates a scalp on one condition. Requires N/5 checklist.
-   Timeframe: resamples 15m candles into 5m/3m/1m for EMA/VWAP/momentum.
-   ============================================================================ */
-const ScalpEngine = (() => {
-  function resample(candles15m, tf){
-    if(tf===15) return candles15m.slice();
-    const out=[];
-    for(const c of candles15m){
-      const n = 15/tf;
-      // split 15m candle into n equal sub-candles, preserve shape
-      const volPer = Math.round(c.v / n);
-      const range = c.h - c.l;
-      const body = c.c - c.o;
-      for(let i=0;i<n;i++){
-        const t = c.t + i*tf*60*1000;
-        const f = i / n;
-        const o = c.o + body * f;
-        const cc = c.o + body * (f + 1/n);
-        // wiggle high/low around interpolated body
-        const mid = (o+cc)/2;
-        const hh = Math.max(o,cc) + range*0.18*(0.7+Math.random()*0.6);
-        const ll = Math.min(o,cc) - range*0.18*(0.7+Math.random()*0.6);
-        out.push({t,o,h:Math.min(c.h, hh), l:Math.max(c.l, ll), c:cc, v:volPer});
-      }
-    }
-    return out;
-  }
-  function ema(arr, p){
-    if(!arr.length) return null;
-    const a=2/(p+1); let e=arr[0];
-    for(let i=1;i<arr.length;i++) e=arr[i]*a+e*(1-a);
-    return e;
-  }
-  function scalpIndicators(snap, tf){
-    const raw = snap.spot.candles15m;
-    const cs = resample(raw, tf);
-    const closes = cs.map(c=>c.c);
-    const n = closes.length;
-    if(n<25) return {e9: snap.spot.ltp, e21: snap.spot.ltp, vwap: snap.spot.ltp, rsi:50, atr:20, volVsAvg:1, mom:0, cs};
-    // VWAP on TF
-    let pv=0,vv=0; cs.forEach(c=>{ const tp=(c.h+c.l+c.c)/3; pv+=tp*c.v; vv+=c.v; });
-    const vwap = vv? pv/vv : snap.spot.ltp;
-    const e9 = ema(closes.slice(-40), 9);
-    const e21 = ema(closes.slice(-60), 21);
-    // RSI 14 on TF (completed bars)
-    const done = closes.slice(0,-1);
-    const k = Math.min(14, done.length-1);
-    let g=0,l=0;
-    for(let i=done.length-k;i<done.length;i++){ const d=done[i]-done[i-1]; if(d>=0) g+=d; else l-=d; }
-    let ag=k?g/k:0, al=k?l/k:0;
-    for(let i=done.length-k+1;i<done.length;i++){ const d=done[i]-done[i-1]; ag=(ag*13+Math.max(d,0))/14; al=(al*13+Math.max(-d,0))/14; }
-    const rsi = al<1e-9 ? (ag>0?74:50) : 100-100/(1+ag/al);
-    // ATR 14
-    let atr=0,cnt=0; for(let i=Math.max(1,cs.length-14); i<cs.length; i++){ const c=cs[i], pc=cs[i-1]; atr+=Math.max(c.h-c.l, Math.abs(c.h-pc.c), Math.abs(c.l-pc.c)); cnt++; } atr=cnt? atr/cnt : 18;
-    // vol vs avg (pace)
-    const forming = cs[cs.length-1]; const doneCs = cs.slice(0,-1);
-    let av=0, ac=0; for(let i=Math.max(0,doneCs.length-20); i<doneCs.length; i++){ av+=doneCs[i].v; ac++; }
-    const base = ac? av/ac : forming.v;
-    const elapsed = Math.max(0.5, (Date.now()-forming.t)/60000);
-    const volVsAvg = (forming.v * (tf/elapsed))/base;
-    // momentum burst: price distance from e9 + rsi slope
-    const mom = (snap.spot.ltp - e9)/Math.max(atr, 8);
-    return {e9, e21, vwap, rsi, atr, volVsAvg, mom, cs};
-  }
-  function microLevels(snap){
-    const S=snap.spot.ltp;
-    // nearest high-OI walls within 200 pts but prefer ±100, sorted by composite OI score
-    const scored = snap.chain.map(r=>{
-      const cScore = r.ce.oi*0.6 + Math.max(r.ce.oiChg,0)*0.3 + r.ce.volume*0.1;
-      const pScore = r.pe.oi*0.6 + Math.max(r.pe.oiChg,0)*0.3 + r.pe.volume*0.1;
-      return {strike:r.strike, cScore, pScore, ce:r.ce, pe:r.pe};
-    });
-    const ups = scored.filter(x=>x.strike>S).sort((a,b)=> b.cScore - a.cScore);
-    const dns = scored.filter(x=>x.strike<S).sort((a,b)=> b.pScore - a.pScore);
-    // tight scalp pick: best within 120 pts, else best overall
-    const pick = (arr)=>{
-      const tight = arr.filter(x=> Math.abs(x.strike-S)<=120);
-      return (tight[0]||arr[0]||null);
-    };
-    const rPick = pick(ups), sPick = pick(dns);
-    return {
-      r: rPick? rPick.strike : null, rWhy: rPick? `CE OI ${fmtL(rPick.ce.oi)} vol ${fmtL(rPick.ce.volume)}` : '—',
-      s: sPick? sPick.strike : null, sWhy: sPick? `PE OI ${fmtL(sPick.pe.oi)} vol ${fmtL(sPick.pe.volume)}` : '—',
-      rPick, sPick
-    };
-  }
-  function confluence(snap, ind, micro){
-    const S=snap.spot.ltp;
-    const emaBull = ind.e9 > ind.e21 + ind.atr*0.04;
-    const emaBear = ind.e9 < ind.e21 - ind.atr*0.04;
-    const priceAboveVwap = S > ind.vwap + 2;
-    const priceBelowVwap = S < ind.vwap - 2;
-    const volBurst = ind.volVsAvg >= 1.28 || snap.chain.some(r=> r.ce.unusualVol || r.pe.unusualVol);
-    const rsiBullOk = ind.rsi >= 52 && ind.rsi < 72;
-    const rsiBearOk = ind.rsi > 28 && ind.rsi <= 48;
-    const nearR = micro.r && Math.abs(S - micro.r) <= 45;
-    const nearS = micro.s && Math.abs(S - micro.s) <= 45;
-    const oiBull = snap.chain.some(r=> Math.abs(r.strike - (micro.r||S))<=100 && r.ce.classify.code==='SC') || snap.chain.filter(r=> Math.abs(r.strike-S)<=150).filter(r=> r.pe.classify.code==='WR').length>=1;
-    const oiBear = snap.chain.some(r=> Math.abs(r.strike - (micro.s||S))<=100 && r.pe.classify.code==='SC') || snap.chain.filter(r=> Math.abs(r.strike-S)<=150).filter(r=> r.ce.classify.code==='WR').length>=1;
-
-    const bullChecks = [
-      {k:'EMA 9 > 21', ok: emaBull, pend: Math.abs(ind.e9-ind.e21) < ind.atr*0.06, d:`9:${ind.e9.toFixed(0)} 21:${ind.e21.toFixed(0)}`},
-      {k:'Price > VWAP', ok: priceAboveVwap, pend: Math.abs(S-ind.vwap)<=4, d:`VWAP ${ind.vwap.toFixed(0)}`},
-      {k:'RSI 52–72', ok: rsiBullOk, pend: ind.rsi>=48 && ind.rsi<52, d:`RSI ${ind.rsi.toFixed(0)}`},
-      {k:'Volume burst', ok: volBurst, pend: ind.volVsAvg>=0.95 && ind.volVsAvg<1.28, d:`${ind.volVsAvg.toFixed(2)}×`},
-      {k:'OI + level', ok: (nearR || oiBull), pend: !nearR && !oiBull && ind.volVsAvg>1.0, d: nearR? `near ${fmtK(micro.r)}` : oiBull? 'OI confirms' : 'no zone edge'},
-    ];
-    const bearChecks = [
-      {k:'EMA 9 < 21', ok: emaBear, pend: Math.abs(ind.e9-ind.e21) < ind.atr*0.06, d:`9:${ind.e9.toFixed(0)} 21:${ind.e21.toFixed(0)}`},
-      {k:'Price < VWAP', ok: priceBelowVwap, pend: Math.abs(S-ind.vwap)<=4, d:`VWAP ${ind.vwap.toFixed(0)}`},
-      {k:'RSI 28–48', ok: rsiBearOk, pend: ind.rsi>48 && ind.rsi<=52, d:`RSI ${ind.rsi.toFixed(0)}`},
-      {k:'Volume burst', ok: volBurst, pend: ind.volVsAvg>=0.95 && ind.volVsAvg<1.28, d:`${ind.volVsAvg.toFixed(2)}×`},
-      {k:'OI + level', ok: (nearS || oiBear), pend: !nearS && !oiBear && ind.volVsAvg>1.0, d: nearS? `near ${fmtK(micro.s)}` : oiBear? 'OI confirms' : 'no zone edge'},
-    ];
-    return {bullChecks, bearChecks, emaBull, emaBear, priceAboveVwap, priceBelowVwap, volBurst, rsiBullOk, rsiBearOk, ind, micro};
-  }
-  function evaluate(snap, tf, sens){
-    const ind = scalpIndicators(snap, tf);
-    const micro = microLevels(snap);
-    const conf = confluence(snap, ind, micro);
-    const need = sens==='conservative'?5 : sens==='balanced'?4 : 3;
-    const bullOk = conf.bullChecks.filter(c=>c.ok).length;
-    const bearOk = conf.bearChecks.filter(c=>c.ok).length;
-    const bullPend = conf.bullChecks.filter(c=>c.pend).length;
-    const bearPend = conf.bearChecks.filter(c=>c.pend).length;
-    let verdict='WAIT', tone='gy', action='STANDBY — waiting for confluence';
-    let side=null, score=0;
-    // never single-condition: need >= need AND at least one of EMA/VWAP plus volume
-    const bullCore = (conf.emaBull || conf.priceAboveVwap) && conf.volBurst;
-    const bearCore = (conf.emaBear || conf.priceBelowVwap) && conf.volBurst;
-    if(bullOk>=need && bullCore){ verdict='LONG'; tone='up'; side='CE'; score=bullOk; action=`SCALP LONG ${side} — ${bullOk}/5 confirms · tight SL`; }
-    else if(bearOk>=need && bearCore){ verdict='SHORT'; tone='dn'; side='PE'; score=bearOk; action=`SCALP SHORT ${side} — ${bearOk}/5 confirms · tight SL`; }
-    else if(bullOk>=need-1 && bullCore || bearOk>=need-1 && bearCore){ verdict='WAIT'; tone='wt'; score=Math.max(bullOk,bearOk); action=`1 away — ${Math.max(bullOk,bearOk)}/5 · waiting for final confirm`; }
-    else if(bullPend+bullOk>=2 || bearPend+bearOk>=2){ verdict='WAIT'; tone='wt'; score=Math.max(bullOk,bearOk); action=`Building — ${Math.max(bullOk,bearOk)}/5` }
-    // spread/liquidity guard — if spread too wide, downgrade to WAIT
-    const atm = snap.chain.reduce((b,r)=> Math.abs(r.strike-snap.spot.ltp)<Math.abs(b.strike-snap.spot.ltp)?r:b, snap.chain[0]);
-    const leg = side? atm[side] : atm.CE;
-    const spreadPct = leg? (leg.ask-leg.bid)/Math.max(leg.ltp,1)*100 : 99;
-    const thin = spreadPct>4.0 || (leg && leg.volume<110000);
-    if(thin && verdict!=='WAIT'){ verdict='WAIT'; tone='wt'; action+=' · spread/filter blocks — wait for liquid strike'; }
-    return {ind, micro, conf, bullOk, bearOk, need, verdict, tone, side, score, thin, spreadPct, leg, atmStrike: atm.strike};
-  }
-  return {resample, scalpIndicators, microLevels, confluence, evaluate};
-})();
 
 /* format helpers shared by layers */
-function fmtK(n) { return n == null ? '—' : n.toLocaleString('en-IN', { maximumFractionDigits: 0 }); }
+function fmtK(n) { return Number.isFinite(n) ? n.toLocaleString('en-IN', { maximumFractionDigits: 0 }) : '—'; }
 function fmtL(n) { // lakh-ish compact
-  if (n == null) return '—';
+  if (!Number.isFinite(n)) return '—';
   const a = Math.abs(n);
   if (a >= 1e7) return (n / 1e7).toFixed(2) + 'Cr';
   if (a >= 1e5) return (n / 1e5).toFixed(1) + 'L';
@@ -1557,14 +1160,14 @@ function fmtL(n) { // lakh-ish compact
    LAYER 3b — SIGNAL LOG store  (13)
    ============================================================================ */
 const SignalLog = (() => {
-  const KEY = 'niftydesk.log.v1';
+  const KEY = 'niftydesk.live-log.v3';
   let rows = [];
+  let sequence = 0;
   try { rows = JSON.parse(localStorage.getItem(KEY) || '[]'); } catch (e) { rows = []; }
   const save = () => { try { localStorage.setItem(KEY, JSON.stringify(rows.slice(-80))); } catch (e) {} };
   return {
     get: () => rows,
-    add(r) { rows.unshift({ id: Date.now() + Math.random(), ts: new Date().toISOString(), result: 'LOG', ...r }); rows = rows.slice(0, 80); save(); },
-    update(id, patch) { const r = rows.find(x => x.id === id); if (r) Object.assign(r, patch); save(); },
+    add(r) { rows.unshift({ id: `${Date.now()}-${++sequence}`, ts: new Date().toISOString(), result: 'OBSERVED', ...r }); rows = rows.slice(0, 80); save(); },
     clear() { rows = []; save(); },
   };
 })();
@@ -1575,234 +1178,35 @@ const SignalLog = (() => {
 const App = (() => {
   const $ = (s) => document.querySelector(s);
 
-  /* scalp sound + journal */
-  let audioCtx=null;
-  function beep(freq, dur, vol){
-    if(!state.scalpSound) return;
-    try{
-      if(!audioCtx) audioCtx = new (window.AudioContext||window.webkitAudioContext)();
-      const o=audioCtx.createOscillator(), g=audioCtx.createGain();
-      o.type='sine'; o.frequency.value=freq;
-      g.gain.value=vol||0.16; o.connect(g); g.connect(audioCtx.destination);
-      o.start(); g.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime+dur);
-      o.stop(audioCtx.currentTime+dur);
-    }catch(e){}
-  }
-  function flash(msg, tone){
-    const el=$('#scalpFlash');
-    el.textContent=msg; el.style.display='block';
-    el.style.background = tone==='up'? 'var(--up)': tone==='dn'? 'var(--dn)': 'var(--warn)';
-    el.style.color = tone==='up'||tone==='dn'? '#fff':'#111';
-    el.style.border='1px solid '+(tone==='up'?'var(--upbd)': tone==='dn'?'var(--dnbd)':'var(--warnbd)');
-    clearTimeout(flash._t);
-    flash._t=setTimeout(()=> el.style.display='none', 2600);
-  }
-  const SCALP_KEY='niftydesk.scalp.v1';
-  function loadScalpJournal(){ try{ state.scalpJournal=JSON.parse(localStorage.getItem(SCALP_KEY)||'[]'); }catch(e){ state.scalpJournal=[]; } }
-  function saveScalpJournal(){ try{ localStorage.setItem(SCALP_KEY, JSON.stringify(state.scalpJournal.slice(0,60))); }catch(e){} }
-  function paperScalp(dir){
-    if(!state.snap || !state.scalpOn) return;
-    const ev = ScalpEngine.evaluate(state.snap, state.scalpTf, state.scalpSens);
-    const S=state.snap.spot.ltp;
-    const atmRow = state.snap.chain.find(r=>r.strike===ev.atmStrike);
-    const side = dir==='LONG'?'CE':'PE';
-    const leg = atmRow && atmRow[side];
-    if(!leg) return;
-    const entry = leg.ltp;
-    const atr = ev.ind.atr;
-    const slPrem = Math.max(0.05, entry - (entry*0.18 + atr*0.18*0.5)); // tight scalp SL: ~18% + ATR component
-    // for short (PE Long when bearish), same premium logic - long option
-    const sl = slPrem;
-    const t1 = entry + (entry - sl)*1.5;
-    const t2 = entry + (entry - sl)*2.2;
-    const rec = {id: Date.now()+Math.random(), ts:new Date().toISOString(), dir, side, strike:ev.atmStrike, entry, sl, t1, t2, spot:S, tf:state.scalpTf, result:'RUN'};
-    state.scalpJournal.unshift(rec);
-    if(state.scalpJournal.length>60) state.scalpJournal.pop();
-    saveScalpJournal(); renderScalpJournal();
-    flash(`Paper ${dir} logged @ ₹${entry.toFixed(2)}`, dir==='LONG'?'up':'dn');
-    beep(dir==='LONG'?880:440, 0.18, 0.2);
-  }
-  function renderScalpJournal(){
-    const rows=state.scalpJournal;
-    if(!rows.length){
-      $('#scalpJournalBody').innerHTML='<tr><td colspan="6" class="mu" style="text-align:center;padding:10px">No paper scalps yet — click PAPER LONG/SHORT to journal.</td></tr>';
-      $('#scalpJournalStats').textContent='';
-      return;
-    }
-    // update P&L vs current snapshot
-    let win=0, loss=0, run=0;
-    const nowSnap = state.snap;
-    for(const r of rows){
-      if(r.result==='RUN' && nowSnap){
-        const row = nowSnap.chain.find(x=>x.strike===r.strike);
-        const leg = row && row[r.side];
-        if(leg){
-          const cur=leg.ltp;
-          r.cur = cur;
-          r.pnl = ((cur - r.entry)/r.entry*100);
-          if(cur >= r.t2) r.result='T2';
-          else if(cur >= r.t1) r.result='T1';
-          else if(cur <= r.sl) r.result='SL';
-        }
-      }
-      if(r.result==='T1'||r.result==='T2') win++; else if(r.result==='SL') loss++; else if(r.result==='RUN') run++;
-    }
-    $('#scalpJournalBody').innerHTML = rows.slice(0,12).map(r=>`
-      <tr>
-        <td>${new Date(r.ts).toLocaleTimeString('en-GB',{timeZone:IST,hour12:false})}</td>
-        <td class="${r.dir==='LONG'?'up':'dn'}">${r.dir}</td>
-        <td>${r.entry.toFixed(2)}</td>
-        <td>${r.cur? r.cur.toFixed(2):'—'}</td>
-        <td class="${(r.pnl||0)>=0?'up':'dn'}">${r.pnl? (r.pnl>=0?'+':'')+r.pnl.toFixed(1)+'%':'—'}</td>
-        <td><span class="res ${r.result}">${r.result}</span></td>
-      </tr>`).join('');
-    $('#scalpJournalStats').textContent = `${win}W · ${loss}L · ${run} running`;
-  }
-
-  function renderScalp(){
-    if(!state.snap) return;
-    const ev = ScalpEngine.evaluate(state.snap, state.scalpTf, state.scalpSens);
-    const S = state.snap.spot.ltp;
-    $('#scalpTfLbl').textContent = state.scalpTf+'m';
-    $('#scalpSparkLbl').textContent = state.scalpTf+'m';
-    $('#scalpScore').textContent = ev.score + '/5';
-    const lbl = ev.verdict==='LONG'?'bullish scalp' : ev.verdict==='SHORT'?'bearish scalp' : ev.score>=3?'building':'no edge';
-    $('#scalpScoreLbl').textContent = lbl;
-    $('#scalpVerdict').textContent = ev.verdict;
-    $('#scalpVerdict').className = 'tag '+(ev.verdict==='LONG'?'up':ev.verdict==='SHORT'?'dn':ev.verdict==='WAIT'?'wt':'gy');
-    $('#scalpTag').textContent = ev.verdict==='LONG'||ev.verdict==='SHORT'? `CONFIRMED — ${ev.verdict} needs tight SL` : `${ev.score}/5 confirms · need ${ev.need}/5`;
-    $('#scalpTag').className = 'tag '+(ev.verdict==='LONG'?'up':ev.verdict==='SHORT'?'dn':ev.score>=ev.need-1?'wt':'gy');
-    // meter
-    const checks = ev.verdict==='SHORT'? ev.conf.bearChecks : ev.conf.bullChecks;
-    $('#scalpMeter').innerHTML = checks.map(c=> `<span class="conf-dot ${c.ok? 'on '+(ev.verdict==='SHORT'?'dn':'up') : c.pend? 'on wt' : ''}"></span>`).join('');
-    $('#scalpConds').innerHTML = checks.map(c=>{
-      const cls=c.ok?'ok': c.pend?'pend':'no';
-      const mark=c.ok?'✓': c.pend?'…':'✗';
-      return `<div class="conf-item ${cls}"><span class="m ${c.ok?'ok':c.pend?'pend':'gy'}" style="width:14px;height:14px;display:grid;place-items:center;border-radius:3px;font-weight:900;font-size:9px">${mark}</span><span style="flex:1"><b>${c.k}</b> <span class="mu">(${c.d})</span></span></div>`;
-    }).join('');
-    $('#scalpAction').textContent = ev.action;
-    $('#scalpAction').className='action '+(ev.verdict==='LONG'?'up':ev.verdict==='SHORT'?'dn':'wt');
-    // micro levels
-    $('#scalpR').textContent = ev.micro.r? fmtK(ev.micro.r):'—';
-    $('#scalpRwhy').textContent = ev.micro.rWhy;
-    $('#scalpS').textContent = ev.micro.s? fmtK(ev.micro.s):'—';
-    $('#scalpSwhy').textContent = ev.micro.sWhy;
-    $('#scalpDistR').textContent = ev.micro.r? (ev.micro.r - S).toFixed(0)+' pts':'—';
-    $('#scalpDistS').textContent = ev.micro.s? (S - ev.micro.s).toFixed(0)+' pts':'—';
-    $('#scalpMom').textContent = ev.ind.mom>0.6?'▲ strong' : ev.ind.mom<-0.6?'▼ strong' : ev.ind.mom>0.2?'▲ weak':'—';
-    $('#scalpMom').className='num '+(ev.ind.mom>0.3?'up':ev.ind.mom<-0.3?'dn':'mu');
-    // ladder mini
-    const lo = Math.min(ev.micro.s||S-120, S-110)-20, hi=Math.max(ev.micro.r||S+120, S+110)+20;
-    const X=p=> ((p-lo)/(hi-lo))*100;
-    $('#scalpLadder').innerHTML = `
-      <span class="zone" style="left:${X(ev.micro.s||lo)}%;right:${100-X(ev.micro.r||hi)}%;background:${ev.verdict==='LONG'?'rgba(14,203,129,.14)':ev.verdict==='SHORT'?'rgba(246,70,93,.14)':'rgba(255,255,255,.06)'}"></span>
-      ${ev.micro.s? `<span class="mk" style="left:${X(ev.micro.s)}%;background:var(--up)"></span><span class="t" style="left:${X(ev.micro.s)}%;color:var(--up)">${fmtK(ev.micro.s)}</span>`:''}
-      ${ev.micro.r? `<span class="mk" style="left:${X(ev.micro.r)}%;background:var(--dn)"></span><span class="t" style="left:${X(ev.micro.r)}%;color:var(--dn)">${fmtK(ev.micro.r)}</span>`:''}
-      <span class="cur" style="left:${Math.min(94,Math.max(6,X(S)))}%">${S.toFixed(0)}</span>`;
-    // SL/TGT
-    if(ev.leg){
-      const entry=ev.leg.ltp;
-      const sl = Math.max(0.05, entry*0.82 - ev.ind.atr*0.12);
-      const t1 = entry + (entry - sl)*1.5;
-      const t2 = entry + (entry - sl)*2.2;
-      $('#scalpSL').textContent = '₹'+sl.toFixed(2);
-      $('#scalpSLwhy').textContent = `entry ₹${entry.toFixed(2)} · ~${((1-sl/entry)*100).toFixed(1)}%`;
-      $('#scalpTGT').textContent = `₹${t1.toFixed(2)} / ₹${t2.toFixed(2)}`;
-      $('#scalpTGTwhy').textContent = `1:1.5 / 1:2.2`;
-      const rr = (t1-entry)/Math.max(entry-sl,0.01);
-      $('#scalpRR').textContent = '1:'+rr.toFixed(2);
-      $('#scalpSpread').textContent = ev.spreadPct.toFixed(1)+'%';
-      $('#scalpSpread').className='num '+(ev.spreadPct>2.2?'dn':ev.spreadPct>1.4?'wt':'up');
-      $('#scalpLiq').textContent = ev.thin?'THIN':'OK';
-      $('#scalpLiq').className='num '+(ev.thin?'dn':'up');
-      $('#scalpLiqLbl').textContent = ev.thin?'THIN — WAIT':'LIQUID ONLY';
-      $('#scalpLiqLbl').className='liq-filter '+(ev.thin?'bad':'ok');
-      // enable paper buttons only when liquid
-      $('#btnPaperLong').disabled = ev.thin;
-      $('#btnPaperShort').disabled = ev.thin;
-    }
-    // spark
-    renderScalpSpark(ev.ind);
-    // sound + flash on verdict change
-    if(state.scalpPrevVerdict && state.scalpPrevVerdict!==ev.verdict){
-      if(ev.verdict==='LONG' || ev.verdict==='SHORT'){
-        beep(ev.verdict==='LONG'?880:520, 0.22, 0.22);
-        flash(`SCALP ${ev.verdict} — ${ev.score}/5 CONFIRMED`, ev.verdict==='LONG'?'up':'dn');
-      } else if(state.scalpPrevVerdict==='LONG' || state.scalpPrevVerdict==='SHORT'){
-        beep(320, 0.3, 0.14);
-        flash('SCALP INVALIDATED — stand aside', 'wt');
-      }
-    }
-    state.scalpPrevVerdict = ev.verdict;
-    renderScalpJournal();
-  }
-  function renderScalpSpark(ind){
-    const svg=$('#scalpSpark');
-    if(!svg || !ind || !ind.cs) return;
-    const cs=ind.cs.slice(-48);
-    if(cs.length<4) return;
-    const W=300, H=72, pad=6;
-    const xs = cs.map((c,i)=> pad + (i/(cs.length-1))*(W-pad*2));
-    const ys = cs.map(c=>c.c);
-    const vwapYs = [];
-    // compute rolling? just use ind values for lines - approximate
-    let min=Math.min(...ys, ind.e9, ind.e21, ind.vwap)-8, max=Math.max(...ys, ind.e9, ind.e21, ind.vwap)+8;
-    const Y=v=> H-pad - ((v-min)/(max-min||1))*(H-pad*2);
-    const path = (vals, color, width, dash)=>{
-      const d = vals.map((v,i)=> `${i===0?'M':'L'} ${xs[i].toFixed(1)} ${Y(v).toFixed(1)}`).join(' ');
-      return `<path d="${d}" fill="none" stroke="${color}" stroke-width="${width}" ${dash?`stroke-dasharray="${dash}"`:''} opacity=".95"/>`;
-    };
-    const ema9s=[], ema21s=[];
-    // compute ema series for spark
-    let a9=2/10, a21=2/22;
-    let e9=ys[0], e21=ys[0];
-    for(let i=0;i<ys.length;i++){
-      if(i===0){ e9=ys[0]; e21=ys[0]; } else { e9=ys[i]*a9+e9*(1-a9); e21=ys[i]*a21+e21*(1-a21); }
-      ema9s.push(e9); ema21s.push(e21);
-    }
-    const vwapLine = cs.map(()=> ind.vwap);
-    const pricePath = cs.map(c=>c.c);
-    svg.innerHTML = `
-      <rect x="0" y="0" width="${W}" height="${H}" rx="4" fill="var(--bg2)" stroke="var(--line2)"/>
-      ${path(vwapLine, '#8a8f98', 1, '4 3')}
-      ${path(ema21s, '#5a8cff', 1.2, '')}
-      ${path(ema9s, '#f0b90b', 1.4, '')}
-      ${path(pricePath, '#eaecef', 1.6, '')}
-    `;
-  }
-
-
-  const fmtPx = (n) => n == null ? '—' : n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  const fmtPx = (n) => Number.isFinite(n) ? n.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : '—';
   const state = {
-    provider: MockOptionChainProvider,
+    provider: RemoteNseProvider,
     snap: null, sig: null, plan: null,
-    auto: true, interval: 2000, nextAt: 0,
-    scalpOn: false, scalpTf: 5, scalpSens: 'balanced', scalpSound: true, scalpPrevVerdict: null, scalpJournal: [],
-    prev: {}, stagePrev: null, loggedStages: new Set(),
+    auto: true, interval: 5000, nextAt: 0, refreshing: false,
+    stagePrev: null, riskTouched: false,
   };
 
   /* ---------- header ---------- */
   function renderHeader() {
-    const s = state.snap, sp = s.spot, m = s.meta;
-    $('#hSpot').textContent = fmtPx(sp.ltp);
-    const up = sp.chg >= 0;
-    $('#hChg').textContent = `${up ? '+' : ''}${fmtPx(sp.chg)} (${up ? '+' : ''}${sp.chgPct.toFixed(2)}%)`;
-    $('#hChg').className = 'chg num ' + (up ? 'up' : 'dn');
-    $('#hExpiry').textContent = m.expiry;
-    $('#hDte').textContent = m.dteText;
-    $('#hUpd').textContent = m.ist;
-    const stEl = $('#hStatus');
-    stEl.textContent = m.marketStatus === 'OPEN' ? 'OPEN' : 'CLOSED';
-    stEl.className = 'status ' + (m.marketStatus === 'OPEN' ? 'open' : 'closed');
-    const feedEl = $('#feedLbl');
-    const isLive = m.mode === 'live';
-    const isFix = isLive && /fixture/i.test(String(m.source || ''));
-    feedEl.textContent = isLive ? (isFix ? 'FIXTURE DATA' : 'LIVE · NSE INDIA') : 'SIM FEED';
-    feedEl.className = isLive && !isFix ? 'lbl-sim lbl-live' : 'lbl-sim';
-    $('#ftFeed').textContent = isLive
-      ? (isFix ? 'fixture bundle — genuine NSE snapshot 25-Sep-2026 10:40 IST (pipeline test mode)'
-               : `live nseindia.com option chain — ${m.source || 'nseindia.com'}`)
-      : 'simulator seeded from NSE 25-Sep-2026 10:40 IST — run `node bridge/nse-bridge.js` for live NSE data';
+    const { spot, meta } = state.snap;
+    const hasChange = Number.isFinite(spot.chg) && Number.isFinite(spot.chgPct);
+    $('#hSpot').textContent = fmtPx(spot.ltp);
+    $('#hChg').textContent = hasChange
+      ? `${spot.chg >= 0 ? '+' : ''}${fmtPx(spot.chg)} (${spot.chg >= 0 ? '+' : ''}${fmtOptional(spot.chgPct)}%)`
+      : 'change unavailable';
+    $('#hChg').className = `chg num ${hasChange ? (spot.chg >= 0 ? 'up' : 'dn') : 'gy'}`;
+    $('#hExpiry').textContent = meta.expiry || '—';
+    $('#hDte').textContent = meta.dteText || '—';
+    $('#hUpd').textContent = meta.ist || 'exchange timestamp unavailable';
+
+    const marketStatus = String(meta.marketStatus || 'UNAVAILABLE').toUpperCase();
+    const statusClass = marketStatus === 'OPEN' ? 'open' : marketStatus === 'PRE-OPEN' ? 'pre' : 'closed';
+    $('#hStatus').textContent = marketStatus;
+    $('#hStatus').className = `status ${statusClass}`;
+    $('#feedLbl').textContent = 'LIVE · NSE INDIA';
+    $('#feedLbl').className = 'lbl-feed lbl-live';
+    const omittedRows = Number.isFinite(meta.omittedIncompleteRows) ? meta.omittedIncompleteRows : 0;
+    $('#ftFeed').textContent = `Live NSE option-chain response · ${meta.source || 'NSE'} · ${meta.ist || 'exchange timestamp unavailable'}${omittedRows ? ` · ${omittedRows} incomplete expiry rows omitted` : ''}`;
   }
 
   /* ---------- (2) structure panel ---------- */
@@ -1836,7 +1240,7 @@ const App = (() => {
     if (state.sig.alerts.zoneS && state.snap.spot.ltp > state.sig.alerts.zoneS)
       reasons.push({ c: 'warn', t: `<b>⚠</b> Support at ${fmtK(state.sig.alerts.zoneS)}` });
     if (st.ind.rsi > 75) reasons.push({ c: 'warn', t: '<b>⚠</b> RSI overbought — chase risk' });
-    if (st.ind.volVsAvg < 0.7) reasons.push({ c: 'warn', t: '<b>⚠</b> Thin volume — signals unreliable' });
+    if (Number.isFinite(st.ind.volVsAvg) && st.ind.volVsAvg < 0.7) reasons.push({ c: 'warn', t: '<b>⚠</b> Thin volume — signals unreliable' });
     $('#reasonsBox').innerHTML = reasons.slice(0, 6).map(r => `<div class="r ${r.c}">${r.t}</div>`).join('') ||
       '<div class="r mu">No confirmed evidence — observation only.</div>';
 
@@ -1849,24 +1253,30 @@ const App = (() => {
 
   /* ---------- (3) levels ---------- */
   function renderLevels() {
-    const lv = state.sig.structure.lv, S = state.snap.spot.ltp;
+    const lv = state.sig.structure.lv, spot = state.snap.spot.ltp;
     $('#lvSR').textContent = fmtK(lv.strongR); $('#lvSRw').textContent = lv.strongRwhy;
     $('#lvIR').textContent = fmtK(lv.immR); $('#lvIRw').textContent = lv.immRwhy;
-    $('#lvCUR').textContent = fmtPx(S);
+    $('#lvCUR').textContent = fmtPx(spot);
     $('#lvIS').textContent = fmtK(lv.immS); $('#lvISw').textContent = lv.immSwhy;
     $('#lvSS').textContent = fmtK(lv.strongS); $('#lvSSw').textContent = lv.strongSwhy;
+    if (!Number.isFinite(spot)) { $('#ladVis').textContent = 'Source spot unavailable'; return; }
 
-    // horizontal ladder visual
-    const lo = Math.min(lv.strongS || S - 150, S - 120) - 30;
-    const hi = Math.max(lv.strongR || S + 150, S + 120) + 30;
-    const X = (p) => ((p - lo) / (hi - lo)) * 100;
-    const mk = (p, color, label) => p == null ? '' :
-      `<span class="mk" style="left:${X(p)}%;background:${color}"></span><span class="t" style="left:${X(p)}%;color:${color}">${label}</span>`;
+    const sourceLevels = [lv.strongS, lv.immS, lv.immR, lv.strongR].filter(Number.isFinite);
+    const values = [spot, ...sourceLevels];
+    const low = Math.min(...values), high = Math.max(...values);
+    const span = high - low;
+    const visualPadding = span > 0 ? span * 0.12 : Math.max(Math.abs(spot) * 0.001, 1);
+    const lo = low - visualPadding, hi = high + visualPadding;
+    const X = value => clamp(((value - lo) / (hi - lo)) * 100, 0, 100);
+    const mk = (value, color, label) => Number.isFinite(value)
+      ? `<span class="mk" style="left:${X(value)}%;background:${color}"></span><span class="t" style="left:${X(value)}%;color:${color}">${label}</span>`
+      : '';
+    const hasBothWalls = Number.isFinite(lv.immS) && Number.isFinite(lv.immR) && lv.immS < lv.immR;
     $('#ladVis').innerHTML =
-      `<span class="zone" style="left:${X(lv.immS || lo)}%;right:${100 - X(lv.immR || hi)}%;background:#fff"></span>` +
+      (hasBothWalls ? `<span class="zone" style="left:${X(lv.immS)}%;right:${100 - X(lv.immR)}%;background:#fff"></span>` : '') +
       mk(lv.strongS, 'var(--up)', fmtK(lv.strongS)) + mk(lv.immS, 'var(--up)', fmtK(lv.immS)) +
       mk(lv.immR, 'var(--dn)', fmtK(lv.immR)) + mk(lv.strongR, 'var(--dn)', fmtK(lv.strongR)) +
-      `<span class="cur" style="left:${clamp(X(S), 6, 94)}%">${S.toFixed(0)}</span>`;
+      `<span class="cur" style="left:${X(spot)}%">${fmtOptional(spot, 0)}</span>`;
   }
 
   /* ---------- (6) PCR ---------- */
@@ -1875,69 +1285,79 @@ const App = (() => {
     const pc = Analytics.pcr(state.snap);
     pcrHist.push({ t: Date.now(), ...pc });
     if (pcrHist.length > 120) pcrHist.shift();
-    const prev = pcrHist[pcrHist.length - 16] || pcrHist[0];
-    const arrow = (a, b) => a > b + 0.01 ? '<span class="t up">▲ rising</span>' : a < b - 0.01 ? '<span class="t dn">▼ falling</span>' : '<span class="t mu">→ stable</span>';
-    $('#pcrOi').textContent = pc.oi.toFixed(2);
-    $('#pcrOiT').innerHTML = arrow(pc.oi, prev.oi);
-    $('#pcrVol').textContent = pc.vol.toFixed(2);
-    $('#pcrVolT').innerHTML = arrow(pc.vol, prev.vol);
-    $('#pcrAtm').textContent = pc.atm.toFixed(2);
-    $('#pcrAtmT').innerHTML = arrow(pc.atm, prev.atm);
-    $('#pcrChg').textContent = pc.netChg.toFixed(2);
+    const previous = pcrHist.length > 15 ? pcrHist[pcrHist.length - 16] : null;
+    const trend = (current, prior) => {
+      if (!Number.isFinite(current) || !Number.isFinite(prior)) return '<span class="t mu">— source comparison unavailable</span>';
+      return current > prior + 0.01 ? '<span class="t up">▲ rising</span>'
+        : current < prior - 0.01 ? '<span class="t dn">▼ falling</span>' : '<span class="t mu">→ stable</span>';
+    };
+    $('#pcrOi').textContent = fmtOptional(pc.oi);
+    $('#pcrOiT').innerHTML = trend(pc.oi, previous && previous.oi);
+    $('#pcrVol').textContent = fmtOptional(pc.vol);
+    $('#pcrVolT').innerHTML = trend(pc.vol, previous && previous.vol);
+    $('#pcrAtm').textContent = fmtOptional(pc.atm);
+    $('#pcrAtmT').innerHTML = trend(pc.atm, previous && previous.atm);
+    $('#pcrChg').textContent = fmtOptional(pc.netChg);
     $('#pcrChgT').innerHTML = `<span class="t mu">PE add ${fmtL(pc.peAdd)} · CE add ${fmtL(pc.ceAdd)}</span>`;
   }
 
   /* ---------- (5) option chain ---------- */
   function renderChain() {
-    const snap = state.snap, S = snap.spot.ltp;
+    const snap = state.snap, spot = snap.spot.ltp;
     const atm = Signals.atmStrike(snap);
     const rows = snap.chain;
-    // badge calculations
-    const maxOi = { CE: 0, PE: 0 }, maxAdd = { CE: -1e9, PE: -1e9 }, maxCut = { CE: 1e9, PE: 1e9 };
-    rows.forEach(r => ['CE', 'PE'].forEach(s => {
-      maxOi[s] = Math.max(maxOi[s], r[s].oi);
-      maxAdd[s] = Math.max(maxAdd[s], r[s].oiChg);
-      maxCut[s] = Math.min(maxCut[s], r[s].oiChg);
-    }));
-    $('#chainSub').textContent = `NIFTY ${fmtPx(S)} · ATM ${fmtK(atm)} · expiry ${snap.meta.expiry} · lot ${snap.meta.lotSize}`;
+    const maxValue = (side, field, mode) => {
+      const values = rows.map(row => row[side][field]).filter(Number.isFinite);
+      if (!values.length) return null;
+      return mode === 'min' ? Math.min(...values) : Math.max(...values);
+    };
+    const maxOi = { CE: maxValue('ce', 'oi'), PE: maxValue('pe', 'oi') };
+    const maxAdd = { CE: maxValue('ce', 'oiChg'), PE: maxValue('pe', 'oiChg') };
+    const maxCut = { CE: maxValue('ce', 'oiChg', 'min'), PE: maxValue('pe', 'oiChg', 'min') };
+    $('#chainSub').textContent = `NIFTY ${fmtPx(spot)} · ATM ${fmtK(atm)} · expiry ${snap.meta.expiry || '—'} · lot ${fmtK(snap.meta.lotSize)}`;
 
-    $('#chainBody').innerHTML = rows.map(r => {
-      const isAtm = r.strike === atm;
-      const chgC = r.ce.chgPct >= 0 ? 'up' : 'dn';
-      const chgP = r.pe.chgPct >= 0 ? 'up' : 'dn';
-      const oiC = r.ce.oiChg >= 0 ? 'up' : 'wt';
-      const oiP = r.pe.oiChg >= 0 ? 'up' : 'wt';
+    $('#chainBody').innerHTML = rows.map(row => {
+      const isAtm = row.strike === atm;
+      const changeCell = leg => Number.isFinite(leg.chgPct) ? `${leg.chgPct >= 0 ? '+' : ''}${fmtOptional(leg.chgPct)}%` : '—';
+      const oiChangeCell = (leg, side) => {
+        if (!Number.isFinite(leg.oiChg)) return '—';
+        const badges = (leg.oiChg > 0 && leg.oiChg === maxAdd[side] ? '<span class="badge add">MAX ADD</span>' : '') +
+          (leg.oiChg < 0 && leg.oiChg === maxCut[side] ? '<span class="badge cut">MAX CUT</span>' : '');
+        return `${leg.oiChg >= 0 ? '+' : ''}${fmtL(leg.oiChg)}${badges}`;
+      };
+      const oiCell = (leg, side) => `${fmtL(leg.oi)}${Number.isFinite(leg.oi) && leg.oi > 0 && leg.oi === maxOi[side] ? '<span class="badge hioi">HI OI</span>' : ''}`;
+      const ivCell = leg => Number.isFinite(leg.iv) ? fmtOptional(leg.iv * 100, 1) : '—';
       return `<tr class="${isAtm ? 'atm' : ''}">
-        <td><b>${fmtPx(r.ce.ltp)}</b><span class="cls ${r.ce.classify.code}">${r.ce.classify.label}</span></td>
-        <td class="${chgC}">${r.ce.chgPct >= 0 ? '+' : ''}${r.ce.chgPct.toFixed(2)}%</td>
-        <td class="${r.ce.unusualVol ? 'wt' : ''}">${fmtL(r.ce.volume)}${r.ce.unusualVol ? '<span class="badge vol">VOL</span>' : ''}</td>
-        <td>${fmtL(r.ce.oi)}${r.ce.oi === maxOi.CE ? '<span class="badge hioi">HI OI</span>' : ''}</td>
-        <td class="${oiC}">${r.ce.oiChg >= 0 ? '+' : ''}${fmtL(r.ce.oiChg)}${r.ce.oiChg === maxAdd.CE && r.ce.oiChg > 0 ? '<span class="badge add">MAX ADD</span>' : ''}${r.ce.oiChg === maxCut.CE && r.ce.oiChg < 0 ? '<span class="badge cut">MAX CUT</span>' : ''}</td>
-        <td>${(r.ce.iv * 100).toFixed(1)}</td>
-        <td class="strike">${isAtm ? '<span class="atmtag">ATM</span>' : ''}${fmtK(r.strike)}</td>
-        <td>${(r.pe.iv * 100).toFixed(1)}</td>
-        <td class="${oiP}">${r.pe.oiChg >= 0 ? '+' : ''}${fmtL(r.pe.oiChg)}${r.pe.oiChg === maxAdd.PE && r.pe.oiChg > 0 ? '<span class="badge add">MAX ADD</span>' : ''}${r.pe.oiChg === maxCut.PE && r.pe.oiChg < 0 ? '<span class="badge cut">MAX CUT</span>' : ''}</td>
-        <td>${fmtL(r.pe.oi)}${r.pe.oi === maxOi.PE ? '<span class="badge hioi">HI OI</span>' : ''}</td>
-        <td class="${r.pe.unusualVol ? 'wt' : ''}">${fmtL(r.pe.volume)}${r.pe.unusualVol ? '<span class="badge vol">VOL</span>' : ''}</td>
-        <td class="${chgP}">${r.pe.chgPct >= 0 ? '+' : ''}${r.pe.chgPct.toFixed(2)}%</td>
-        <td><b>${fmtPx(r.pe.ltp)}</b><span class="cls ${r.pe.classify.code}">${r.pe.classify.label}</span></td>
+        <td><b>${fmtPx(row.ce.ltp)}</b><span class="cls ${row.ce.classify.code}">${row.ce.classify.label}</span></td>
+        <td class="${Number.isFinite(row.ce.chgPct) ? row.ce.chgPct >= 0 ? 'up' : 'dn' : 'gy'}">${changeCell(row.ce)}</td>
+        <td class="${row.ce.unusualVol ? 'wt' : ''}">${fmtL(row.ce.volume)}${row.ce.unusualVol ? '<span class="badge vol">VOL</span>' : ''}</td>
+        <td>${oiCell(row.ce, 'CE')}</td>
+        <td class="${Number.isFinite(row.ce.oiChg) ? row.ce.oiChg >= 0 ? 'up' : 'wt' : 'gy'}">${oiChangeCell(row.ce, 'CE')}</td>
+        <td>${ivCell(row.ce)}</td>
+        <td class="strike">${isAtm ? '<span class="atmtag">ATM</span>' : ''}${fmtK(row.strike)}</td>
+        <td>${ivCell(row.pe)}</td>
+        <td class="${Number.isFinite(row.pe.oiChg) ? row.pe.oiChg >= 0 ? 'up' : 'wt' : 'gy'}">${oiChangeCell(row.pe, 'PE')}</td>
+        <td>${oiCell(row.pe, 'PE')}</td>
+        <td class="${row.pe.unusualVol ? 'wt' : ''}">${fmtL(row.pe.volume)}${row.pe.unusualVol ? '<span class="badge vol">VOL</span>' : ''}</td>
+        <td class="${Number.isFinite(row.pe.chgPct) ? row.pe.chgPct >= 0 ? 'up' : 'dn' : 'gy'}">${changeCell(row.pe)}</td>
+        <td><b>${fmtPx(row.pe.ltp)}</b><span class="cls ${row.pe.classify.code}">${row.pe.classify.label}</span></td>
       </tr>`;
     }).join('');
 
-    // centre ATM on load once
     if (!state.centered) {
       state.centered = true;
       requestAnimationFrame(() => {
-        const tr = $('#chainBody').querySelector('tr.atm');
-        if (tr) $('#chainWrap').scrollTop = tr.offsetTop - 160;
+        const row = $('#chainBody').querySelector('tr.atm');
+        if (row) $('#chainWrap').scrollTop = row.offsetTop - 160;
       });
     }
   }
 
   /* ---------- (7) scanner ---------- */
   const condHtml = (c) => {
+    const available = c.available !== false;
     const m = c.ok ? 'ok' : c.pend ? 'pend' : 'gy';
-    const mark = c.ok ? '✓' : c.pend ? '…' : '✗';
+    const mark = c.ok ? '✓' : c.pend ? '…' : available ? '✗' : '—';
     return `<div class="cond"><span class="m ${m}">${mark}</span><span>${c.t}${c.note ? ` <span class="mu">(${c.note})</span>` : ''}</span></div>`;
   };
   function renderScanner() {
@@ -1974,47 +1394,50 @@ const App = (() => {
 
   /* ---------- (12) market context ---------- */
   function renderContext() {
-    const ind = state.sig.structure.ind, sp = state.snap.spot;
+    const ind = state.sig.structure.ind, spot = state.snap.spot;
     const items = [
-      ['15m Trend', ind.trend15m, ind.trend15m === 'Bullish' ? 'up' : ind.trend15m === 'Bearish' ? 'dn' : 'gy'],
-      ['1H Trend', ind.trend1h, ind.trend1h === 'Bullish' ? 'up' : ind.trend1h === 'Bearish' ? 'dn' : 'gy'],
-      ['VWAP', ind.vwap.toFixed(0), sp.ltp > ind.vwap ? 'up' : 'dn'],
-      ['RSI 14', ind.rsi.toFixed(1), ind.rsi > 55 ? 'up' : ind.rsi < 45 ? 'dn' : 'wt'],
-      ['ATR (15m)', ind.atr.toFixed(1), 'mu'],
-      ['Volume vs Avg', ind.volVsAvg.toFixed(2) + '×', ind.volVsAvg > 1.2 ? 'up' : ind.volVsAvg < 0.7 ? 'gy' : 'wt'],
-      ['India VIX', sp.vix.toFixed(2), sp.vix > 16 ? 'dn' : sp.vix < 11 ? 'up' : 'gy'],
+      ['15m Trend', ind.trend15m, ind.trend15m === 'Bullish' ? 'up' : ind.trend15m === 'Bearish' ? 'dn' : 'gy', ind.trend15m !== 'Unavailable'],
+      ['1H Trend', ind.trend1h, ind.trend1h === 'Bullish' ? 'up' : ind.trend1h === 'Bearish' ? 'dn' : 'gy', ind.trend1h !== 'Unavailable'],
+      ['VWAP', fmtOptional(ind.vwap, 0), Number.isFinite(ind.vwap) ? spot.ltp > ind.vwap ? 'up' : 'dn' : 'gy', Number.isFinite(ind.vwap)],
+      ['RSI 14', fmtOptional(ind.rsi, 1), Number.isFinite(ind.rsi) ? ind.rsi > 55 ? 'up' : ind.rsi < 45 ? 'dn' : 'wt' : 'gy', Number.isFinite(ind.rsi)],
+      ['ATR (15m)', fmtOptional(ind.atr, 1), 'mu', Number.isFinite(ind.atr)],
+      ['Volume vs Avg', Number.isFinite(ind.volVsAvg) ? `${fmtOptional(ind.volVsAvg)}×` : 'Unavailable', Number.isFinite(ind.volVsAvg) ? ind.volVsAvg > 1.2 ? 'up' : ind.volVsAvg < 0.7 ? 'gy' : 'wt' : 'gy', Number.isFinite(ind.volVsAvg)],
+      ['India VIX', fmtOptional(spot.vix), Number.isFinite(spot.vix) ? spot.vix > 16 ? 'dn' : spot.vix < 11 ? 'up' : 'gy' : 'gy', Number.isFinite(spot.vix)],
     ];
-    // agreement count among direction-bearing ticks
-    const dirItems = items.slice(0, 4);
-    const upN = dirItems.filter(i => i[2] === 'up').length, dnN = dirItems.filter(i => i[2] === 'dn').length;
-    const agreeN = Math.max(upN, dnN);
-    $('#ctxAgree').textContent = `Overall confirmation: ${agreeN}/4 · ${upN > dnN ? 'bullish lean' : dnN > upN ? 'bearish lean' : 'conflicting'}`;
-    $('#ctxGrid').innerHTML = items.map(([k, v, t]) =>
+    const directional = items.slice(0, 4).filter(item => item[3]);
+    const upCount = directional.filter(item => item[2] === 'up').length;
+    const downCount = directional.filter(item => item[2] === 'dn').length;
+    const lean = upCount > downCount ? 'bullish lean' : downCount > upCount ? 'bearish lean' : 'no directional lean';
+    $('#ctxAgree').textContent = directional.length
+      ? `Available direction readings: ${Math.max(upCount, downCount)}/${directional.length} · ${lean}`
+      : 'Insufficient source candle data';
+    $('#ctxGrid').innerHTML = items.map(([key, value, tone]) =>
       `<div style="display:flex;justify-content:space-between;gap:8px;border-bottom:1px solid var(--line2);padding-bottom:4px">
-        <span class="mu" style="font-size:10.5px">${k}</span><b class="num ${t}" style="font-size:11.5px">${v}</b></div>`).join('');
+        <span class="mu" style="font-size:10.5px">${key}</span><b class="num ${tone}" style="font-size:11.5px">${value}</b></div>`).join('');
   }
 
   /* ---------- (9) contracts + (10) plan ---------- */
   function renderContracts() {
     const dir = state.plan && state.plan.dirRaw;
-    const cs = Signals.contracts(state.snap, dir || (state.sig.structure.verdict === 'BEARISH' ? 'Bearish' : 'Bullish'));
+    const chosenSide = dir || (state.sig.structure.verdict === 'BEARISH' ? 'Bearish' : 'Bullish');
+    const cs = Signals.contracts(state.snap, chosenSide);
     if (!cs.rows.length) {
-      $('#cnSide').textContent = 'awaiting direction';
-      $('#cnBody').innerHTML = '<tr><td colspan="9" class="mu" style="text-align:center;padding:14px">Insufficient confirmation — no side selected</td></tr>';
+      $('#cnSide').textContent = 'awaiting complete live quotes';
+      $('#cnBody').innerHTML = '<tr><td colspan="9" class="mu" style="text-align:center;padding:14px">No complete source option quotes are available</td></tr>';
       return;
     }
-    $('#cnSide').textContent = `${dir || 'Structure lean'} side · ${cs.side} · liquidity & spread highlighted`;
-    $('#cnBody').innerHTML = cs.rows.map(r => `
+    $('#cnSide').textContent = `${dir || 'Structure lean'} side · ${cs.side} · source quote fields only`;
+    $('#cnBody').innerHTML = cs.rows.map(row => `
       <tr>
-        <td>${fmtK(r.strike)} ${r.side} <span class="mu" style="font-weight:500">${r.label}</span></td>
-        <td><b>${fmtPx(r.leg.ltp)}</b></td>
-        <td>${r.leg.delta.toFixed(2)}</td>
-        <td class="dn">${r.leg.thetaDay.toFixed(2)}</td>
-        <td>${(r.leg.iv * 100).toFixed(1)}</td>
-        <td>${fmtL(r.leg.volume)}</td>
-        <td>${fmtL(r.leg.oi)}</td>
-        <td class="${r.spreadPct > 4 ? 'dn' : r.spreadPct > 2.2 ? 'wt' : ''}">₹${r.spread.toFixed(2)} (${r.spreadPct.toFixed(1)}%)</td>
-        <td><span class="liq ${r.liq}">${r.liqLbl}</span></td>
+        <td>${fmtK(row.strike)} ${row.side} <span class="mu" style="font-weight:500">${row.label}</span></td>
+        <td><b>${fmtPx(row.leg.ltp)}</b></td>
+        <td>${fmtOptional(row.leg.delta)}</td>
+        <td class="dn">${fmtOptional(row.leg.thetaDay)}</td>
+        <td>${Number.isFinite(row.leg.iv) ? fmtOptional(row.leg.iv * 100, 1) : '—'}</td>
+        <td>${fmtL(row.leg.volume)}</td>
+        <td>${fmtL(row.leg.oi)}</td>
+        <td class="${Number.isFinite(row.spreadPct) ? row.spreadPct > 4 ? 'dn' : row.spreadPct > 2.2 ? 'wt' : '' : 'gy'}">${Number.isFinite(row.spread) ? `₹${fmtOptional(row.spread)} (${fmtOptional(row.spreadPct, 1)}%)` : '— quote unavailable'}</td>
+        <td><span class="liq ${row.liq}">${row.liqLbl}</span></td>
       </tr>`).join('');
   }
 
@@ -2038,131 +1461,150 @@ const App = (() => {
 
   /* ---------- (11) risk calculator ---------- */
   function riskCalc(syncFromPlan) {
-    const g = (id) => Number($(id).value) || 0;
-    if (syncFromPlan && state.plan && state.plan.entryPrem) {
+    const get = selector => {
+      const value = Number($(selector).value);
+      return Number.isFinite(value) ? value : null;
+    };
+    if (syncFromPlan && state.plan && Number.isFinite(state.plan.entryPrem)) {
       $('#rkEntry').value = state.plan.entryPrem.toFixed(2);
       $('#rkSl').value = state.plan.slPrem.toFixed(2);
-      $('#rkTgt').value = state.plan.t1Prem.toFixed(2);
-      $('#rkLot').value = state.snap.meta.lotSize;
+      $('#rkTgt').value = Number.isFinite(state.plan.t1Prem) ? state.plan.t1Prem.toFixed(2) : '';
+      $('#rkLot').value = Number.isFinite(state.snap.meta.lotSize) ? String(state.snap.meta.lotSize) : '';
     }
-    const cap = g('#rkCap'), pct = g('#rkPct'), entry = g('#rkEntry'), sl = g('#rkSl'), tgt = g('#rkTgt'), lot = g('#rkLot') || 75, lots = Math.max(1, g('#rkLots'));
-    const maxRisk = cap * pct / 100;
-    const qty = lots * lot;
-    const capReq = entry * qty;
-    const loss = Math.max(0, (entry - sl)) * qty;
-    const pft = Math.max(0, (tgt - entry)) * qty;
-    const rr = loss > 0 ? pft / loss : 0;
-    const maxLots = Math.max(0, Math.floor(maxRisk / (Math.max(entry - sl, 0.01) * lot)));
-    $('#roMax').textContent = '₹' + fmtK(maxRisk);
-    $('#roQty').textContent = fmtK(qty);
-    $('#roCap').textContent = '₹' + fmtK(capReq);
-    $('#roLoss').textContent = '₹' + fmtK(loss);
-    $('#roPft').textContent = '₹' + fmtK(pft);
-    $('#roRR').textContent = rr ? '1 : ' + rr.toFixed(2) : '—';
-    $('#roMaxLots').textContent = fmtK(maxLots);
-    const w = $('#rkWarn');
-    if (loss > maxRisk) {
-      w.className = 'riskwarn bad show';
-      w.textContent = `⚠ Risk ₹${fmtK(loss)} exceeds your max ₹${fmtK(maxRisk)} (${pct}%). Reduce to ≤ ${maxLots} lot(s) or tighten SL.`;
-    } else if (capReq > cap) {
-      w.className = 'riskwarn bad show';
-      w.textContent = `⚠ Capital required ₹${fmtK(capReq)} exceeds trading capital ₹${fmtK(cap)}.`;
+    const cap = get('#rkCap'), maxRiskPct = get('#rkPct'), entry = get('#rkEntry');
+    const stop = get('#rkSl'), target = get('#rkTgt'), lotSize = get('#rkLot'), lots = get('#rkLots');
+    const inputsAvailable = [cap, maxRiskPct, entry, stop, target, lotSize, lots].every(Number.isFinite) &&
+      cap > 0 && maxRiskPct > 0 && entry > 0 && stop >= 0 && stop < entry && target > entry &&
+      Number.isInteger(lotSize) && lotSize > 0 && Number.isInteger(lots) && lots > 0;
+    const outputIds = ['#roMax', '#roQty', '#roCap', '#roLoss', '#roPft', '#roRR', '#roMaxLots'];
+    const warning = $('#rkWarn');
+    if (!inputsAvailable) {
+      outputIds.forEach(selector => $(selector).textContent = '—');
+      warning.className = 'riskwarn show';
+      warning.textContent = Number.isFinite(state.snap && state.snap.meta && state.snap.meta.lotSize)
+        ? 'Enter your capital, risk limit, entry, stop, target, source lot size and number of lots to calculate.'
+        : 'Enter the required values. Lot size is not present in the live NSE response; supply a verified lot size yourself.';
+      return;
+    }
+
+    const maxRisk = cap * maxRiskPct / 100;
+    const quantity = lots * lotSize;
+    const capitalRequired = entry * quantity;
+    const lossAtStop = (entry - stop) * quantity;
+    const profitAtTarget = (target - entry) * quantity;
+    const riskReward = lossAtStop > 0 ? profitAtTarget / lossAtStop : null;
+    const maxLots = lossAtStop > 0 ? Math.floor(maxRisk / ((entry - stop) * lotSize)) : null;
+    $('#roMax').textContent = `₹${fmtK(maxRisk)}`;
+    $('#roQty').textContent = fmtK(quantity);
+    $('#roCap').textContent = `₹${fmtK(capitalRequired)}`;
+    $('#roLoss').textContent = `₹${fmtK(lossAtStop)}`;
+    $('#roPft').textContent = `₹${fmtK(profitAtTarget)}`;
+    $('#roRR').textContent = Number.isFinite(riskReward) ? `1 : ${riskReward.toFixed(2)}` : '—';
+    $('#roMaxLots').textContent = Number.isFinite(maxLots) ? fmtK(maxLots) : '—';
+    if (lossAtStop > maxRisk) {
+      warning.className = 'riskwarn bad show';
+      warning.textContent = `Risk ₹${fmtK(lossAtStop)} exceeds your max ₹${fmtK(maxRisk)} (${maxRiskPct}%). Reduce to at most ${maxLots} lot(s) or change the stop.`;
+    } else if (capitalRequired > cap) {
+      warning.className = 'riskwarn bad show';
+      warning.textContent = `Capital required ₹${fmtK(capitalRequired)} exceeds the capital entered (₹${fmtK(cap)}).`;
     } else {
-      w.className = 'riskwarn ok show';
-      w.textContent = `Risk within limits (₹${fmtK(loss)} ≤ ₹${fmtK(maxRisk)}). Still a scenario — not a guaranteed outcome.`;
+      warning.className = 'riskwarn ok show';
+      warning.textContent = `Calculated from the values you entered and the current live contract lot size. Scenario only; not an order or outcome estimate.`;
     }
   }
 
   /* ---------- (13) signal log ---------- */
   function logStageTransitions() {
-    const sg = state.sig;
+    const signal = state.sig;
     const now = Date.now();
-    if (state.stagePrev === sg.stage) return;
-    if (now - (state.lastLogAt || 0) < 15000 && sg.stage !== 'CONFIRMATION') { state.stagePrev = sg.stage; return; }
-    const p = state.plan;
-    const dir = sg.ce.verdict === 'YES' ? 'Bullish' : sg.pe.verdict === 'YES' ? 'Bearish' : (p && p.dirRaw) || '—';
-    const strike = p && p.ctrStrike ? p.ctrStrike + ' ' + (p.side || '') : '—';
-    const row = {
-      spot: state.snap.spot.ltp.toFixed(2),
-      dir, strike,
-      signal: sg.stage,
-      reason: sg.stageWhy || sg.ce.action || '',
-      entry: p && p.entryPrem ? '₹' + p.entryPrem.toFixed(2) : '—',
-      sl: p && p.slPrem ? '₹' + p.slPrem.toFixed(2) : '—',
-      target: p && p.t1Prem ? '₹' + p.t1Prem.toFixed(2) : '—',
-    };
-    if (sg.stage === 'CONFIRMATION' && p && p.entryPrem) {
-      SignalLog.add({
-        ...row, result: 'RUN',
-        _track: {
-          entry: p.entryPrem, sl: p.slPrem, t1: p.t1Prem, t2: p.t2Prem,
-          invLevel: state.sig.alerts.zoneR || state.sig.alerts.zoneS,
-          dir: p.dirRaw, strike: p.ctrStrike, side: p.side,
-        },
-      });
-      state.lastLogAt = now;
-    } else if (sg.stage !== 'OBSERVATION' || Math.abs(state.sig.structure.score) >= 1.5) {
-      SignalLog.add(row);
-      state.lastLogAt = now;
+    if (state.stagePrev === signal.stage) return;
+    if (now - (state.lastLogAt || 0) < 15000 && signal.stage !== 'CONFIRMATION') {
+      state.stagePrev = signal.stage;
+      return;
     }
-    state.stagePrev = sg.stage;
+    const plan = state.plan;
+    const direction = signal.ce.verdict === 'YES' ? 'Bullish'
+      : signal.pe.verdict === 'YES' ? 'Bearish' : (plan && plan.dirRaw) || '—';
+    const strike = plan && Number.isFinite(plan.ctrStrike) ? `${plan.ctrStrike} ${plan.side || ''}` : '—';
+    SignalLog.add({
+      spot: fmtOptional(state.snap.spot.ltp),
+      dir: direction,
+      strike,
+      signal: signal.stage,
+      reason: signal.stageWhy || signal.ce.action || '',
+      entry: plan && Number.isFinite(plan.entryPrem) ? `₹${fmtOptional(plan.entryPrem)}` : '—',
+      sl: plan && Number.isFinite(plan.slPrem) ? `₹${fmtOptional(plan.slPrem)}` : '—',
+      target: plan && Number.isFinite(plan.t1Prem) ? `₹${fmtOptional(plan.t1Prem)}` : '—',
+    });
+    state.lastLogAt = now;
+    state.stagePrev = signal.stage;
     renderLog();
-  }
-
-  function updateLogResults() {
-    const snap = state.snap;
-    let changed = false;
-    for (const r of SignalLog.get()) {
-      const t = r._track;
-      if (!t || r.result !== 'RUN') continue;
-      const row = snap.chain.find(x => x.strike === t.strike);
-      const leg = row && row[t.side];
-      if (!leg) continue;
-      const prem = leg.ltp;
-      const S = snap.spot.ltp;
-      let res = null;
-      if (prem >= t.t2) res = 'T2';
-      else if (prem >= t.t1) res = 'T1';
-      else if (prem <= t.sl) res = 'SL';
-      else if (t.dir === 'Bullish' && t.invLevel != null && S < t.invLevel - 35) res = 'INV';
-      else if (t.dir === 'Bearish' && t.invLevel != null && S > t.invLevel + 35) res = 'INV';
-      if (res) { SignalLog.update(r.id, { result: res }); changed = true; }
-    }
-    if (changed) renderLog();
   }
 
   function renderLog() {
     const rows = SignalLog.get();
-    $('#logBody').innerHTML = rows.length ? rows.map(r => `
+    $('#logBody').innerHTML = rows.length ? rows.map(row => `
       <tr>
-        <td>${new Date(r.ts).toLocaleTimeString('en-GB', { timeZone: IST, hour12: false })}</td>
-        <td>${r.spot}</td>
-        <td class="${r.dir === 'Bullish' ? 'up' : r.dir === 'Bearish' ? 'dn' : 'mu'}">${r.dir}</td>
-        <td>${r.strike}</td>
-        <td>${r.signal}</td>
-        <td class="reason" title="${(r.reason || '').replace(/"/g, '')}">${r.reason || ''}</td>
-        <td>${r.entry}</td><td class="dn">${r.sl}</td><td class="up">${r.target}</td>
-        <td><span class="res ${r.result}">${r.result === 'LOG' ? 'LOGGED' : r.result === 'RUN' ? 'RUNNING' : r.result === 'INV' ? 'INVALIDATED' : r.result === 'SL' ? 'STOPPED' : r.result + ' HIT'}</span></td>
-      </tr>`).join('') : '<tr><td colspan="10" class="mu" style="text-align:center;padding:14px">No setups logged yet — log fills as the scanner forms or confirms setups.</td></tr>';
+        <td>${new Date(row.ts).toLocaleTimeString('en-GB', { timeZone: IST, hour12: false })}</td>
+        <td>${row.spot || '—'}</td>
+        <td class="${row.dir === 'Bullish' ? 'up' : row.dir === 'Bearish' ? 'dn' : 'mu'}">${row.dir || '—'}</td>
+        <td>${row.strike || '—'}</td>
+        <td>${row.signal || '—'}</td>
+        <td class="reason" title="${(row.reason || '').replace(/"/g, '')}">${row.reason || ''}</td>
+        <td>${row.entry || '—'}</td><td class="dn">${row.sl || '—'}</td><td class="up">${row.target || '—'}</td>
+        <td><span class="res OBSERVED">OBSERVED</span></td>
+      </tr>`).join('') : '<tr><td colspan="10" class="mu" style="text-align:center;padding:14px">No live source observations have been logged in this browser session.</td></tr>';
   }
 
   /* ---------- refresh ---------- */
+  function showUnavailable(detail) {
+    state.snap = null;
+    state.sig = null;
+    state.plan = null;
+    state.stagePrev = null;
+    pcrHist.length = 0;
+    Signals.reset();
+    document.body.classList.add('no-live');
+    const message = detail || 'No live NSE response is available.';
+    $('#feedUnavailableDetail').textContent = `${message}. Start the dashboard server on a network that can reach NSE; no local or saved market data is substituted.`;
+    $('#hSpot').textContent = '—';
+    $('#hChg').textContent = '—';
+    $('#hExpiry').textContent = '—';
+    $('#hDte').textContent = '—';
+    $('#hUpd').textContent = '—';
+    $('#hStatus').textContent = 'UNAVAILABLE';
+    $('#hStatus').className = 'status closed';
+    $('#feedLbl').textContent = 'NSE DATA UNAVAILABLE';
+    $('#feedLbl').className = 'lbl-feed';
+    $('#ftFeed').textContent = `No live NSE response · ${message}`;
+  }
+
   async function refresh() {
-    let snap = await state.provider.getSnapshot();
-    if (!snap) snap = MockOptionChainProvider.getSnapshot();
-    snap = Analytics.decorate(snap);
-    state.snap = snap;
-    state.sig = Signals.setups(snap);
-    state.plan = Signals.plan(snap, state.sig);
-    renderHeader(); renderStructure(); renderLevels(); renderPcr();
-    renderChain(); renderScanner(); renderAlerts(); renderContext();
-    renderContracts(); renderPlan(); renderLog();
-    logStageTransitions();
-    updateLogResults();
-    if (state.plan.entryPrem && !state.riskTouched) riskCalc(true);
-    else riskCalc(false);
-    if(state.scalpOn) renderScalp();
-    state.nextAt = Date.now() + state.interval;
+    if (state.refreshing) return;
+    state.refreshing = true;
+    try {
+      const snapshot = await state.provider.getSnapshot();
+      if (!snapshot) {
+        showUnavailable(state.provider.status);
+        return;
+      }
+      state.snap = Analytics.decorate(snapshot);
+      state.sig = Signals.setups(state.snap);
+      state.plan = Signals.plan(state.snap, state.sig);
+      document.body.classList.remove('no-live');
+      $('#feedUnavailableDetail').textContent = 'Waiting for a validated live NSE response.';
+      renderHeader(); renderStructure(); renderLevels(); renderPcr();
+      renderChain(); renderScanner(); renderAlerts(); renderContext();
+      renderContracts(); renderPlan(); renderLog();
+      logStageTransitions();
+      if (state.plan.entryPrem && !state.riskTouched) riskCalc(true);
+      else riskCalc(false);
+    } catch (error) {
+      showUnavailable(`Live NSE response could not be processed: ${String(error && error.message || error)}`);
+    } finally {
+      state.nextAt = Date.now() + state.interval;
+      state.refreshing = false;
+    }
   }
 
   /* ---------- events ---------- */
@@ -2174,55 +1616,26 @@ const App = (() => {
       state.nextAt = Date.now() + state.interval;
     });
     $('#btnNow').addEventListener('click', refresh);
-    $('#selInt').addEventListener('change', (e) => { state.interval = Number(e.target.value); state.nextAt = Date.now() + state.interval; });
-    document.addEventListener('keydown', (e) => {
-      if (e.target.tagName === 'INPUT') return;
-      if (e.code === 'Space') { e.preventDefault(); $('#btnAuto').click(); }
-      if (e.key === 'r' || e.key === 'R') refresh();
+    $('#selInt').addEventListener('change', event => {
+      state.interval = Number(event.target.value);
+      state.nextAt = Date.now() + state.interval;
     });
-    ['#rkCap', '#rkPct', '#rkEntry', '#rkSl', '#rkTgt', '#rkLot', '#rkLots'].forEach(id =>
-      $(id).addEventListener('input', () => { state.riskTouched = true; riskCalc(false); }));
+    document.addEventListener('keydown', event => {
+      if (event.target.tagName === 'INPUT') return;
+      if (event.code === 'Space') { event.preventDefault(); $('#btnAuto').click(); }
+      if (event.key === 'r' || event.key === 'R') refresh();
+    });
+    ['#rkCap', '#rkPct', '#rkEntry', '#rkSl', '#rkTgt', '#rkLot', '#rkLots'].forEach(selector =>
+      $(selector).addEventListener('input', () => { state.riskTouched = true; riskCalc(false); }));
     $('#btnClrLog').addEventListener('click', () => { SignalLog.clear(); renderLog(); });
-    // scalp controls
-    $('#btnScalp').addEventListener('click', () => {
-      state.scalpOn = !state.scalpOn;
-      $('#btnScalp').classList.toggle('scalp-on', state.scalpOn);
-      $('#btnScalp').classList.toggle('scalp-off', !state.scalpOn);
-      $('#btnScalp').textContent = state.scalpOn ? '⚡ SCALP ON' : '⚡ SCALP';
-      $('#scalpDash').style.display = state.scalpOn ? '' : 'none';
-      $('#selTf').style.display = state.scalpOn ? '' : 'none';
-      $('#btnSound').style.display = state.scalpOn ? '' : 'none';
-      if(state.scalpOn) renderScalp();
-    });
-    $('#selTf').addEventListener('change', e=>{ state.scalpTf = Number(e.target.value); if(state.scalpOn) renderScalp(); });
-    $('#selSens').addEventListener('change', e=>{ state.scalpSens = e.target.value; if(state.scalpOn) renderScalp(); });
-    $('#btnSound').addEventListener('click', ()=>{ state.scalpSound=!state.scalpSound; $('#btnSound').textContent = state.scalpSound?'🔊':'🔇'; });
-    document.addEventListener('keydown', e=>{
-      if(e.key.toLowerCase()==='s' && e.target.tagName!=='INPUT'){ e.preventDefault(); $('#btnScalp').click(); }
-    });
-    $('#btnPaperLong').addEventListener('click', ()=> paperScalp('LONG'));
-    $('#btnPaperShort').addEventListener('click', ()=> paperScalp('SHORT'));
-    $('#btnClearPaper').addEventListener('click', ()=>{ state.scalpJournal=[]; saveScalpJournal(); renderScalpJournal(); });
-    loadScalpJournal();
   }
 
   async function boot() {
     bind();
-    const ok = await RemoteNseProvider.init();
-    state.provider = ok ? RemoteNseProvider : MockOptionChainProvider;
-    await state.provider.init();
     await refresh();
-    setInterval(() => state.provider.tick(), 1000);
-    setInterval(() => { if (state.auto && Date.now() >= state.nextAt) refresh(); }, 250);
-    // go live automatically if the bridge comes up later
-    setInterval(async () => {
-      if (state.provider !== RemoteNseProvider && await RemoteNseProvider.init()) {
-        state.provider = RemoteNseProvider;
-        refresh();
-      }
-    }, 60000);
-    // keep "Updated" clock fresh even without a data refresh
-    setInterval(() => { if (state.snap) $('#hUpd').textContent = istHMS() + ' IST'; }, 1000);
+    setInterval(() => {
+      if (state.auto && !state.refreshing && Date.now() >= state.nextAt) refresh();
+    }, 250);
   }
 
   return { boot, state, refresh };

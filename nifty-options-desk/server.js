@@ -1,18 +1,11 @@
 /**
- * NIFTY Options Desk — dev server
- *   • serves index.html (self-contained dashboard)
- *   • /api/health  → provider status
- *   • /api/chain   → option-chain Snapshot in the documented schema (README.md)
+ * NIFTY Options Desk — live-only development server.
  *
- * LIVE DATA HOOK (architecture point #16):
- *   The dashboard consumes ONLY the normalized Snapshot schema. To go live,
- *   implement `fetchLiveSnapshot()` below (e.g. Kite Connect / Upstox / NSE via
- *   a cookie-warmed session) returning that schema and set mode:'live'. The UI
- *   needs no changes. Until then /api/chain reports mode:'sim' and the browser
- *   runs the built-in mock provider seeded from the real NSE chain of
- *   25-Sep-2026 10:40 IST.
+ * Serves index.html and exposes the shared NSE adapter. There is no mock or
+ * local fallback: if NSE is unavailable, the API reports that state and the UI
+ * displays no market analytics until verified live data returns.
  *
- *   node server.js        # http://localhost:8081
+ * Run: node server.js (PORT=8081 by default; binds 0.0.0.0)
  */
 'use strict';
 
@@ -20,68 +13,74 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { URL } = require('url');
+const live = require('../bridge/nse-live');
 
 const PORT = Number(process.env.PORT || 8081);
-const PUBLIC_DIR = __dirname; // index.html sits at the project root (GitHub-Pages friendly)
-
-/* ------------------------------------------------------------------
-   Live adapter slot. Must resolve to the Snapshot schema in README.md:
-   { meta, spot{ ltp,chg,chgPct,...,candles15m }, chain[ {strike, ce:Leg, pe:Leg} ] }
-   Leg = { ltp, prevClose, chgPct, volume, oi, oiChg, iv, bid, ask, delta, thetaDay, prevOi, volAvg }
-   ------------------------------------------------------------------ */
-async function fetchLiveSnapshot() {
-  // Live NSE via the shared bridge module (works when run in the repo layout;
-  // falls back to the client-side simulator when unreachable).
-  try {
-    const live = require(path.join(__dirname, '..', 'bridge', 'nse-live'));
-    return await live.getDeskSnapshot();
-  } catch (e) {
-    return null; // no live source → /api/chain reports 501 and the client uses its simulator
-  }
-}
-
+const PUBLIC_DIR = __dirname;
 const MIME = {
-  '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8', '.json': 'application/json; charset=utf-8',
-  '.svg': 'image/svg+xml', '.png': 'image/png',
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'text/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.svg': 'image/svg+xml',
+  '.png': 'image/png',
 };
 
+function sendJson(res, status, body) {
+  res.writeHead(status, {
+    'Content-Type': MIME['.json'],
+    'Access-Control-Allow-Origin': '*',
+    'Cache-Control': 'no-store',
+  });
+  res.end(JSON.stringify(body));
+}
+
 const server = http.createServer(async (req, res) => {
-  const u = new URL(req.url, 'http://x');
-  const p = u.pathname;
-  const cors = { 'Access-Control-Allow-Origin': '*', 'Cache-Control': 'no-store' };
+  const url = new URL(req.url, 'http://localhost');
+  const pathname = url.pathname;
 
-  if (p === '/api/health') {
-    res.writeHead(200, { 'Content-Type': MIME['.json'], ...cors });
-    res.end(JSON.stringify({
-      mode: 'sim', liveConfigured: false,
-      note: 'browser mock provider active (seeded from NSE 25-Sep-2026 10:40 IST)',
-      serverTime: new Date().toISOString(),
-    }));
+  if (pathname === '/api/health') {
+    const health = await live.health();
+    return sendJson(res, health.mode === 'live' ? 200 : 503, health);
+  }
+
+  if (pathname === '/api/chain') {
+    try {
+      const snapshot = await live.getDeskSnapshot();
+      return sendJson(res, 200, snapshot);
+    } catch (error) {
+      return sendJson(res, 502, {
+        mode: 'unavailable',
+        error: String(error && error.message || error),
+        note: 'No live NSE data is available; no local fallback data is used.',
+      });
+    }
+  }
+
+  const requestPath = pathname === '/' ? '/index.html' : pathname;
+  const filePath = path.normalize(path.join(PUBLIC_DIR, requestPath));
+  if (!filePath.startsWith(PUBLIC_DIR + path.sep) && filePath !== path.join(PUBLIC_DIR, 'index.html')) {
+    res.writeHead(403);
+    res.end();
     return;
   }
 
-  if (p === '/api/chain') {
-    const live = await fetchLiveSnapshot().catch(() => null);
-    res.writeHead(live ? 200 : 501, { 'Content-Type': MIME['.json'], ...cors });
-    res.end(JSON.stringify(live || {
-      error: 'no live provider configured',
-      hint: 'implement fetchLiveSnapshot() in server.js — schema in README.md',
-    }));
-    return;
-  }
-
-  let file = p === '/' ? '/index.html' : p;
-  file = path.normalize(file).replace(/^(\.\.[/\\])+/, '');
-  const full = path.join(PUBLIC_DIR, file);
-  if (!full.startsWith(PUBLIC_DIR)) { res.writeHead(403); res.end(); return; }
-  fs.readFile(full, (err, buf) => {
-    if (err) { res.writeHead(404); res.end('not found'); return; }
-    res.writeHead(200, { 'Content-Type': MIME[path.extname(full)] || 'application/octet-stream' });
-    res.end(buf);
+  fs.readFile(filePath, (error, buffer) => {
+    if (error) {
+      res.writeHead(404);
+      res.end('not found');
+      return;
+    }
+    res.writeHead(200, { 'Content-Type': MIME[path.extname(filePath)] || 'application/octet-stream' });
+    res.end(buffer);
   });
 });
 
-server.listen(PORT, '0.0.0.0', () => {
+server.listen(PORT, '0.0.0.0', async () => {
   console.log(`NIFTY Options Desk → http://0.0.0.0:${PORT}`);
+  const health = await live.health();
+  const feedAvailable = health.feeds ? health.feeds.optionsDesk === 'live' : health.mode === 'live';
+  console.log(feedAvailable
+    ? `feed: LIVE — ${health.source}`
+    : `feed: UNAVAILABLE — ${(health.errors && health.errors.optionsDesk) || health.error || health.note}`);
 });
