@@ -1,54 +1,48 @@
 # NSE Pulse · Most Active Contracts
 
-**Live:** [sadiqk2.github.io/trading-desks/nse-pulse](https://sadiqk2.github.io/trading-desks/nse-pulse/) · part of [sadiqk2/trading-desks](https://github.com/sadiqk2/trading-desks)
+A live-only dashboard for NSE most-active contract rows. It presents source-reported LTP, daily price change, volume, turnover, open interest, and OI change when those fields are provided. Price/OI labels are descriptive observations, not buy/sell recommendations.
 
-A modern, elegant real-time dashboard inspired by **NSE India → Market Data → Most Active Contracts**,
-with premium-flow analytics and an automatic **BUY / SELL / HOLD** signal engine.
+## Run locally
 
-## Features
-
-- **Most Active Contracts** table — instrument, symbol, expiry, CE/PE, strike, LTP, %Chg,
-  volume, value (₹ Cr premium for options), OI, ΔOI, sparkline trend, action signal
-- **Premium-first analytics** — total premium traded, CE vs PE donut, PCR(premium),
-  "Where People Pay Premium" leaderboard, real-time CE-vs-PE premium flow chart
-- **Real-time chart** — LTP line + per-tick premium bars, crosshair tooltip
-- **Auto refresh** — 2s / 3s / 5s / 10s with countdown ring (Space = pause, R = refresh now)
-- **Buy / Sell / Hold verdict** — confidence ring + human-readable reasons
-  (long/short build-up, covering/unwinding, writer pressure, momentum, premium skew)
-- **Action Board** — top buy / sell / hold ideas with why
-
-## Run
+From the repository root:
 
 ```bash
-node server.js            # → http://localhost:8080  (PORT=… to change)
-LIVE=0 node server.js     # skip live-NSE probing entirely
+node nse-pulse/server.js
+# open http://localhost:8080
 ```
 
-`index.html` is fully self-contained — you can open it directly in a browser too.
-
-## Live NSE data
+Or from this directory:
 
 ```bash
-node bridge/nse-bridge.js                 # from the repo root — live nseindia.com → 127.0.0.1:8082
-NSE_FIXTURE=1 node bridge/nse-bridge.js   # demo pipeline with the bundled genuine snapshot
+node server.js
 ```
 
-The tape auto-detects the bridge (badge **LIVE · nseindia.com most active contracts** / **FIXTURE** / **SIM**).
+Set `PORT` to choose a different port. The server binds to `0.0.0.0` and serves the page and `/api/snapshot` from the same origin.
 
-## Feed modes
+## Live NSE data only
 
-| Mode | When | What you see |
-|------|------|--------------|
-| **LIVE** | server can reach `nseindia.com` API (residential IPs) | genuine most-active-contracts rows |
-| **SIM** | NSE Akamai blocks the host (403 from data-centres/ISPs) | built-in tick engine seeded from the genuine NSE snapshot of **25-Sep-2026, 10:40 IST** (NIFTY 23,071) with realistic option-pricing dynamics (delta/theta/vega), OI build-up regimes and premium flow |
+The server uses `../bridge/nse-live.js` to fetch NSE responses. It does not use bundled rows, fixtures, local snapshots, mock feeds, generated ticks, or a simulated mode. If the request fails or the response contains no usable contracts, the UI clears the market display and reports that live data is unavailable. Incomplete rows are counted in metadata; optional missing fields display as unavailable rather than zero.
 
-The status pill in the header always tells you which mode is live.
+GitHub Pages is static hosting and cannot run the Node API. To see data, open the dashboard through this server on a network that can reach NSE. NSE/CDN access may be blocked on some networks.
 
-## Signals (educational, not investment advice)
+## What the dashboard computes
 
+- Turnover totals, CE/PE comparison, and the leaderboard are derived only from the current most-active rows returned by NSE; the page reports coverage and does not imply that this subset is the full market.
+- Price/OI labels compare the source-provided daily price change and OI change. Missing fields produce an unavailable label.
+- Contract price charts contain only successful NSE quotes received in the current browser session. No historical ticks or flow buckets are fabricated. The `/api/series` endpoint explicitly returns `501` because this feed provides no historical series.
+- Analytical classifications use code thresholds, but no hardcoded prices, OI figures, sample contracts, or market snapshots are embedded in the dashboard.
+
+## Shared live adapter
+
+To inspect the standalone bridge API, run from the repository root:
+
+```bash
+node bridge/nse-bridge.js
+# /api/health, /api/chain, /api/snapshot on port 8082
 ```
-score = buildup(price×OI) + momentum + trend(EMA8/21) + underlying thrust + writer pressure + premium skew
-buildup:  price▲+OI▲ long build-up (+22) · price▼+OI▲ short build-up (−22)
-          price▲+OI▼ short covering (+10) · price▼+OI▼ long unwinding (−10)
-action:   score ≥ +22 BUY · ≤ −22 SELL · else HOLD   → confidence 52–96%
-```
+
+NSE Pulse does not silently switch to the bridge or another provider; its same-origin server is the only source. Errors are surfaced instead of replaced with local data.
+
+## Risk notice
+
+This dashboard provides descriptive data only, not investment advice or a recommendation. Derivatives trading involves substantial risk of loss.

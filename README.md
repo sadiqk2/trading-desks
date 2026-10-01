@@ -1,60 +1,65 @@
-# Trading Desks · @sadiqk2
+# Trading Desks
 
-Self-contained market-analytics terminals that run fully client-side (also runnable locally
-with the tiny Node servers in each folder).
+Two browser dashboards for NSE market data. **Displayed market values come from live NSE API responses only.** There are no bundled market snapshots, fixtures, seeded values, synthetic ticks, or simulated feed modes. If the live request fails or required data is incomplete, the dashboard reports the feed as unavailable instead of substituting values.
 
-**Owner:** Sadiq Ali Khan ([@sadiqk2](https://github.com/sadiqk2))
-**Live:** [https://sadiqk2.github.io/trading-desks/](https://sadiqk2.github.io/trading-desks/)
+| App | Purpose | Local server |
+|---|---|---|
+| **NIFTY Options Desk** | NSE option-chain observations, source-derived levels and indicators, scenario planning, and a risk calculator | `node nifty-options-desk/server.js` → port 8081 |
+| **NSE Pulse** | NSE most-active contracts with source-reported price, OI, volume, and turnover fields | `node nse-pulse/server.js` → port 8080 |
 
-| Desk | What it does | Live URL | Local |
-|------|--------------|----------|-------|
-| **NIFTY Options Desk** | Option-chain terminal: market structure with evidence ladder, OI-based S/R, per-strike buildup/writing classification, CE/PE/RANGE setup scanner, breakout alerts, contract selector, trade plans and a risk calculator. | [sadiqk2.github.io/trading-desks/nifty-options-desk](https://sadiqk2.github.io/trading-desks/nifty-options-desk/) | `cd nifty-options-desk && node server.js` → :8081 |
-| **NSE Pulse** | Most-active-contracts flow: premium-traded leaderboard, CE-vs-PE premium flow, live tick charts and per-contract BUY / SELL / HOLD signals with auto-refresh. | [sadiqk2.github.io/trading-desks/nse-pulse](https://sadiqk2.github.io/trading-desks/nse-pulse/) | `cd nse-pulse && node server.js` → :8080 |
+Set `PORT` to choose a different port. Both servers bind to `0.0.0.0` and serve their own dashboard and same-origin API.
 
-## Data architecture
+## Live data requirements
 
-Both apps keep a strict **data-layer / analytics / UI** split. Feeds today are realistic simulators
-seeded from genuine NSE snapshots (25-Sep-2026, 10:40 IST); each project documents the normalized
-schema its provider must return, so a live broker feed (Kite / Upstox / NSE proxy) drops in without
-UI changes — see each folder's `README.md` and the `LiveProvider` slots.
-
-## Real NSE data — live mode
-
-Both dashboards probe for a live NSE source at start-up (app server → `http://127.0.0.1:8082` → built-in simulator) and label the feed honestly: **LIVE · NSE INDIA** / **FIXTURE DATA** / **SIM FEED**.
-
-NSE's CDN blocks data-centre IPs, so live collection runs through a zero-dependency bridge **on your own machine** (residential/Indian connection works):
+The Node servers request current data from `nseindia.com` through [`bridge/nse-live.js`](bridge/nse-live.js). Run an app server on a network that can reach NSE. NSE or its CDN may block some hosts; in that case the API returns an error and the UI shows an unavailable state. Static GitHub Pages hosting cannot run these Node APIs, so it will show the unavailable message rather than fake live data.
 
 ```bash
-node bridge/nse-bridge.js                 # live nseindia.com data → http://127.0.0.1:8082
-NSE_FIXTURE=1 node bridge/nse-bridge.js   # demo the pipeline with the bundled genuine snapshot
+node nifty-options-desk/server.js
+# open http://localhost:8081
+
+node nse-pulse/server.js
+# open http://localhost:8080
 ```
 
-The dashboards — including the GitHub Pages site — detect the bridge automatically (it serves CORS + Private-Network headers; `127.0.0.1` is exempt from mixed-content blocking). No UI changes: the data layer was designed swappable.
+An optional standalone HTTP bridge is also available:
+
+```bash
+node bridge/nse-bridge.js
+# /api/health, /api/chain, and /api/snapshot on port 8082
+```
+
+The dashboards do not silently probe the bridge or switch to another provider. The bridge likewise has no fixture mode or generated-data fallback. A successful response is not proof that every optional source field is populated: missing values are left blank/unavailable, and incomplete option-chain or most-active rows are counted in response metadata and surfaced by the dashboards.
+
+## Data handling
+
+- Market snapshots are requested directly from NSE; there is no saved response cache used as a fallback after a failed request.
+- Market API requests use `no-store`; the adapter does not reuse a completed snapshot after a failed request. Concurrent calls may share one in-flight NSE request, but completed responses are fetched again on the next request.
+- Option-chain candles in the Options Desk are aggregated from NSE chart price points. That source provides no volume for those points, so candle volume stays unavailable.
+- NSE Pulse charts use only successful contract quotes received during the current browser session; they do not invent history between requests.
+- Analytical thresholds and scenario formulas are code logic, not hardcoded prices, quotes, or market snapshots. Scenario levels are explicitly estimates and are not recommendations or orders.
 
 ## Repository layout
 
-```
-sadiqk2/trading-desks            ← GitHub Pages site root
-├─ index.html                    ← landing hub  → sadiqk2.github.io/trading-desks/
-├─ nifty-options-desk/           ← options desk → sadiqk2.github.io/trading-desks/nifty-options-desk/
-├─ nse-pulse/                    ← most active  → sadiqk2.github.io/trading-desks/nse-pulse/
-├─ bridge/                       ← local NSE live bridge (run `node bridge/nse-bridge.js` on your machine)
-└─ publish.sh                    ← create repo → push → enable Pages → print live URL
+```text
+index.html                 Static landing page
+nifty-options-desk/        Options-chain dashboard and local server
+nse-pulse/                 Most-active-contracts dashboard and local server
+bridge/nse-live.js         Shared live NSE fetch and normalization
+bridge/nse-bridge.js       Optional standalone live API bridge
+publish.sh                GitHub Pages helper
 ```
 
-## Publishing (GitHub Pages)
-
-This repo is itself the Pages site (index at root, app folders as subpaths) and redeploys
-automatically on every push to `main`. To bootstrap or re-publish:
+## Checks
 
 ```bash
-GITHUB_TOKEN=ghp_xxx ./publish.sh     # reuses sadiqk2/trading-desks, pushes, enables Pages, prints live URL
+node --check bridge/nse-live.js
+node --check bridge/nse-bridge.js
+node --check nifty-options-desk/server.js
+node --check nse-pulse/server.js
 ```
 
-or by hand: push to `main`, then **Settings → Pages → Deploy from a branch → main / (root)**.
+The HTML dashboards contain inline JavaScript; their scripts can be extracted and checked with Node as part of local validation. Successful syntax checks do not guarantee NSE will accept requests from a particular network.
 
-Repo: [github.com/sadiqk2/trading-desks](https://github.com/sadiqk2/trading-desks)
+## Risk notice
 
----
-
-*Educational analytics only — nothing here is investment advice or a guarantee of outcome.*
+These pages provide descriptive and scenario-based analytics, not investment advice. Derivatives trading involves substantial risk of loss.

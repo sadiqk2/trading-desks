@@ -55,9 +55,13 @@
     border:1px solid var(--line); background:var(--panel2); font-size:11.5px;color:var(--muted);white-space:nowrap}
   .pill b{color:var(--txt);font-weight:600}
   .dot{width:8px;height:8px;border-radius:50%;background:var(--up);box-shadow:0 0 0 0 rgba(52,211,153,.5);animation:pulse 2s infinite}
-  .dot.sim{background:var(--amber);box-shadow:0 0 0 0 rgba(251,191,36,.45)}
+  .dot.offline{background:var(--amber);box-shadow:none;animation:none}
   .dot.paused{background:var(--dim);animation:none}
   @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(52,211,153,.45)}70%{box-shadow:0 0 0 8px rgba(52,211,153,0)}100%{box-shadow:0 0 0 0 rgba(52,211,153,0)}}
+  .feed-unavailable{display:none;padding:16px 18px;color:var(--muted);line-height:1.6;max-width:1516px;margin:14px auto 0;width:calc(100% - 44px)}
+  .feed-unavailable b{color:var(--txt)}
+  body.no-live .feed-unavailable{display:block}
+  body.no-live main>.kpis,body.no-live main>.grid2,body.no-live main>.grid2b{display:none}
   .clock{font-family:var(--mono);font-size:12.5px;color:var(--txt)}
   .clock small{color:var(--dim);font-family:var(--sans);margin-left:4px}
   .refbox{display:flex;align-items:center;gap:8px;padding:5px 12px 5px 8px;border-radius:999px;border:1px solid var(--line);background:var(--panel2)}
@@ -149,10 +153,14 @@
   @keyframes fu{0%{background:rgba(52,211,153,.28);border-radius:5px}100%{background:transparent}}
   @keyframes fd{0%{background:rgba(251,113,133,.28);border-radius:5px}100%{background:transparent}}
   .sig{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;border-radius:8px;font-size:10.5px;font-weight:800;letter-spacing:.06em}
-  .sig.BUY{color:#052e1c;background:linear-gradient(135deg,#34d399,#6ee7b7);box-shadow:0 2px 10px rgba(52,211,153,.25)}
-  .sig.SELL{color:#3b0a12;background:linear-gradient(135deg,#fb7185,#fda4af);box-shadow:0 2px 10px rgba(251,113,133,.25)}
-  .sig.HOLD{color:#3a2f07;background:linear-gradient(135deg,#fbbf24,#fde68a);box-shadow:0 2px 10px rgba(251,191,36,.2)}
+  .sig.build,.sig.cover{color:#052e1c;background:linear-gradient(135deg,#34d399,#6ee7b7)}
+  .sig.write,.sig.unwind{color:#3b0a12;background:linear-gradient(135deg,#fb7185,#fda4af)}
+  .sig.neutral,.sig.unavailable{color:#3a2f07;background:linear-gradient(135deg,#fbbf24,#fde68a)}
   .sig em{font-style:normal;font-family:var(--mono);opacity:.75;font-weight:700}
+  .history-count{font-size:10px;color:var(--dim)}
+  .vact.build,.vact.cover{color:var(--up)}
+  .vact.write,.vact.unwind{color:var(--down)}
+  .vact.neutral,.vact.unavailable{color:var(--amber)}
   .empty{padding:34px;text-align:center;color:var(--dim)}
 
   /* ---------- right rail ---------- */
@@ -197,6 +205,7 @@
   .pl .fill.CE{background:linear-gradient(90deg,rgba(45,212,191,.85),rgba(45,212,191,.45))}
   .pl .fill.PE{background:linear-gradient(90deg,rgba(251,113,133,.85),rgba(251,113,133,.45))}
   .pl .fill.FUT{background:linear-gradient(90deg,rgba(167,139,250,.85),rgba(167,139,250,.4))}
+  .pl .fill.OPT{background:linear-gradient(90deg,rgba(56,189,248,.85),rgba(167,139,250,.4))}
   .pl .val{font-family:var(--mono);font-size:11px;text-align:right;color:var(--txt)}
   .donutrow{display:flex;align-items:center;gap:18px;margin-bottom:14px}
   .donutrow .big2{font-family:var(--mono);font-size:24px;font-weight:650}
@@ -227,7 +236,7 @@
   }
 </style>
 </head>
-<body>
+<body class="no-live">
 
 <header>
   <div class="hwrap">
@@ -241,13 +250,13 @@
       </div>
       <div>
         <h1>NSE <span>Pulse</span> · Most Active Contracts</h1>
-        <small>Real-time premium flow · auto-refresh · buy / sell / hold</small>
+        <small>NSE-reported contracts · live refresh · source price / OI observations</small>
       </div>
     </div>
     <div class="hgrow"></div>
     <div class="hstat">
-      <span class="pill" id="mktPill"><span class="dot" id="mktDot"></span><b id="mktStatus">OPEN</b></span>
-      <span class="pill"><span class="dot sim" id="feedDot"></span><span id="feedLabel">connecting…</span></span>
+      <span class="pill" id="mktPill"><span class="dot paused" id="mktDot"></span><b id="mktStatus">—</b></span>
+      <span class="pill"><span class="dot offline" id="feedDot"></span><span id="feedLabel">connecting to NSE…</span></span>
       <span class="clock num" id="clock">--:--:--<small>IST</small></span>
       <div class="refbox">
         <svg class="ring" id="refRing" viewBox="0 0 26 26">
@@ -256,10 +265,9 @@
         </svg>
         <button class="btn on" id="btnAuto" title="Toggle auto-refresh (Space)">Auto</button>
         <select class="btn" id="selInt" title="Refresh interval">
-          <option value="2000">2s</option>
-          <option value="3000" selected>3s</option>
-          <option value="5000">5s</option>
+          <option value="5000" selected>5s</option>
           <option value="10000">10s</option>
+          <option value="30000">30s</option>
         </select>
         <button class="btn" id="btnNow" title="Refresh now (R)">↻</button>
       </div>
@@ -267,31 +275,36 @@
   </div>
 </header>
 
+<div class="card feed-unavailable" id="feedUnavailable" role="status" aria-live="polite">
+  <b>Live NSE data is unavailable.</b> No local sample, cached response after an upstream error, or generated market values are displayed.
+  <div class="hint" id="feedUnavailableDetail">Run <code>node nse-pulse/server.js</code> on a connection that can reach NSE. Static hosting has no live API.</div>
+</div>
+
 <main>
   <!-- KPI ROW -->
   <section class="kpis">
     <div class="card kpi">
-      <div class="lbl">Premium Traded</div>
-      <div class="mini">Options ₹</div>
+      <div class="lbl">Option Turnover</div>
+      <div class="mini">NSE-reported</div>
       <div class="big num" id="kPrem">—</div>
-      <div class="sub"><span class="delta up" id="kPremD">+0.0%</span><span id="kPremSub">since open</span></div>
+      <div class="sub"><span id="kPremD">Source value</span><span id="kPremSub">—</span></div>
     </div>
     <div class="card kpi">
-      <div class="lbl">Top Premium Magnet</div>
-      <div class="mini">by value</div>
+      <div class="lbl">Top Source Turnover</div>
+      <div class="mini">option row</div>
       <div class="big num" id="kTop" style="font-size:19px">—</div>
       <div class="sub"><span id="kTopSub">—</span></div>
     </div>
     <div class="card kpi">
-      <div class="lbl">Crowd Positioning</div>
-      <div class="mini">CE vs PE premium</div>
+      <div class="lbl">CE vs PE Turnover</div>
+      <div class="mini">live option snapshot</div>
       <div class="big" id="kCrowd" style="font-family:var(--sans);font-size:19px;font-weight:750">—</div>
       <div class="biasbar"><i id="kCrowdPos" style="left:50%"></i></div>
       <div class="sub"><span id="kCrowdSub">—</span></div>
     </div>
     <div class="card kpi">
-      <div class="lbl">Market Bias</div>
-      <div class="mini">model composite</div>
+      <div class="lbl">Price × OI Observation</div>
+      <div class="mini">source fields only</div>
       <div class="big" id="kBias" style="font-family:var(--sans);font-size:19px;font-weight:750">—</div>
       <div class="biasbar"><i id="kBiasPos" style="left:50%"></i></div>
       <div class="sub"><span id="kBiasSub">—</span></div>
@@ -330,11 +343,11 @@
             <th class="sortable" data-sort="ltp">LTP</th>
             <th class="sortable" data-sort="chgPct">% Chg</th>
             <th class="sortable" data-sort="volume">Volume (CT)</th>
-            <th class="sortable" data-sort="valueLakhs">Value ₹ Cr (Prem)</th>
+            <th class="sortable" data-sort="turnover">NSE turnover value</th>
             <th class="sortable" data-sort="oi">OI</th>
             <th class="sortable" data-sort="oiChg">Δ OI</th>
-            <th>Trend</th>
-            <th class="sortable" data-sort="signal">Action</th>
+            <th>Observed prices</th>
+            <th class="sortable" data-sort="signal">Price / OI</th>
           </tr></thead>
           <tbody id="tbody"></tbody>
         </table>
@@ -346,9 +359,9 @@
     <div class="rail">
       <div class="card">
         <div class="ch">
-          <h2>Live <span class="accent">Chart</span></h2>
+          <h2>Observed <span class="accent">Price</span></h2>
           <span class="sp"></span>
-          <span class="hint">price · premium / tick</span>
+          <span class="hint">successful NSE snapshots received in this browser</span>
         </div>
         <div class="selhead">
           <span class="oc CE" id="selOC" style="display:none">CE</span>
@@ -360,41 +373,28 @@
           <canvas id="mainChart"></canvas>
           <div class="ctip" id="ctip"></div>
         </div>
-        <div class="legend">
-          <span><i style="background:var(--teal)"></i>LTP</span>
-          <span><i style="background:rgba(52,211,153,.8)"></i>premium on up-tick</span>
-          <span><i style="background:rgba(251,113,133,.8)"></i>premium on down-tick</span>
-        </div>
+        <div class="legend"><span><i style="background:var(--teal)"></i>Source-reported LTP observations only</span></div>
       </div>
 
       <div class="card">
-        <div class="ch"><h2>The Verdict <span class="accent">· Buy / Sell / Hold</span></h2><span class="sp"></span><span class="hint">quant signal</span></div>
+        <div class="ch"><h2>Selected Contract <span class="accent">· Source Observation</span></h2><span class="sp"></span><span class="hint">descriptive, not an instruction</span></div>
         <div class="cbody">
           <div class="verdict">
-            <div class="vring">
-              <svg width="92" height="92" viewBox="0 0 92 92">
-                <circle cx="46" cy="46" r="38" fill="none" stroke="rgba(148,163,184,.14)" stroke-width="8"/>
-                <circle id="confRing" cx="46" cy="46" r="38" fill="none" stroke="var(--teal)" stroke-width="8"
-                        stroke-linecap="round" stroke-dasharray="238.8" stroke-dashoffset="238.8"
-                        style="transition:stroke-dashoffset .7s cubic-bezier(.2,.8,.2,1), stroke .3s"/>
-              </svg>
-              <div class="lab"><div><b id="confPct">—</b><small>CONFIDENCE</small></div></div>
-            </div>
             <div class="vmain">
-              <div class="vact" id="vAct">—<small id="vScore">waiting for ticks</small></div>
+              <div class="vact" id="vAct">—<small id="vScore">awaiting source fields</small></div>
               <div class="reasons" id="vReasons"></div>
             </div>
           </div>
           <div class="vstats">
-            <div class="vstat"><div class="k">Momentum</div><div class="v num" id="vMom">—</div></div>
-            <div class="vstat"><div class="k">OI Story</div><div class="v" id="vOi" style="font-family:var(--sans);font-size:12px;font-weight:650">—</div></div>
-            <div class="vstat"><div class="k">Premium Flow</div><div class="v num" id="vFlow">—</div></div>
+            <div class="vstat"><div class="k">Daily change</div><div class="v num" id="vMom">—</div></div>
+            <div class="vstat"><div class="k">OI change</div><div class="v" id="vOi" style="font-family:var(--sans);font-size:12px;font-weight:650">—</div></div>
+            <div class="vstat"><div class="k">NSE turnover</div><div class="v num" id="vFlow">—</div></div>
           </div>
         </div>
       </div>
 
       <div class="card">
-        <div class="ch"><h2>Where People Pay <span class="accent">Premium</span></h2><span class="sp"></span><span class="hint">₹ crore traded</span></div>
+        <div class="ch"><h2>Reported Option <span class="accent">Turnover</span></h2><span class="sp"></span><span class="hint">source units · current snapshot</span></div>
         <div class="cbody">
           <div class="donutrow">
             <svg width="92" height="92" viewBox="0 0 92 92" style="transform:rotate(-90deg);flex:none">
@@ -404,9 +404,9 @@
             </svg>
             <div>
               <div class="big2" id="dnTot">—</div>
-              <div class="hint" style="margin-top:2px">total premium</div>
+              <div class="hint" style="margin-top:2px">total source turnover</div>
               <div style="margin-top:8px;font-size:11.5px"><span class="up" id="dnCEL">CE —</span> &nbsp;·&nbsp; <span class="down" id="dnPEL">PE —</span></div>
-              <div class="hint" style="margin-top:4px" id="dnPcr">PCR(prem) —</div>
+              <div class="hint" style="margin-top:4px" id="dnPcr">PE / CE ratio —</div>
             </div>
           </div>
           <div class="pl" id="premList"></div>
@@ -418,16 +418,16 @@
   <!-- BOTTOM -->
   <section class="grid2b">
     <div class="card">
-      <div class="ch"><h2>Real-time <span class="accent">Premium Flow</span> · CE vs PE</h2><span class="sp"></span><span class="hint">₹ lakh / 30s bucket</span></div>
+      <div class="ch"><h2>Snapshot <span class="accent">Turnover Mix</span> · CE vs PE</h2><span class="sp"></span><span class="hint">NSE response rows · no historical flow inferred</span></div>
       <div class="chartbox"><canvas id="flowChart"></canvas></div>
     </div>
     <div class="card">
-      <div class="ch"><h2>Action <span class="accent">Board</span></h2><span class="sp"></span><span class="hint">top ideas right now</span></div>
+      <div class="ch"><h2>Source <span class="accent">Observations</span></h2><span class="sp"></span><span class="hint">current price / OI changes</span></div>
       <div class="cbody">
         <div class="board">
-          <div class="bcol buy"><h3>▲ BUY</h3><div id="bBuy"></div></div>
-          <div class="bcol sell"><h3>▼ SELL</h3><div id="bSell"></div></div>
-          <div class="bcol hold"><h3>◆ HOLD</h3><div id="bHold"></div></div>
+          <div class="bcol buy"><h3>PRICE ↑ / OI ↑ OR ↓</h3><div id="bBuy"></div></div>
+          <div class="bcol sell"><h3>PRICE ↓ / OI ↑ OR ↓</h3><div id="bSell"></div></div>
+          <div class="bcol hold"><h3>◆ NO EDGE / DATA GAP</h3><div id="bHold"></div></div>
         </div>
       </div>
     </div>
@@ -436,850 +436,481 @@
 
 <footer>
   <span><b>Feed:</b> <span id="ftFeed">—</span></span>
-  <span><b>Signals:</b> price+OI buildup (long/short build-up, covering, unwinding) × momentum × premium-flow skew × writer pressure · educational model, not investment advice.</span>
-  <span><b>Note:</b> NSE blocks direct API access from data-centre IPs (Akamai 403) — dashboard falls back to a tick engine seeded from the genuine NSE Most Active Contracts snapshot of 25-Sep-2026, 10:40 IST.</span>
+  <span><b>Method:</b> price / OI labels use only current NSE-reported fields; missing or incomplete source values display as unavailable. Labels are observations, not recommendations.</span>
+  <span><b>History:</b> charts contain only successful NSE responses received during this browser session; no synthetic ticks or assumed outcome history are generated.</span>
 </footer>
 
 <script>
 /* =====================================================================
-   NSE PULSE — engine + signals + dashboard  (self-contained)
+   NSE PULSE — live-only NSE snapshot dashboard
    ===================================================================== */
 'use strict';
 
-/* ------------------------- helpers ------------------------- */
-const $ = (s) => document.querySelector(s);
-const fmtIN = (n, d = 0) => new Intl.NumberFormat('en-IN', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n);
-const fmtPx = (n) => n >= 1000 ? fmtIN(n, 2) : (Math.round(n * 100) / 100).toFixed(2);
-const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const $ = selector => document.querySelector(selector);
 const IST = 'Asia/Kolkata';
-const istTime = (d = new Date()) => new Intl.DateTimeFormat('en-GB', { timeZone: IST, hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }).format(d);
-const istHM = (ms) => new Intl.DateTimeFormat('en-GB', { timeZone: IST, hour: '2-digit', minute: '2-digit', hour12: false }).format(new Date(ms));
-const istFull = (d = new Date()) => {
-  const date = new Intl.DateTimeFormat('en-GB', { timeZone: IST, day: '2-digit', month: 'short', year: 'numeric' }).format(d);
-  return date + ' ' + istTime(d) + ' IST';
+const fmtIN = (value, digits = 0) => Number.isFinite(value)
+  ? new Intl.NumberFormat('en-IN', { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value)
+  : '—';
+const fmtPx = value => Number.isFinite(value) ? fmtIN(value, 2) : '—';
+const signed = (value, digits = 2, suffix = '') => Number.isFinite(value)
+  ? `${value > 0 ? '+' : ''}${fmtIN(value, digits)}${suffix}` : '—';
+const clamp = (value, min, max) => Math.min(max, Math.max(min, value));
+const escapeHtml = value => String(value ?? '').replace(/[&<>"']/g, character => ({
+  '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+}[character]));
+const asIST = (value, options = {}) => {
+  const date = value instanceof Date ? value : new Date(value);
+  return Number.isFinite(date.getTime())
+    ? new Intl.DateTimeFormat('en-GB', { timeZone: IST, ...options }).format(date)
+    : '—';
 };
-function randn() { let u = 0, v = 0; while (!u) u = Math.random(); while (!v) v = Math.random(); return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v); }
+const istClock = () => asIST(new Date(), { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
 
-/* =====================================================================
-   1. MARKET ENGINE  (seeded from live NSE snapshot 25-Sep-2026 10:40 IST)
-   ===================================================================== */
-const SEED_ASOF = '25-Sep-2026 10:40 IST';
+function classifySourceChange(contract) {
+  if (!Number.isFinite(contract.chgPct) || !Number.isFinite(contract.oiChg)) {
+    return { group: 'unavailable', label: 'SOURCE DATA UNAVAILABLE', summary: 'Current price or OI change is missing.', rank: null };
+  }
+  if (contract.chgPct > 0 && contract.oiChg > 0) {
+    return { group: 'build', label: 'PRICE ↑ / OI ↑', summary: 'Both source-reported daily price change and OI change are positive.', rank: 4 };
+  }
+  if (contract.chgPct > 0 && contract.oiChg < 0) {
+    return { group: 'cover', label: 'PRICE ↑ / OI ↓', summary: 'Source-reported daily price change is positive; OI change is negative.', rank: 3 };
+  }
+  if (contract.chgPct < 0 && contract.oiChg > 0) {
+    return { group: 'write', label: 'PRICE ↓ / OI ↑', summary: 'Source-reported daily price change is negative; OI change is positive.', rank: 2 };
+  }
+  if (contract.chgPct < 0 && contract.oiChg < 0) {
+    return { group: 'unwind', label: 'PRICE ↓ / OI ↓', summary: 'Both source-reported daily price change and OI change are negative.', rank: 1 };
+  }
+  return { group: 'neutral', label: 'NO CLEAR PRICE / OI EDGE', summary: 'At least one source-reported change is zero.', rank: 0 };
+}
 
-const UNDERLYINGS = {
-  NIFTY:      { px: 23068.60, anchor: 23068.60, sig: 0.00022 },
-  BANKNIFTY:  { px: 51842.55, anchor: 51842.55, sig: 0.00026 },
-  RELIANCE:   { px: 1348.50,  anchor: 1348.50,  sig: 0.00035 },
-  HDFCBANK:   { px: 952.30,   anchor: 952.30,   sig: 0.00032 },
-  ICICIBANK:  { px: 1283.40,  anchor: 1283.40,  sig: 0.00033 },
-  SBIN:       { px: 819.75,   anchor: 819.75,   sig: 0.00038 },
-  TATAMOTORS: { px: 686.20,   anchor: 686.20,   sig: 0.00042 },
-  BSE:        { px: 2148.00,  anchor: 2148.00,  sig: 0.00055 },
-  SHRIRAMFIN: { px: 612.80,   anchor: 612.80,   sig: 0.00036 },
-  VBL:        { px: 448.55,   anchor: 448.55,   sig: 0.00034 },
-  LICHSGFIN:  { px: 618.40,   anchor: 618.40,   sig: 0.00037 },
-  HINDZINC:   { px: 476.95,   anchor: 476.95,   sig: 0.00040 },
-};
-
-/* [inst, symbol, expiry, opt, strike, ltp, chgPct, volume, valueLk(auto=0), oi, oiChg, ul, lot]
-   NIFTY/BANKNIFTY option rows are the *genuine* NSE most-active snapshot (10:40 IST). */
-const SEED = [
-  ['IDXOPT','NIFTY','29-Sep-2026','PE',23100, 106.60,-12.08,2202243,148528.08,242175,  14820,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','PE',23000,  69.20,-15.66,1907165, 84284.30,298313, -8640,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','CE',23100, 117.00,-11.09,1688890,138100.54,252350,  21450,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','PE',23050,  86.35,-13.48,1599764, 88553.34,158184,   6210,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','CE',23200,  70.70,-16.77,1211614, 60806.67,264110,  18930,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','CE',23150,  91.85,-14.04, 931689, 60517.39,132573,   9840,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','CE',23300,  39.10,-24.30, 846315, 24309.13,224890,  24110,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','PE',22900,  43.15,-20.02, 819142, 22809.83,129129,  -3220,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','CE',23050, 146.00, -9.01, 741170, 74875.22, 79058,   5270,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','CE',23000, 179.25, -6.35, 698603, 85945.98,105865,  -6840,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','PE',23150, 131.50, -9.37, 690942, 57091.16, 68682,   3110,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','PE',23200, 159.90, -8.37, 670110, 67687.81,103946,   8750,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','CE',23250,  53.25,-19.80, 639676, 24685.42,161352,  13240,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','PE',22800,  27.30,-23.31, 635482, 11297.28,149546,  -2480,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','CE',23500,  11.10,-39.18, 607811,  5116.25,246830,  31520,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','PE',22950,  54.65,-17.63, 574299, 20337.08, 72236,   1840,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','CE',23400,  20.60,-33.23, 558639,  8700.24,185684,  16770,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','CE',24000,   1.95,-48.00, 471132,   685.97,256745,  42310,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','PE',22850,  33.95,-21.95, 405133,  8921.84, 82339,  -5510,'NIFTY',75],
-  ['IDXOPT','NIFTY','29-Sep-2026','CE',23350,  28.50,-28.30, 404529,  8556.19, 88833,   7620,'NIFTY',75],
-  ['IDXOPT','BANKNIFTY','29-Sep-2026','CE',52000, 228.40,-14.20, 385210,34120.40, 78450, 12400,'BANKNIFTY',35],
-  ['IDXOPT','BANKNIFTY','29-Sep-2026','PE',52000, 241.60,-11.80, 341880,32980.15, 71230, -4300,'BANKNIFTY',35],
-  ['IDXOPT','BANKNIFTY','29-Sep-2026','CE',51800, 318.75,-12.40, 298440,38010.80, 52310,  8100,'BANKNIFTY',35],
-  ['IDXOPT','BANKNIFTY','29-Sep-2026','PE',51800, 322.10,-10.90, 276510,35540.60, 49870,  2200,'BANKNIFTY',35],
-  ['IDXFUT','NIFTY','29-Sep-2026',null,0, 23111.00,  0.02, 224560, 0, 1184230,  34210,'NIFTY',75],
-  ['IDXFUT','BANKNIFTY','29-Sep-2026',null,0, 52015.00, -0.11, 118740, 0,  412870,  12760,'BANKNIFTY',35],
-  ['STKFUT','SBIN','29-Sep-2026',null,0, 821.35,  0.62, 145470, 0, 245180,  18340,'SBIN',750],
-  ['STKFUT','ICICIBANK','29-Sep-2026',null,0, 1286.10, 0.35, 132790, 0, 198640,  9210,'ICICIBANK',700],
-  ['STKFUT','HDFCBANK','29-Sep-2026',null,0, 954.55, -0.28, 158540, 0, 301250, -7440,'HDFCBANK',550],
-  ['STKFUT','RELIANCE','29-Sep-2026',null,0, 1351.20, 0.18, 121330, 0, 274830,  6650,'RELIANCE',500],
-  ['STKFUT','TATAMOTORS','29-Sep-2026',null,0, 688.45, -1.12, 171040, 0, 388910, -22150,'TATAMOTORS',1400],
-  ['STKFUT','BSE','29-Sep-2026',null,0, 2156.00, 1.45, 54980, 0, 42360,  7820,'BSE',150],
-  ['STKFUT','SHRIRAMFIN','29-Sep-2026',null,0, 615.10, -0.54, 46690, 0, 68210, -3120,'SHRIRAMFIN',600],
-  ['STKFUT','VBL','29-Sep-2026',null,0, 449.80, 0.86, 71030, 0, 51890,  4510,'VBL',1250],
-  ['STKOPT','SBIN','29-Sep-2026','CE',830, 14.85,-18.40, 262140,  3892.20, 189430,  24310,'SBIN',750],
-  ['STKOPT','SBIN','29-Sep-2026','PE',830, 17.20, -9.80, 218760,  3762.40, 142180, -8340,'SBIN',750],
-  ['STKOPT','RELIANCE','29-Sep-2026','CE',1350, 21.40,-16.20, 187450,  4011.30, 121650,  11220,'RELIANCE',500],
-  ['STKOPT','RELIANCE','29-Sep-2026','PE',1350, 24.10, -7.40, 156880,  3780.80,  98740, -4820,'RELIANCE',500],
-];
-
-const INSTRUMENT = {
-  IDXOPT: { label: 'Index Opt', cls: 'idxopt', isOpt: true,  isIdx: true  },
-  STKOPT: { label: 'Stock Opt', cls: 'stkopt', isOpt: true,  isIdx: false },
-  IDXFUT: { label: 'Index Fut', cls: 'idxfut', isOpt: false, isIdx: true  },
-  STKFUT: { label: 'Stock Fut', cls: 'stkfut', isOpt: false, isIdx: false },
-};
-
-const Engine = (() => {
-  const contracts = [];
-  const flowBuckets = [];            // {t, ce, pe} in ₹ lakh per 30s
-  let bucket = null;
-  let tickCount = 0;
-  const ulMomentum = {};             // rolling momentum % per underlying
-  Object.keys(UNDERLYINGS).forEach(k => ulMomentum[k] = 0);
-
-  function mkContract(row, i) {
-    const [inst, symbol, expiry, opt, strike, ltp, chgPct, volume, valLk, oi, oiChg, ul, lot] = row;
-    const prevClose = ltp / (1 + chgPct / 100);
-    const meta = INSTRUMENT[inst];
-    const c = {
-      id: `${inst}${symbol}${expiry.replace(/-/g,'')}${opt || 'XX'}${strike || '0.00'}`,
-      inst, instrument: meta.label, instCls: meta.cls, isOpt: meta.isOpt, isIdx: meta.isIdx,
-      symbol, expiry, opt, optCode: opt === 'CE' ? 'CE' : opt === 'PE' ? 'PE' : '',
-      strike, lot, ul,
-      ltp, prevClose, chgPct, chg: ltp - prevClose,
-      volume, oi, oiChg,
-      valueLakhs: valLk || (volume * ltp * lot / 1e5),
-      // sim params
-      _seedLtp: ltp, _theta: 0.00012 + Math.random() * 0.00012,
-      _volBase: Math.max(2, volume / 22500),           // contracts/sec avg
-      _oiRegime: (i % 4),                               // 0 long-build 1 short-build 2 cover 3 unwind
-      _regimeT: 60 + Math.floor(Math.random() * 240),
-      series: { t: [], ltp: [], oi: [], v: [], prem: [] },
+function normalizeContracts(snapshot) {
+  return snapshot.contracts.map((sourceRow, index) => {
+    const optCode = sourceRow.optType === 'Call' ? 'CE' : sourceRow.optType === 'Put' ? 'PE' : null;
+    const instrumentCode = String(sourceRow.instrument || 'UNKNOWN').toUpperCase();
+    const instrumentLabels = {
+      IDXOPT: ['Index option', 'idxopt'], STKOPT: ['Stock option', 'stkopt'],
+      IDXFUT: ['Index future', 'idxfut'], STKFUT: ['Stock future', 'stkfut'],
     };
-    return c;
-  }
-
-  SEED.forEach((r, i) => contracts.push(mkContract(r, i)));
-
-  function optDelta(c) {
-    const ul = UNDERLYINGS[c.ul].px;
-    // logistic width: ~premium-scaled, floors at 0.25% of spot (stable Greeks-ish)
-    const w = Math.max(c.ltp * 1.15, ul * 0.0025, 1);
-    const d = 1 / (1 + Math.exp(-(ul - c.strike) / w));
-    return c.opt === 'CE' ? d : d - 1;
-  }
-
-  function pushPoint(c, t, dv, dPrem) {
-    const s = c.series;
-    s.t.push(t); s.ltp.push(c.ltp); s.oi.push(c.oi); s.v.push(dv); s.prem.push(dPrem);
-    if (s.t.length > 160) { s.t.shift(); s.ltp.shift(); s.oi.shift(); s.v.shift(); s.prem.shift(); }
-  }
-
-  function addFlow(c, premLakh, t) {
-    const k = Math.floor(t / 30000) * 30000;
-    if (!bucket || bucket.t !== k) { bucket = { t: k, ce: 0, pe: 0 }; flowBuckets.push(bucket); if (flowBuckets.length > 40) flowBuckets.shift(); }
-    if (c.opt === 'CE') bucket.ce += premLakh;
-    else if (c.opt === 'PE') bucket.pe += premLakh;
-  }
-
-  function tick(tOpt) {
-    const t = tOpt || Date.now(); tickCount++;
-    // 1) underlyings: regime drift + noise + mild mean-reversion
-    for (const k of Object.keys(UNDERLYINGS)) {
-      const u = UNDERLYINGS[k];
-      if (tickCount % 400 === 0) u.drift = randn() * u.sig * 0.18;          // slow regime
-      u.drift = u.drift || 0;
-      const rev = ((u.anchor - u.px) / u.anchor) * 0.015;
-      u.px *= Math.exp(u.drift + rev + randn() * u.sig);
-      ulMomentum[k] = ulMomentum[k] * 0.85 + ((u.px - u.anchor) / u.anchor * 100) * 0.15;
-    }
-
-    for (const c of contracts) {
-      const ul = UNDERLYINGS[c.ul];
-      const upx = ul.px;
-      const before = c.ltp;
-      // price dynamics
-      if (c.inst === 'IDXFUT' || c.inst === 'STKFUT') {
-        const basis = c._seedLtp * 0.0004;
-        c.ltp = upx + basis + c.ltp * randn() * 0.0015 + (c.ltp - upx - basis) * -0.05;
-        c.ltp = Math.max(0.05, c.ltp);
-      } else if (c.isOpt) {
-        const delta = optDelta(c);
-        const duEff = ul.px - (c._prevUpx || ul.px);
-        c._prevUpx = ul.px;
-        const theta = c.ltp * c._theta * 2.2;
-        const vega = c.ltp * 0.006 * randn();
-        c.ltp = Math.max(0.05, c.ltp + delta * duEff - theta + vega);
-      }
-      const dP = (c.ltp - before) / (before || 1);
-
-      // volume burstiness
-      const burst = Math.exp(randn() * 0.6);
-      const moveBoost = 1 + Math.min(6, Math.abs(dP) * 900);
-      const dv = Math.max(0, Math.round(c._volBase * burst * moveBoost));
-      c.volume += dv;
-
-      // premium turnover
-      let dPrem = 0;
-      if (c.isOpt) {
-        dPrem = dv * c.ltp * c.lot / 1e5;   // ₹ lakh
-        c.valueLakhs += dPrem;
-        addFlow(c, dPrem, t);
-      } else {
-        dPrem = dv * c.ltp * c.lot / 1e5;
-        c.valueLakhs += dPrem;
-      }
-
-      // OI regime machinery → creates genuine-looking buildup/covering cycles
-      if (--c._regimeT <= 0) { c._oiRegime = Math.floor(Math.random() * 4); c._regimeT = 45 + Math.floor(Math.random() * 260); }
-      const priceUp = dP >= 0;
-      let dOi = 0;
-      const oiScale = dv * (0.15 + Math.random() * 0.55);
-      switch (c._oiRegime) {
-        case 0: dOi = priceUp ? oiScale : -oiScale * 0.3; break;   // long build-up bias
-        case 1: dOi = priceUp ? -oiScale * 0.3 : oiScale; break;   // short build-up bias
-        case 2: dOi = priceUp ? -oiScale * 0.8 : oiScale * 0.2; break; // short covering
-        default: dOi = priceUp ? oiScale * 0.2 : -oiScale * 0.8; break; // long unwinding
-      }
-      dOi = Math.round(dOi + randn() * c._volBase * 2);
-      c.oi = Math.max(0, c.oi + dOi);
-      c.oiChg += dOi;
-
-      // day change
-      c.chg = c.ltp - c.prevClose;
-      c.chgPct = (c.chg / c.prevClose) * 100;
-
-      pushPoint(c, t, dv, c.isOpt ? dPrem : 0);
-    }
-  }
-
-  function warmup(n = 150, stepMs = 3000) {
-    // fast-forward history so charts/signals are alive on first paint
-    const t0 = Date.now();
-    for (let i = 0; i < n; i++) tick(t0 - (n - i) * stepMs);
-  }
-
-  function snapshot() {
-    return { tickCount, contracts, flowBuckets: flowBuckets.slice(), underlyings: UNDERLYINGS, ulMomentum: { ...ulMomentum } };
-  }
-
-  return { tick, warmup, snapshot, contracts, flowBuckets };
-})();
-
-/* =====================================================================
-   2. SIGNAL ENGINE — BUY / SELL / HOLD
-   ===================================================================== */
-function ema(arr, k) {
-  const a = 2 / (k + 1); let e = arr[0];
-  for (let i = 1; i < arr.length; i++) e = arr[i] * a + e * (1 - a);
-  return e;
+    const [instrument, instrumentClass] = instrumentLabels[instrumentCode] || [instrumentCode, ''];
+    const expiry = String(sourceRow.expiry || '');
+    const strike = Number.isFinite(sourceRow.strike) ? sourceRow.strike : null;
+    const id = String(sourceRow.id || [instrumentCode, sourceRow.symbol, expiry, optCode, strike, index].join(':'));
+    const contract = {
+      id,
+      instrumentCode,
+      instrument,
+      instrumentClass,
+      symbol: String(sourceRow.symbol || ''),
+      expiry,
+      optCode,
+      strike,
+      ltp: sourceRow.ltp,
+      chg: sourceRow.change,
+      chgPct: sourceRow.chgPct,
+      volume: sourceRow.volume,
+      turnover: sourceRow.turnover,
+      oi: sourceRow.oi,
+      oiChg: sourceRow.oiChg,
+      underlying: sourceRow.underlying,
+      isOpt: optCode !== null || instrumentCode.includes('OPT'),
+      isIndexOption: instrumentCode === 'IDXOPT',
+    };
+    contract.signal = classifySourceChange(contract);
+    return contract;
+  });
 }
 
-function computeSignal(c, ctx) {
-  const s = c.series.ltp, o = c.series.oi;
-  const n = s.length;
-  const reasons = [];
-  if (n < 4) return { action: 'HOLD', score: 0, confidence: 52, reasons: ['warming up…'] };
-
-  const last = s[n - 1];
-  const ref = s[Math.max(0, n - 30)];
-  const momPct = ((last - ref) / ref) * 100;
-  const emaF = ema(s.slice(-40), 8), emaS = ema(s.slice(-40), 21);
-  const trend = ((emaF - emaS) / emaS) * 100;
-  const oiNow = o[n - 1], oiRef = o[Math.max(0, n - 30)];
-  const oiPct = oiRef ? ((oiNow - oiRef) / oiRef) * 100 : 0;
-  const dP = momPct;
-
-  /* --- price × OI buildup classification (classic F&O read) --- */
-  let buildupPts = 0, buildupLbl = '';
-  if (dP > 0.01 && oiPct > 0.05)      { buildupPts =  22; buildupLbl = 'Price ▲ + OI ▲ · long build-up'; }
-  else if (dP < -0.01 && oiPct > 0.05){ buildupPts = -22; buildupLbl = 'Price ▼ + OI ▲ · short build-up'; }
-  else if (dP > 0.01 && oiPct < -0.05){ buildupPts =  10; buildupLbl = 'Price ▲ + OI ▼ · short covering'; }
-  else if (dP < -0.01 && oiPct < -0.05){ buildupPts = -10; buildupLbl = 'Price ▼ + OI ▼ · long unwinding'; }
-  else { buildupLbl = 'Balanced OI — no clear build-up'; }
-  if (buildupLbl.includes('·')) reasons.push(buildupLbl);
-
-  /* --- momentum --- */
-  const trendPts = clamp(trend * 12, -24, 24);
-  const momPts = clamp(momPct * 5, -18, 18);
-  if (Math.abs(momPct) > 0.02) reasons.push(`Momentum <b>${momPct >= 0 ? '▲' : '▼'} ${Math.abs(momPct).toFixed(2)}%</b> over recent ticks`);
-
-  /* --- underlying thrust for options/futures --- */
-  const side = c.opt === 'CE' ? 1 : c.opt === 'PE' ? -1 : 1;
-  const ulMom = ctx.ulMomentum[c.ul] || 0;
-  const ulPts = clamp(ulMom * 22, -28, 28) * side;
-  if (Math.abs(ulMom) > 0.02) {
-    reasons.push(c.isOpt
-      ? `${c.ul} ${ulMom >= 0 ? 'firm' : 'soft'} · hits <b>${c.opt === 'CE' ? 'calls' : 'puts'}</b> ${ulMom * side >= 0 ? 'positively' : 'negatively'}`
-      : `${c.ul} underlying ${ulMom >= 0 ? 'firm' : 'soft'}`);
-  }
-
-  /* --- writer pressure: OI up + price down on an option = writers dominating --- */
-  let writerPts = 0;
-  if (c.isOpt && oiPct > 0.3 && dP < -0.05) {
-    writerPts = c.opt === 'CE' ? -14 : 14;
-    reasons.push(c.opt === 'CE'
-      ? '<b>Call writers</b> pressing (OI ▲ with premium bleed)'
-      : '<b>Put writers</b> pressing (OI ▲ with premium bleed)');
-  } else if (c.isOpt && oiPct > 0.3 && dP > 0.05) {
-    writerPts = c.opt === 'CE' ? 8 : -8;
-    reasons.push(`<b>${c.opt === 'CE' ? 'Call' : 'Put'} buyers</b> stepping in (OI ▲ with premium bid)`);
-  }
-
-  /* --- premium flow skew for index options --- */
-  let flowPts = 0;
-  const isP = flow => flow.ce + flow.pe > 0;
-  const lastF = ctx.flowBuckets[ctx.flowBuckets.length - 1];
-  if (lastF && isP(lastF)) {
-    const skew = (lastF.ce - lastF.pe) / (lastF.ce + lastF.pe);
-    flowPts = clamp(skew * 16, -16, 16) * (c.opt === 'PE' ? -1 : 1);
-    if (Math.abs(skew) > 0.15) {
-      reasons.push(`Premium crowd is <b>${skew > 0 ? 'call-heavy' : 'put-heavy'}</b> right now`);
-    }
-  }
-
-  let score = buildupPts + trendPts + momPts + ulPts + writerPts + flowPts;
-
-  /* expiry decay caution on crushed premiums → pull toward HOLD */
-  if (c.isOpt && c.chgPct < -20) {
-    score *= 0.75;
-    reasons.push('Premium heavily decayed — respect <b>theta risk</b>');
-  }
-
-  score = clamp(score, -100, 100);
-  const action = score >= 22 ? 'BUY' : score <= -22 ? 'SELL' : 'HOLD';
-  const confidence = Math.round(clamp(52 + Math.abs(score) * 0.5, 52, 96));
-
-  // headline reason if none
-  if (!reasons.length) reasons.push('Range noise — no edge in current tape');
-  if (action !== 'HOLD') {
-    const verb = action === 'BUY' ? 'Long' : 'Short';
-    reasons.unshift(`<b>${verb} ${c.symbol}${c.strike ? ' ' + fmtIN(c.strike) + ' ' + c.optCode : ''}</b> — composite score ${score > 0 ? '+' : ''}${Math.round(score)}`);
-  }
-  return { action, score: Math.round(score), confidence, reasons: reasons.slice(0, 4), buildup: buildupLbl, momPct, trend, oiPct };
-}
-
-/* aggregates */
-function aggregate(ctx) {
-  let premOpt = 0, ce = 0, pe = 0, futVal = 0, vol = 0, buy = 0, sell = 0, hold = 0;
-  let topPrem = null, topVol = null, biasScore = 0;
-  for (const c of ctx.contracts) {
-    vol += c.volume;
-    if (c.isOpt) {
-      premOpt += c.valueLakhs;
-      if (c.opt === 'CE') ce += c.valueLakhs; else pe += c.valueLakhs;
-      if (!topPrem || c.valueLakhs > topPrem.valueLakhs) topPrem = c;
-    } else {
-      futVal += c.valueLakhs;
-      if (!topPrem || c.valueLakhs > topPrem.valueLakhs) { /* futures can't win premium crown */ }
-    }
-    if (!topVol || c.volume > topVol.volume) topVol = c;
-    const sg = c.signal;
-    if (sg.action === 'BUY') buy++; else if (sg.action === 'SELL') sell++; else hold++;
-    biasScore += sg.score;
-  }
-  const pcr = ce ? pe / ce : 1;
-  const n = ctx.contracts.length || 1;
-  biasScore = clamp((biasScore / n) * 2.4 + (1 - clamp(pcr, 0.5, 1.8) / 1.8) * 30 - 15 + (ctx.ulMomentum.NIFTY || 0) * 40, -100, 100);
-  const biasLabel = biasScore > 42 ? 'Strong Bullish' : biasScore > 14 ? 'Bullish' : biasScore < -42 ? 'Strong Bearish' : biasScore < -14 ? 'Bearish' : 'Neutral';
-  const crowdLbl = pcr > 1.15 ? 'PE-heavy crowd' : pcr < 0.85 ? 'CE-heavy crowd' : 'Balanced premium';
+function sumSourceField(rows, field) {
+  if (!rows.length) return { value: null, coverage: '0/0 rows' };
+  const available = rows.map(row => row[field]).filter(Number.isFinite);
   return {
-    premOpt, ce, pe, futVal, vol, buy, sell, hold, topPrem, topVol,
-    pcr, biasScore, biasLabel, crowdLbl,
-    premCr: premOpt / 100,
+    value: available.length === rows.length ? available.reduce((sum, value) => sum + value, 0) : null,
+    coverage: `${available.length}/${rows.length} rows`,
   };
 }
 
-/* =====================================================================
-   3. DASHBOARD UI
-   ===================================================================== */
+function aggregate(contracts) {
+  const options = contracts.filter(contract => contract.isOpt);
+  const calls = options.filter(contract => contract.optCode === 'CE');
+  const puts = options.filter(contract => contract.optCode === 'PE');
+  const optionTurnover = sumSourceField(options, 'turnover');
+  const optionTypeMissing = options.filter(contract => !contract.optCode).length;
+  const ceTurnover = optionTypeMissing
+    ? { value: null, coverage: `incomplete · ${optionTypeMissing} option row(s) lack CE/PE type` }
+    : sumSourceField(calls, 'turnover');
+  const peTurnover = optionTypeMissing
+    ? { value: null, coverage: `incomplete · ${optionTypeMissing} option row(s) lack CE/PE type` }
+    : sumSourceField(puts, 'turnover');
+  const futures = contracts.filter(contract => !contract.isOpt);
+  const futuresTurnover = sumSourceField(futures, 'turnover');
+  const volume = sumSourceField(contracts, 'volume');
+  const pcr = Number.isFinite(ceTurnover.value) && ceTurnover.value > 0 && Number.isFinite(peTurnover.value)
+    ? peTurnover.value / ceTurnover.value : null;
+  const topTurnover = options.filter(contract => Number.isFinite(contract.turnover))
+    .sort((a, b) => b.turnover - a.turnover)[0] || null;
+  const priceChanges = contracts.map(contract => contract.chgPct).filter(Number.isFinite);
+  const priceUp = priceChanges.filter(value => value > 0).length;
+  const priceDown = priceChanges.filter(value => value < 0).length;
+  const breadth = priceUp + priceDown > 0 ? (priceUp - priceDown) / (priceUp + priceDown) : null;
+  const crowd = !Number.isFinite(ceTurnover.value) || !Number.isFinite(peTurnover.value)
+    ? 'TURNOVER INCOMPLETE'
+    : ceTurnover.value > peTurnover.value ? 'CE-heavy turnover'
+      : peTurnover.value > ceTurnover.value ? 'PE-heavy turnover' : 'Equal reported turnover';
+  const bias = !priceChanges.length ? 'PRICE CHANGE UNAVAILABLE'
+    : priceUp > priceDown ? 'More returned contracts up'
+      : priceDown > priceUp ? 'More returned contracts down' : 'Mixed / equal breadth';
+  return { options, calls, puts, optionTurnover, ceTurnover, peTurnover, futuresTurnover, volume, pcr, topTurnover, priceUp, priceDown, priceChanges, breadth, crowd, bias };
+}
+
 const state = {
-  view: 'ALL', sort: 'volume', dir: -1, q: '',
-  selectedId: null, auto: true, interval: 3000, nextAt: Date.now() + 3000,
-  last: null, prevLtp: {}, remoteMode: null, feedLabel: 'connecting…',
+  view: 'ALL', sort: 'volume', direction: -1, query: '', selectedId: null,
+  auto: true, interval: 5000, nextAt: Date.now(), refreshing: false,
+  snapshot: null, contracts: [], aggregate: null, history: new Map(),
 };
+const rowElements = new Map();
 
-const rowEls = new Map();
-
-function pickContracts(contracts) {
-  let list = contracts.slice();
-  if (state.view === 'OPT') list = list.filter(c => c.isOpt);
-  else if (state.view === 'FUT') list = list.filter(c => !c.isOpt);
-  else if (state.view === 'IDXOPT') list = list.filter(c => c.inst === 'IDXOPT');
-  else if (state.view === 'CE') list = list.filter(c => c.opt === 'CE');
-  else if (state.view === 'PE') list = list.filter(c => c.opt === 'PE');
-  if (state.q) {
-    const q = state.q.toUpperCase();
-    list = list.filter(c => (c.symbol + ' ' + c.strike + ' ' + c.optCode + ' ' + c.instrument).toUpperCase().includes(q));
+function filteredContracts() {
+  let rows = state.contracts.slice();
+  if (state.view === 'OPT') rows = rows.filter(contract => contract.isOpt);
+  else if (state.view === 'FUT') rows = rows.filter(contract => !contract.isOpt);
+  else if (state.view === 'IDXOPT') rows = rows.filter(contract => contract.isIndexOption);
+  else if (state.view === 'CE') rows = rows.filter(contract => contract.optCode === 'CE');
+  else if (state.view === 'PE') rows = rows.filter(contract => contract.optCode === 'PE');
+  if (state.query) {
+    const query = state.query.toUpperCase();
+    rows = rows.filter(contract => `${contract.symbol} ${contract.strike ?? ''} ${contract.optCode || ''} ${contract.instrument}`.toUpperCase().includes(query));
   }
   const key = state.view === 'BYOI' ? 'oi' : state.sort;
-  const dir = state.view === 'BYOI' ? -1 : state.dir;
-  list.sort((a, b) => {
-    let va, vb;
-    if (key === 'signal') { va = Math.abs(a.signal?.score || 0); vb = Math.abs(b.signal?.score || 0); }
-    else { va = a[key] ?? 0; vb = b[key] ?? 0; }
-    return (va - vb) * dir;
+  const direction = state.view === 'BYOI' ? -1 : state.direction;
+  rows.sort((a, b) => {
+    const valueA = key === 'signal' ? a.signal.rank : a[key];
+    const valueB = key === 'signal' ? b.signal.rank : b[key];
+    if (!Number.isFinite(valueA) && !Number.isFinite(valueB)) return 0;
+    if (!Number.isFinite(valueA)) return 1;
+    if (!Number.isFinite(valueB)) return -1;
+    return (valueA - valueB) * direction;
   });
-  return list;
+  return rows;
 }
 
-function insTag(c) { return `<span class="ins ${c.instCls}">${c.instrument}</span>`; }
-
-function contractCell(c) {
-  const oc = c.optCode ? `<span class="oc ${c.optCode}">${c.optCode}</span>` : '';
-  const st = c.strike ? `<span class="strike">${fmtIN(c.strike)}</span>` : '<span class="strike">FUT</span>';
-  return `<div class="ctr"><span class="sym">${c.symbol}</span>${oc}${st}</div>`;
-}
-
-function sparkline(cv, arr, up) {
-  const ctx = cv.getContext('2d');
-  const w = cv.width = 74 * devicePixelRatio, h = cv.height = 24 * devicePixelRatio;
-  cv.style.width = '74px'; cv.style.height = '24px';
-  if (arr.length < 2) return;
-  const min = Math.min(...arr), max = Math.max(...arr), r = max - min || 1;
-  ctx.beginPath();
-  arr.forEach((v, i) => {
-    const x = (i / (arr.length - 1)) * (w - 4) + 2;
-    const y = h - 3 - ((v - min) / r) * (h - 6);
-    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
-  });
-  ctx.strokeStyle = up ? '#34d399' : '#fb7185';
-  ctx.lineWidth = 1.6 * devicePixelRatio;
-  ctx.stroke();
-}
-
-function upsertRow(c) {
-  let el = rowEls.get(c.id);
-  const sg = c.signal || { action: 'HOLD', confidence: 52 };
-  const chgCls = c.chgPct > 0.01 ? 'up' : c.chgPct < -0.01 ? 'down' : 'flat';
-  if (!el) {
-    el = document.createElement('tr');
-    el.dataset.id = c.id;
-    el.innerHTML = `
-      <td class="c-ins"></td>
-      <td class="c-ctr"></td>
-      <td class="c-exp num" style="color:var(--muted)"></td>
-      <td class="c-ltp ltp"></td>
-      <td class="c-chg num"></td>
-      <td class="c-vol num" style="color:var(--muted)"></td>
-      <td class="c-val num"></td>
-      <td class="c-oi num" style="color:var(--muted)"></td>
-      <td class="c-oic num"></td>
-      <td class="c-spark"></td>
-      <td class="c-sig"></td>`;
-    el.addEventListener('click', () => selectContract(c.id));
-    rowEls.set(c.id, el);
-  }
-  el.querySelector('.c-ins').innerHTML = insTag(c);
-  el.querySelector('.c-ctr').innerHTML = contractCell(c);
-  el.querySelector('.c-exp').textContent = c.expiry;
-  const ltpEl = el.querySelector('.c-ltp');
-  const prev = state.prevLtp[c.id];
-  ltpEl.textContent = fmtPx(c.ltp);
-  if (prev !== undefined && prev !== c.ltp) {
-    ltpEl.classList.remove('flash-up', 'flash-down');
-    void ltpEl.offsetWidth;
-    ltpEl.classList.add(c.ltp > prev ? 'flash-up' : 'flash-down');
-  }
-  state.prevLtp[c.id] = c.ltp;
-  const chgEl = el.querySelector('.c-chg');
-  chgEl.textContent = (c.chgPct >= 0 ? '+' : '') + c.chgPct.toFixed(2) + '%';
-  chgEl.className = 'c-chg num ' + chgCls;
-  el.querySelector('.c-vol').textContent = fmtIN(c.volume);
-  el.querySelector('.c-val').innerHTML = fmtIN(c.valueLakhs / 100, 2) + ' <span style="color:var(--dim);font-size:10px">Cr' + (c.isOpt ? '·P' : '') + '</span>';
-  el.querySelector('.c-oi').textContent = fmtIN(c.oi);
-  const oic = el.querySelector('.c-oic');
-  oic.textContent = (c.oiChg >= 0 ? '+' : '') + fmtIN(c.oiChg);
-  oic.className = 'c-oic num ' + (c.oiChg > 0 ? 'up' : c.oiChg < 0 ? 'down' : 'flat');
-  const spark = el.querySelector('.c-spark');
-  spark.innerHTML = '<canvas></canvas>';
-  sparkline(spark.firstChild, c.series.ltp.slice(-40), c.series.ltp[c.series.ltp.length - 1] >= c.series.ltp[0]);
-  el.querySelector('.c-sig').innerHTML = `<span class="sig ${sg.action}">${sg.action}<em>${sg.confidence}</em></span>`;
-  el.classList.toggle('sel', c.id === state.selectedId);
-  return el;
+function contractMarkup(contract) {
+  const option = contract.optCode ? `<span class="oc ${contract.optCode}">${contract.optCode}</span>` : '';
+  const strike = Number.isFinite(contract.strike) ? `<span class="strike">${fmtIN(contract.strike)}</span>` : `<span class="strike">${contract.isOpt ? 'OPT' : 'FUT'}</span>`;
+  return `<div class="ctr"><span class="sym">${escapeHtml(contract.symbol)}</span>${option}${strike}</div>`;
 }
 
 function renderTable() {
-  const ctx = state.last;
-  if (!ctx) return;
-  const tbody = $('#tbody');
-  const list = pickContracts(ctx.contracts);
-  $('#emptyMsg').style.display = list.length ? 'none' : 'block';
-  const frag = document.createDocumentFragment();
-  for (const c of list) frag.appendChild(upsertRow(c));
-  // reorder + drop rows no longer visible
-  tbody.appendChild(frag); // appendChild moves existing nodes → final order = list order
-  const keep = new Set(list.map(c => c.id));
-  for (const [id, el] of rowEls) if (!keep.has(id)) { el.remove(); rowEls.delete(id); }
+  const table = $('#tbody');
+  const rows = filteredContracts();
+  $('#emptyMsg').style.display = rows.length ? 'none' : 'block';
+  $('#emptyMsg').textContent = rows.length ? '' : 'No live NSE contracts match these filters.';
+  table.innerHTML = rows.map(contract => {
+    const chgClass = Number.isFinite(contract.chgPct) ? contract.chgPct > 0 ? 'up' : contract.chgPct < 0 ? 'down' : 'flat' : 'flat';
+    const oiClass = Number.isFinite(contract.oiChg) ? contract.oiChg > 0 ? 'up' : contract.oiChg < 0 ? 'down' : 'flat' : 'flat';
+    const change = Number.isFinite(contract.chgPct) ? signed(contract.chgPct, 2, '%') : '—';
+    const oiChange = Number.isFinite(contract.oiChg) ? signed(contract.oiChg, 0) : '—';
+    const series = state.history.get(contract.id) || [];
+    const signal = contract.signal;
+    return `<tr data-id="${escapeHtml(contract.id)}" class="${contract.id === state.selectedId ? 'sel' : ''}">
+      <td><span class="ins ${contract.instrumentClass}">${escapeHtml(contract.instrument)}</span></td>
+      <td>${contractMarkup(contract)}</td>
+      <td class="num" style="color:var(--muted)">${escapeHtml(contract.expiry || '—')}</td>
+      <td class="ltp">${fmtPx(contract.ltp)}</td>
+      <td class="num ${chgClass}">${change}</td>
+      <td class="num" style="color:var(--muted)">${fmtIN(contract.volume)}</td>
+      <td class="num">${fmtIN(contract.turnover, 2)}</td>
+      <td class="num" style="color:var(--muted)">${fmtIN(contract.oi)}</td>
+      <td class="num ${oiClass}">${oiChange}</td>
+      <td><span class="history-count">${series.length > 1 ? `${series.length} source observations` : 'history unavailable'}</span></td>
+      <td><span class="sig ${signal.group}">${escapeHtml(signal.label)}</span></td>
+    </tr>`;
+  }).join('');
+  table.querySelectorAll('tr[data-id]').forEach(row => row.addEventListener('click', () => selectContract(row.dataset.id)));
+  rowElements.clear();
+  table.querySelectorAll('tr[data-id]').forEach(row => rowElements.set(row.dataset.id, row));
 }
 
 function selectContract(id) {
   state.selectedId = id;
-  for (const [rid, el] of rowEls) el.classList.toggle('sel', rid === id);
+  rowElements.forEach((row, rowId) => row.classList.toggle('sel', rowId === id));
   renderDetail();
 }
 
-/* -------- main chart -------- */
-function renderDetail() {
-  const ctx = state.last; if (!ctx) return;
-  let c = ctx.contracts.find(x => x.id === state.selectedId);
-  if (!c) {
-    c = (ctx.contracts.find(x => x.inst === 'IDXOPT' && x.symbol === 'NIFTY') || ctx.contracts[0]);
-    state.selectedId = c.id;
-  }
-  const sg = c.signal || computeSignal(c, ctx);
-  // header
-  const oc = $('#selOC');
-  if (c.optCode) { oc.style.display = ''; oc.textContent = c.optCode; oc.className = 'oc ' + c.optCode; }
-  else oc.style.display = 'none';
-  $('#selNm').textContent = `${c.symbol} ${c.strike ? fmtIN(c.strike) + ' ' + c.optCode : 'FUT'} · ${c.expiry}`;
-  $('#selPx').textContent = '₹' + fmtPx(c.ltp);
-  const chgEl = $('#selChg');
-  chgEl.textContent = `${c.chg >= 0 ? '+' : ''}${fmtPx(c.chg)} (${c.chgPct >= 0 ? '+' : ''}${c.chgPct.toFixed(2)}%)`;
-  chgEl.className = 'num ' + (c.chgPct >= 0 ? 'up' : 'down');
-
-  // verdict card
-  const vAct = $('#vAct');
-  vAct.innerHTML = `<span class="${sg.action === 'BUY' ? 'up' : sg.action === 'SELL' ? 'down' : ''}" style="${sg.action === 'HOLD' ? 'color:var(--amber)' : ''}">${sg.action}</span><small>score ${sg.score > 0 ? '+' : ''}${sg.score} · ${c.instrument}</small>`;
-  $('#vReasons').innerHTML = (sg.reasons || []).map(r => `<span class="rsn">${r}</span>`).join('');
-  $('#confPct').textContent = sg.confidence + '%';
-  const ring = $('#confRing');
-  const C = 2 * Math.PI * 38;
-  ring.setAttribute('stroke-dasharray', C.toFixed(1));
-  ring.setAttribute('stroke-dashoffset', (C * (1 - sg.confidence / 100)).toFixed(1));
-  ring.setAttribute('stroke', sg.action === 'BUY' ? 'var(--up)' : sg.action === 'SELL' ? 'var(--down)' : 'var(--amber)');
-  $('#vMom').textContent = (sg.momPct >= 0 ? '+' : '') + (sg.momPct || 0).toFixed(2) + '%';
-  $('#vMom').className = 'v num ' + (sg.momPct >= 0 ? 'up' : 'down');
-  $('#vOi').textContent = (sg.buildup || '—').split('·')[1] ? sg.buildup.split('·')[1].trim() : (sg.buildup || '—');
-  const flow = c.series.prem.reduce((a, b) => a + b, 0);
-  $('#vFlow').textContent = '₹' + fmtIN(flow / 100, 2) + 'Cr';
-
-  drawMainChart(c);
+function renderMeta() {
+  const meta = state.snapshot.meta || {};
+  const asOf = meta.asOf && Date.parse(meta.asOf);
+  const fetchedAt = meta.fetchedAt && Date.parse(meta.fetchedAt);
+  const sourceTime = Number.isFinite(asOf) ? `${asIST(asOf, { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })} IST`
+    : `NSE timestamp unavailable${Number.isFinite(fetchedAt) ? ` · response received ${asIST(fetchedAt, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })} IST` : ''}`;
+  $('#asOf').textContent = sourceTime;
+  $('#feedLabel').textContent = 'LIVE · NSE INDIA';
+  $('#feedDot').className = 'dot';
+  const omittedRows = Number.isFinite(meta.omittedIncompleteRows) ? meta.omittedIncompleteRows : 0;
+  const sourceRows = Number.isFinite(meta.sourceRows) ? meta.sourceRows : null;
+  $('#ftFeed').textContent = `NSE live response${sourceRows !== null ? ` · ${state.contracts.length}/${sourceRows} usable most-active rows` : ''} · ${sourceTime}${omittedRows > 0 ? ` · ${omittedRows} incomplete source rows omitted` : ''}`;
+  const marketStatus = String(meta.marketStatus || 'SOURCE STATUS UNAVAILABLE').toUpperCase();
+  $('#mktStatus').textContent = marketStatus;
+  $('#mktDot').className = `dot ${marketStatus === 'OPEN' ? '' : 'paused'}`;
+  document.body.classList.remove('no-live');
 }
 
-function drawMainChart(c) {
-  const cv = $('#mainChart');
-  const dpr = devicePixelRatio || 1;
-  const W = cv.clientWidth, H = cv.clientHeight;
-  cv.width = W * dpr; cv.height = H * dpr;
-  const ctx2 = cv.getContext('2d');
-  ctx2.setTransform(dpr, 0, 0, dpr, 0, 0);
-  ctx2.clearRect(0, 0, W, H);
-
-  const s = c.series.ltp, prem = c.series.prem, ts = c.series.t;
-  if (s.length < 2) return;
-  const padL = 8, padR = 62, padT = 12, padB = 20;
-  const chartW = W - padL - padR, priceH = (H - padT - padB) * 0.72, gap = 10, barH = H - padT - padB - priceH - gap;
-  const min = Math.min(...s), max = Math.max(...s), r = max - min || 1;
-  const pmin = min - r * 0.12, pmax = max + r * 0.12, pr = pmax - pmin;
-  const X = (i) => padL + (i / (s.length - 1)) * chartW;
-  const Y = (v) => padT + priceH - ((v - pmin) / pr) * priceH;
-
-  // grid
-  ctx2.strokeStyle = 'rgba(148,163,184,.10)'; ctx2.lineWidth = 1;
-  ctx2.fillStyle = 'rgba(143,160,184,.75)'; ctx2.font = '10px ui-monospace,monospace'; ctx2.textAlign = 'left';
-  for (let g = 0; g <= 3; g++) {
-    const v = pmin + (pr * g) / 3, y = Y(v);
-    ctx2.beginPath(); ctx2.moveTo(padL, y); ctx2.lineTo(padL + chartW, y); ctx2.stroke();
-    ctx2.fillText(fmtPx(v), padL + chartW + 6, y + 3);
-  }
-
-  // area
-  const grad = ctx2.createLinearGradient(0, padT, 0, padT + priceH);
-  const upNow = s[s.length - 1] >= s[0];
-  const col = upNow ? '52,211,153' : '251,113,133';
-  grad.addColorStop(0, `rgba(${col},.28)`); grad.addColorStop(1, `rgba(${col},0)`);
-  ctx2.beginPath();
-  s.forEach((v, i) => { const x = X(i), y = Y(v); i ? ctx2.lineTo(x, y) : ctx2.moveTo(x, y); });
-  ctx2.strokeStyle = `rgb(${col})`; ctx2.lineWidth = 2; ctx2.stroke();
-  ctx2.lineTo(X(s.length - 1), padT + priceH); ctx2.lineTo(X(0), padT + priceH); ctx2.closePath();
-  ctx2.fillStyle = grad; ctx2.fill();
-
-  // premium bars
-  const pmax2 = Math.max(...prem, 1);
-  const bw = Math.max(1.5, chartW / s.length - 1.6);
-  const baseY = padT + priceH + gap + barH;
-  for (let i = 0; i < prem.length; i++) {
-    const h = (prem[i] / pmax2) * barH;
-    const upT = i === 0 ? true : s[i] >= s[i - 1];
-    ctx2.fillStyle = upT ? 'rgba(52,211,153,.55)' : 'rgba(251,113,133,.55)';
-    ctx2.fillRect(X(i) - bw / 2, baseY - h, bw, h);
-  }
-
-  // last price tag
-  const last = s[s.length - 1], ly = Y(last);
-  ctx2.fillStyle = `rgb(${col})`;
-  ctx2.beginPath(); ctx2.arc(X(s.length - 1), ly, 3.2, 0, 7); ctx2.fill();
-  const tag = fmtPx(last);
-  ctx2.font = '10px ui-monospace,monospace';
-  const tw = ctx2.measureText(tag).width + 10;
-  ctx2.fillStyle = `rgb(${col})`;
-  ctx2.beginPath();
-  const rx = padL + chartW + 4, ry = ly - 9, rw = tw, rh = 18, rr = 4;
-  if (ctx2.roundRect) { ctx2.roundRect(rx, ry, rw, rh, rr); }
-  else { ctx2.rect(rx, ry, rw, rh); }
-  ctx2.fill();
-  ctx2.fillStyle = '#05141a'; ctx2.textAlign = 'left';
-  ctx2.fillText(tag, padL + chartW + 9, ly + 3.5);
-
-  // time labels
-  ctx2.fillStyle = 'rgba(143,160,184,.6)'; ctx2.font = '9.5px ui-monospace,monospace'; ctx2.textAlign = 'center';
-  for (let i = 0; i < s.length; i += Math.ceil(s.length / 4)) {
-    ctx2.fillText(istHM(ts[i]), X(i), H - 6);
-  }
-
-  cv._meta = { X, Y, s, prem, ts, padL, chartW };
-}
-
-/* hover tooltip */
-(function chartHover() {
-  const cv = $('#mainChart'), tip = $('#ctip');
-  cv.addEventListener('mousemove', (e) => {
-    const m = cv._meta; if (!m) return;
-    const rect = cv.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const i = clamp(Math.round(((x - m.padL) / m.chartW) * (m.s.length - 1)), 0, m.s.length - 1);
-    const px = m.X(i), py = m.Y(m.s[i]);
-    drawHover(i);
-    tip.style.display = 'block';
-    tip.style.left = Math.min(rect.width - 165, Math.max(8, px + 12)) + 'px';
-    tip.style.top = Math.max(6, py - 60) + 'px';
-    const dv = i > 0 ? m.s[i] - m.s[i - 1] : 0;
-    tip.innerHTML = `<div class="t">${istHM(m.ts[i])} IST</div>
-      <div class="r"><span>LTP</span><b>₹${fmtPx(m.s[i])}</b></div>
-      <div class="r"><span>Δ tick</span><b class="${dv >= 0 ? 'up' : 'down'}">${dv >= 0 ? '+' : ''}${fmtPx(dv)}</b></div>
-      <div class="r"><span>premium</span><b>₹${fmtIN(m.prem[i] / 100, 3)} Cr</b></div>`;
-  });
-  cv.addEventListener('mouseleave', () => { tip.style.display = 'none'; state.hoverIdx = -1; renderDetail(); });
-  function drawHover(i) {
-    state.hoverIdx = i; renderDetail();
-    const cv2 = $('#mainChart'), m = cv2._meta; if (!m) return;
-    const ctx2 = cv2.getContext('2d');
-    ctx2.strokeStyle = 'rgba(232,238,248,.35)'; ctx2.setLineDash([3, 3]); ctx2.lineWidth = 1;
-    ctx2.beginPath(); ctx2.moveTo(m.X(i), 0); ctx2.lineTo(m.X(i), cv2.clientHeight); ctx2.stroke();
-    ctx2.setLineDash([]);
-  }
-})();
-
-/* -------- flow chart (CE vs PE stacked, real time) -------- */
-function drawFlowChart() {
-  const ctx = state.last; if (!ctx) return;
-  const cv = $('#flowChart'), dpr = devicePixelRatio || 1;
-  const W = cv.clientWidth, H = cv.clientHeight;
-  cv.width = W * dpr; cv.height = H * dpr;
-  const g = cv.getContext('2d');
-  g.setTransform(dpr, 0, 0, dpr, 0, 0); g.clearRect(0, 0, W, H);
-  const F = ctx.flowBuckets; if (!F.length) return;
-  const padL = 8, padR = 52, padT = 10, padB = 18;
-  const cw = W - padL - padR, ch = H - padT - padB;
-  const maxV = Math.max(...F.map(f => f.ce + f.pe), 1);
-  const bw = Math.max(3, cw / F.length - 4);
-  // grid
-  g.strokeStyle = 'rgba(148,163,184,.10)'; g.fillStyle = 'rgba(143,160,184,.7)'; g.font = '9.5px ui-monospace,monospace'; g.textAlign = 'left';
-  for (let i = 0; i <= 2; i++) {
-    const y = padT + ch - (ch * i) / 2;
-    g.beginPath(); g.moveTo(padL, y); g.lineTo(padL + cw, y); g.stroke();
-    g.fillText(fmtIN((maxV * i) / 2, 0), padL + cw + 6, y + 3);
-  }
-  F.forEach((f, i) => {
-    const x = padL + (i / F.length) * cw + 2;
-    const hCE = (f.ce / maxV) * ch, hPE = (f.pe / maxV) * ch;
-    g.fillStyle = 'rgba(45,212,191,.8)';
-    g.fillRect(x, padT + ch - hCE - hPE, bw, hCE);
-    g.fillStyle = 'rgba(251,113,133,.8)';
-    g.fillRect(x, padT + ch - hPE, bw, hPE);
-    if (i % Math.ceil(F.length / 4) === 0) {
-      g.fillStyle = 'rgba(143,160,184,.55)'; g.textAlign = 'center';
-      g.fillText(istHM(f.t), x + bw / 2, H - 4);
-    }
-  });
-  g.fillStyle = 'rgba(143,160,184,.8)'; g.font = '9.5px Inter,sans-serif'; g.textAlign = 'left';
-  g.fillText('₹ lakh', padL + cw + 6, padT + 2);
-}
-
-/* -------- kpis / premium list / board -------- */
 function renderKpis() {
-  const ctx = state.last; if (!ctx) return;
-  const ag = ctx.agg;
+  const totals = state.aggregate;
+  const optionTotal = totals.optionTurnover.value;
+  $('#kPrem').textContent = fmtIN(optionTotal, 2);
+  $('#kPremD').textContent = 'NSE source units';
+  $('#kPremSub').textContent = `sum of ${totals.options.length} returned option rows · coverage ${totals.optionTurnover.coverage}`;
 
-  $('#kPrem').innerHTML = `₹${fmtIN(ag.premCr, 0)}<span class="u">Cr</span>`;
-  const premEl = $('#kPremD');
-  // crude "since open" delta using flowBuckets sum vs total
-  const recent = ctx.flowBuckets.slice(-4).reduce((a, f) => a + f.ce + f.pe, 0) / 100;
-  const pct = ag.premCr ? (recent / ag.premCr) * 100 : 0;
-  premEl.textContent = `+${pct.toFixed(1)}% last 2 min`;
-  premEl.className = 'delta up';
-  $('#kPremSub').textContent = `futures turnover ₹${fmtIN(ag.futVal / 100, 0)}Cr · ${fmtIN(ag.vol, 0)} contracts`;
+  const top = totals.topTurnover;
+  $('#kTop').textContent = top ? `${top.symbol} ${Number.isFinite(top.strike) ? `${fmtIN(top.strike)} ${top.optCode || (top.isOpt ? 'OPT' : 'FUT')}` : top.isOpt ? 'OPT' : 'FUT'}` : 'Unavailable';
+  $('#kTopSub').textContent = top
+    ? `NSE turnover ${fmtIN(top.turnover, 2)} · volume ${fmtIN(top.volume)} · daily change ${Number.isFinite(top.chgPct) ? signed(top.chgPct, 2, '%') : 'unavailable'}`
+    : 'No source turnover value is available.';
 
-  const tp = ag.topPrem;
-  if (tp) {
-    $('#kTop').textContent = `${tp.symbol} ${tp.strike ? fmtIN(tp.strike) + ' ' + tp.optCode : 'FUT'}`;
-    $('#kTopSub').innerHTML = `<span class="num">₹${fmtIN(tp.valueLakhs / 100, 1)}Cr</span> premium · ${fmtIN(tp.volume, 0)} contracts · <span class="${tp.chgPct >= 0 ? 'up' : 'down'}">${tp.chgPct >= 0 ? '+' : ''}${tp.chgPct.toFixed(1)}%</span>`;
+  $('#kCrowd').textContent = totals.crowd;
+  $('#kCrowdSub').textContent = `CE ${fmtIN(totals.ceTurnover.value, 2)} (${totals.ceTurnover.coverage}) · PE ${fmtIN(totals.peTurnover.value, 2)} (${totals.peTurnover.coverage})`;
+  const combined = Number.isFinite(totals.ceTurnover.value) && Number.isFinite(totals.peTurnover.value)
+    ? totals.ceTurnover.value + totals.peTurnover.value : null;
+  $('#kCrowdPos').style.left = Number.isFinite(combined) && combined > 0
+    ? `${clamp((totals.ceTurnover.value / combined) * 100, 4, 96)}%` : '50%';
+
+  $('#kBias').textContent = totals.bias;
+  $('#kBias').style.color = totals.priceUp > totals.priceDown ? 'var(--up)' : totals.priceDown > totals.priceUp ? 'var(--down)' : 'var(--amber)';
+  $('#kBiasPos').style.left = Number.isFinite(totals.breadth) ? `${clamp(50 + totals.breadth * 45, 5, 95)}%` : '50%';
+  $('#kBiasSub').textContent = `daily price change: ${totals.priceUp} up · ${totals.priceDown} down · ${totals.priceChanges.length}/${state.contracts.length} source rows available`;
+
+  const circumference = 2 * Math.PI * 36;
+  if (Number.isFinite(totals.ceTurnover.value) && Number.isFinite(totals.peTurnover.value) && combined > 0) {
+    const ceLength = circumference * totals.ceTurnover.value / combined;
+    const peLength = circumference * totals.peTurnover.value / combined;
+    $('#dnCE').setAttribute('stroke-dasharray', `${ceLength} ${circumference}`);
+    $('#dnPE').setAttribute('stroke-dasharray', `${peLength} ${circumference}`);
+    $('#dnPE').setAttribute('stroke-dashoffset', -ceLength);
+    $('#dnCEL').textContent = `CE ${(totals.ceTurnover.value / combined * 100).toFixed(1)}%`;
+    $('#dnPEL').textContent = `PE ${(totals.peTurnover.value / combined * 100).toFixed(1)}%`;
+    $('#dnPcr').textContent = Number.isFinite(totals.pcr) ? `PE / CE returned-row turnover ${fmtIN(totals.pcr, 2)}` : 'PE / CE ratio unavailable';
+  } else {
+    $('#dnCE').setAttribute('stroke-dasharray', `0 ${circumference}`);
+    $('#dnPE').setAttribute('stroke-dasharray', `0 ${circumference}`);
+    $('#dnPE').setAttribute('stroke-dashoffset', 0);
+    $('#dnCEL').textContent = 'CE unavailable';
+    $('#dnPEL').textContent = 'PE unavailable';
+    $('#dnPcr').textContent = 'Turnover split unavailable from source fields';
   }
-
-  $('#kCrowd').textContent = ag.crowdLbl;
-  $('#kCrowdPos').style.left = clamp(ag.pcr / 2 * 100, 4, 96) + '%';
-  $('#kCrowdSub').innerHTML = `PCR(prem) <b class="num">${ag.pcr.toFixed(2)}</b> · CE ₹${fmtIN(ag.ce / 100, 0)}Cr vs PE ₹${fmtIN(ag.pe / 100, 0)}Cr`;
-
-  $('#kBias').textContent = ag.biasLabel;
-  $('#kBias').style.color = ag.biasScore > 14 ? 'var(--up)' : ag.biasScore < -14 ? 'var(--down)' : 'var(--amber)';
-  $('#kBiasPos').style.left = clamp((ag.biasScore + 100) / 2, 2, 98) + '%';
-  $('#kBiasSub').innerHTML = `<b class="num">${ag.buy}</b> buy · <b class="num">${ag.sell}</b> sell · <b class="num">${ag.hold}</b> hold`;
-
-  // donut
-  const tot = ag.ce + ag.pe || 1, C = 2 * Math.PI * 36;
-  const ceLen = C * (ag.ce / tot), peLen = C * (ag.pe / tot);
-  const dnCE = $('#dnCE'), dnPE = $('#dnPE');
-  dnCE.setAttribute('stroke-dasharray', `${ceLen} ${C}`);
-  dnPE.setAttribute('stroke-dasharray', `${peLen} ${C}`);
-  dnPE.setAttribute('stroke-dashoffset', -ceLen);
-  $('#dnTot').textContent = '₹' + fmtIN(ag.premCr, 0) + ' Cr';
-  $('#dnCEL').textContent = `CE ${((ag.ce / tot) * 100).toFixed(1)}%`;
-  $('#dnPEL').textContent = `PE ${((ag.pe / tot) * 100).toFixed(1)}%`;
-  $('#dnPcr').textContent = `PCR(prem) ${ag.pcr.toFixed(2)} · crowd is ${ag.crowdLbl.toLowerCase()}`;
+  $('#dnTot').textContent = fmtIN(optionTotal, 2);
+  drawTurnoverChart(totals);
 }
 
 function renderPremList() {
-  const ctx = state.last; if (!ctx) return;
-  const opts = ctx.contracts.filter(c => c.isOpt).sort((a, b) => b.valueLakhs - a.valueLakhs).slice(0, 8);
-  const max = opts.length ? opts[0].valueLakhs : 1;
-  $('#premList').innerHTML = opts.map(c => `
-    <div class="row" data-id="${c.id}" style="cursor:pointer">
-      <span class="nm">${c.symbol} ${fmtIN(c.strike)} ${c.optCode}</span>
-      <span class="track"><span class="fill ${c.optCode}" style="width:${(c.valueLakhs / max) * 100}%"></span></span>
-      <span class="val">₹${fmtIN(c.valueLakhs / 100, 1)} Cr</span>
-    </div>`).join('');
-  $('#premList').querySelectorAll('.row').forEach(r => r.addEventListener('click', () => selectContract(r.dataset.id)));
+  const options = state.aggregate.options.filter(contract => Number.isFinite(contract.turnover))
+    .sort((a, b) => b.turnover - a.turnover).slice(0, 8);
+  const container = $('#premList');
+  if (!options.length) {
+    container.innerHTML = '<div class="hint">NSE turnover values are unavailable in the returned option rows.</div>';
+    return;
+  }
+  const maximum = Math.max(...options.map(contract => contract.turnover));
+  container.innerHTML = options.map(contract => {
+    const width = maximum > 0 ? contract.turnover / maximum * 100 : 0;
+    const code = contract.optCode || (contract.isOpt ? 'OPT' : 'FUT');
+    const name = `${contract.symbol} ${Number.isFinite(contract.strike) ? fmtIN(contract.strike) : ''} ${code}`;
+    return `<div class="row" data-id="${escapeHtml(contract.id)}" style="cursor:pointer">
+      <span class="nm">${escapeHtml(name)}</span>
+      <span class="track"><span class="fill ${code}" style="width:${width}%"></span></span>
+      <span class="val">${fmtIN(contract.turnover, 2)}</span>
+    </div>`;
+  }).join('');
+  container.querySelectorAll('.row[data-id]').forEach(row => row.addEventListener('click', () => selectContract(row.dataset.id)));
 }
 
 function renderBoard() {
-  const ctx = state.last; if (!ctx) return;
-  const by = (act) => ctx.contracts
-    .filter(c => c.signal && c.signal.action === act && Math.abs(c.signal.score) > 8)
-    .sort((a, b) => (Math.abs(b.signal.score) + b.valueLakhs / 30000) - (Math.abs(a.signal.score) + a.valueLakhs / 30000))
-    .slice(0, 4);
-  const html = (list, fallback) => list.length
-    ? list.map(c => `<div class="bitem" data-id="${c.id}"><span class="nm">${c.symbol} ${c.strike ? fmtIN(c.strike) + ' ' + c.optCode : 'FUT'}</span><span class="cf">${c.signal.confidence}%</span></div>
-        <div class="why">${(c.signal.reasons && c.signal.reasons[0] || '').replace(/<[^>]+>/g, '').slice(0, 52)}</div>`).join('')
-    : `<div class="why">${fallback}</div>`;
-  $('#bBuy').innerHTML = html(by('BUY'), 'No long setups yet');
-  $('#bSell').innerHTML = html(by('SELL'), 'No short setups yet');
-  $('#bHold').innerHTML = html(ctx.contracts.filter(c => c.signal && c.signal.action === 'HOLD').sort((a, b) => b.valueLakhs - a.valueLakhs).slice(0, 3)
-    .map(c => `<div class="bitem" data-id="${c.id}"><span class="nm">${c.symbol} ${c.strike ? fmtIN(c.strike) + ' ' + c.optCode : 'FUT'}</span><span class="cf">${c.signal.confidence}%</span></div>`).join('') || '—');
-  document.querySelectorAll('.bitem').forEach(r => r.addEventListener('click', () => selectContract(r.dataset.id)));
+  const contracts = state.contracts;
+  const priceUp = contracts.filter(contract => contract.signal.group === 'build' || contract.signal.group === 'cover')
+    .sort((a, b) => (Number.isFinite(b.volume) ? b.volume : -Infinity) - (Number.isFinite(a.volume) ? a.volume : -Infinity)).slice(0, 4);
+  const priceDown = contracts.filter(contract => contract.signal.group === 'write' || contract.signal.group === 'unwind')
+    .sort((a, b) => (Number.isFinite(b.volume) ? b.volume : -Infinity) - (Number.isFinite(a.volume) ? a.volume : -Infinity)).slice(0, 4);
+  const noEdge = contracts.filter(contract => contract.signal.group === 'neutral' || contract.signal.group === 'unavailable').slice(0, 4);
+  const html = rows => rows.length ? rows.map(contract => {
+    const name = `${contract.symbol} ${Number.isFinite(contract.strike) ? `${fmtIN(contract.strike)} ${contract.optCode || (contract.isOpt ? 'OPT' : '')}` : contract.isOpt ? 'OPT' : 'FUT'}`;
+    return `<div class="bitem" data-id="${escapeHtml(contract.id)}"><span class="nm">${escapeHtml(name)}</span><span class="cf">${escapeHtml(contract.signal.label)}</span></div><div class="why">${escapeHtml(contract.signal.summary)}</div>`;
+  }).join('') : '<div class="why">No matching live source rows.</div>';
+  $('#bBuy').innerHTML = html(priceUp);
+  $('#bSell').innerHTML = html(priceDown);
+  $('#bHold').innerHTML = html(noEdge);
+  document.querySelectorAll('.bitem[data-id]').forEach(row => row.addEventListener('click', () => selectContract(row.dataset.id)));
 }
 
-function renderMeta() {
-  $('#asOf').textContent = 'as on ' + istFull();
-  $('#feedLabel').textContent = state.feedLabel;
-  $('#ftFeed').textContent = state.feedLabel;
-  $('#feedDot').className = 'dot ' + (state.remoteMode === 'live' ? '' : 'sim');
-  // market status IST
-  const now = new Date();
-  const t = new Intl.DateTimeFormat('en-GB', { timeZone: IST, hour: '2-digit', minute: '2-digit', hour12: false }).format(now);
-  const mins = Number(t.split(':')[0]) * 60 + Number(t.split(':')[1]);
-  let st = 'CLOSED', cls = 'paused';
-  if (mins >= 548 && mins < 555) { st = 'PRE-OPEN'; cls = 'sim'; }
-  else if (mins >= 555 && mins < 930) { st = 'OPEN'; cls = ''; }
-  else if (mins >= 540 && mins < 548) { st = 'PRE-OPEN'; cls = 'sim'; }
-  $('#mktStatus').textContent = st;
-  $('#mktDot').className = 'dot ' + cls;
-}
-
-/* -------- refresh loop -------- */
-async function probeFeed() {
-  for (const base of ['', 'http://127.0.0.1:8082']) {
-    try {
-      const r = await fetch(base + '/api/health', { cache: 'no-store' });
-      const j = await r.json();
-      if (j && j.mode === 'live') {
-        state.apiBase = base;
-        state.remoteMode = 'live';
-        state.feedLabel = (j.fixture || /fixture/i.test(String(j.source || '')))
-          ? 'FIXTURE · genuine NSE snapshot bundle (pipeline mode)'
-          : 'LIVE · nseindia.com most active contracts';
-        return 'live';
-      }
-    } catch (e) { /* try next base */ }
+function renderMainChart(contract) {
+  const canvas = $('#mainChart');
+  const ratio = window.devicePixelRatio || 1;
+  const width = canvas.clientWidth, height = canvas.clientHeight;
+  canvas.width = width * ratio; canvas.height = height * ratio;
+  const context = canvas.getContext('2d');
+  context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  context.clearRect(0, 0, width, height);
+  const points = (state.history.get(contract.id) || []).filter(point => Number.isFinite(point.ltp));
+  canvas._points = points;
+  if (!points.length) {
+    context.fillStyle = 'rgba(143,160,184,.8)'; context.textAlign = 'center'; context.font = '12px Inter,sans-serif';
+    context.fillText('No live price observation is available.', width / 2, height / 2);
+    return;
   }
-  state.remoteMode = 'sim';
-  state.apiBase = '';
-  state.feedLabel = `SIM · tick engine seeded from NSE ${SEED_ASOF}` + (location.protocol === 'file:' ? ' (static mode)' : '') + ' — run node bridge/nse-bridge.js for live data';
-  return 'sim';
+  const pad = { left: 12, right: 68, top: 18, bottom: 24 };
+  const chartWidth = Math.max(1, width - pad.left - pad.right);
+  const chartHeight = Math.max(1, height - pad.top - pad.bottom);
+  const values = points.map(point => point.ltp);
+  const min = Math.min(...values), max = Math.max(...values);
+  const range = max - min;
+  const visualPadding = range > 0 ? range * 0.1 : Math.max(Math.abs(max) * 0.001, 0.01);
+  const low = min - visualPadding, high = max + visualPadding;
+  const x = index => pad.left + (points.length > 1 ? index / (points.length - 1) : 0.5) * chartWidth;
+  const y = value => pad.top + chartHeight - (value - low) / (high - low) * chartHeight;
+  context.strokeStyle = 'rgba(148,163,184,.12)'; context.fillStyle = 'rgba(143,160,184,.7)';
+  context.font = '10px ui-monospace,monospace'; context.textAlign = 'left';
+  for (let index = 0; index <= 3; index++) {
+    const value = low + (high - low) * index / 3, yPos = y(value);
+    context.beginPath(); context.moveTo(pad.left, yPos); context.lineTo(pad.left + chartWidth, yPos); context.stroke();
+    context.fillText(fmtPx(value), pad.left + chartWidth + 6, yPos + 3);
+  }
+  const rising = points[points.length - 1].ltp >= points[0].ltp;
+  const color = rising ? '#34d399' : '#fb7185';
+  context.strokeStyle = color; context.lineWidth = 2; context.beginPath();
+  points.forEach((point, index) => index ? context.lineTo(x(index), y(point.ltp)) : context.moveTo(x(index), y(point.ltp)));
+  context.stroke();
+  const last = points[points.length - 1];
+  context.fillStyle = color; context.beginPath(); context.arc(x(points.length - 1), y(last.ltp), 3, 0, Math.PI * 2); context.fill();
+  context.fillStyle = 'rgba(143,160,184,.75)'; context.font = '10px Inter,sans-serif'; context.textAlign = 'left';
+  context.fillText(points.length > 1 ? `${points.length} received NSE snapshots` : 'One received NSE snapshot; line history unavailable', pad.left, height - 6);
+  canvas._chart = { x, y, chartWidth, pad, points };
 }
 
-async function getSnapshot() {
-  if (state.remoteMode === 'live') {
-    try {
-      const r = await fetch((state.apiBase || '') + '/api/snapshot', { cache: 'no-store' });
-      const j = await r.json();
-      if (j.meta && j.meta.mode === 'live' && j.contracts) {
-        // merge live rows into engine-shaped objects (history kept client-side)
-        mergeRemote(j.contracts);
-      }
-    } catch { /* keep last */ }
+function renderDetail() {
+  if (!state.contracts.length) return;
+  let contract = state.contracts.find(row => row.id === state.selectedId);
+  if (!contract) {
+    contract = state.contracts[0];
+    state.selectedId = contract.id;
   }
-  const ctx = Engine.snapshot();
-  for (const c of ctx.contracts) c.signal = computeSignal(c, ctx);
-  ctx.agg = aggregate(ctx);
-  state.last = ctx;
-  return ctx;
+  const changeClass = Number.isFinite(contract.chgPct) ? contract.chgPct > 0 ? 'up' : contract.chgPct < 0 ? 'down' : 'flat' : 'flat';
+  $('#selOC').style.display = contract.optCode ? '' : 'none';
+  if (contract.optCode) { $('#selOC').textContent = contract.optCode; $('#selOC').className = `oc ${contract.optCode}`; }
+  $('#selNm').textContent = `${contract.symbol} ${Number.isFinite(contract.strike) ? `${fmtIN(contract.strike)} ${contract.optCode || ''}` : 'FUT'} · ${contract.expiry || 'expiry unavailable'}`;
+  $('#selPx').textContent = `₹${fmtPx(contract.ltp)}`;
+  $('#selChg').textContent = Number.isFinite(contract.chgPct) ? signed(contract.chgPct, 2, '%') : 'change unavailable';
+  $('#selChg').className = `num ${changeClass}`;
+
+  const label = contract.signal.label;
+  $('#vAct').firstChild.nodeValue = label;
+  $('#vAct').className = `vact ${contract.signal.group}`;
+  $('#vScore').textContent = contract.signal.summary;
+  $('#vReasons').innerHTML = `<span class="rsn">Daily price change: ${escapeHtml(Number.isFinite(contract.chgPct) ? signed(contract.chgPct, 2, '%') : 'unavailable')}</span><span class="rsn">OI change: ${escapeHtml(Number.isFinite(contract.oiChg) ? signed(contract.oiChg, 0) : 'unavailable')}</span>`;
+  $('#vMom').textContent = Number.isFinite(contract.chgPct) ? signed(contract.chgPct, 2, '%') : 'Unavailable';
+  $('#vMom').className = `v num ${changeClass}`;
+  $('#vOi').textContent = Number.isFinite(contract.oiChg) ? signed(contract.oiChg, 0) : 'Unavailable';
+  $('#vFlow').textContent = fmtIN(contract.turnover, 2);
+  renderMainChart(contract);
 }
 
-function mergeRemote(rows) {
-  for (const r of rows) {
-    let c = Engine.contracts.find(x => x.symbol === r.symbol && x.expiry === r.expiry && (x.optCode || '') === (r.optType === 'Call' ? 'CE' : r.optType === 'Put' ? 'PE' : '') && (!r.strike || x.strike === r.strike));
-    if (!c) continue;
-    c.ltp = r.ltp; c.volume = r.volume; c.valueLakhs = r.valueLakhs; c.oi = r.oi; c.oiChg = r.oiChg;
-    c.chgPct = r.chgPct; c.chg = c.ltp - c.prevClose;
-    c.series.t.push(Date.now()); c.series.ltp.push(c.ltp); c.series.oi.push(c.oi); c.series.v.push(0); c.series.prem.push(0);
-    ['t', 'ltp', 'oi', 'v', 'prem'].forEach(k => { if (c.series[k].length > 160) c.series[k].shift(); });
+function drawTurnoverChart(totals) {
+  const canvas = $('#flowChart');
+  const ratio = window.devicePixelRatio || 1;
+  const width = canvas.clientWidth, height = canvas.clientHeight;
+  canvas.width = width * ratio; canvas.height = height * ratio;
+  const context = canvas.getContext('2d');
+  context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  context.clearRect(0, 0, width, height);
+  const ce = totals.ceTurnover.value, pe = totals.peTurnover.value;
+  if (!Number.isFinite(ce) || !Number.isFinite(pe)) {
+    context.fillStyle = 'rgba(143,160,184,.8)'; context.textAlign = 'center'; context.font = '12px Inter,sans-serif';
+    context.fillText('NSE-reported call/put turnover is incomplete.', width / 2, height / 2);
+    return;
   }
+  const max = Math.max(ce, pe);
+  if (max <= 0) {
+    context.fillStyle = 'rgba(143,160,184,.8)'; context.textAlign = 'center'; context.font = '12px Inter,sans-serif';
+    context.fillText('No positive turnover values were returned for these rows.', width / 2, height / 2);
+    return;
+  }
+  const padLeft = 82, padRight = 24, trackWidth = Math.max(1, width - padLeft - padRight);
+  const bars = [{ label: 'CE', value: ce, color: '#2dd4bf', y: height * 0.36 }, { label: 'PE', value: pe, color: '#fb7185', y: height * 0.68 }];
+  context.font = '11px Inter,sans-serif';
+  bars.forEach(bar => {
+    const barWidth = trackWidth * bar.value / max;
+    context.fillStyle = 'rgba(148,163,184,.1)'; context.fillRect(padLeft, bar.y - 13, trackWidth, 24);
+    context.fillStyle = bar.color; context.fillRect(padLeft, bar.y - 13, barWidth, 24);
+    context.fillStyle = 'rgba(232,238,248,.9)'; context.textAlign = 'right'; context.fillText(bar.label, padLeft - 12, bar.y + 4);
+    context.textAlign = 'left'; context.fillText(fmtIN(bar.value, 2), padLeft + trackWidth + 8, bar.y + 4);
+  });
+  context.fillStyle = 'rgba(143,160,184,.7)'; context.textAlign = 'left'; context.font = '10px Inter,sans-serif';
+  context.fillText(`Turnover source coverage — CE ${totals.ceTurnover.coverage}; PE ${totals.peTurnover.coverage}`, 12, height - 8);
+}
+
+function renderAll() {
+  renderMeta();
+  renderTable();
+  renderDetail();
+  renderKpis();
+  renderPremList();
+  renderBoard();
+}
+
+function clearLiveDisplay(error) {
+  state.snapshot = null;
+  state.contracts = [];
+  state.aggregate = null;
+  state.selectedId = null;
+  state.history.clear();
+  rowElements.clear();
+  document.body.classList.add('no-live');
+  $('#feedLabel').textContent = 'NSE DATA UNAVAILABLE';
+  $('#feedDot').className = 'dot offline';
+  $('#mktStatus').textContent = 'UNAVAILABLE';
+  $('#mktDot').className = 'dot paused';
+  $('#asOf').textContent = 'NSE source timestamp unavailable';
+  $('#tbody').innerHTML = '';
+  $('#emptyMsg').style.display = 'none';
+  $('#feedUnavailableDetail').textContent = `${error}. Start the local dashboard server on a network that can reach NSE. No stored or substitute market values are used.`;
+  $('#ftFeed').textContent = `No live NSE response · ${error}`;
 }
 
 async function refresh() {
-  await getSnapshot();
-  renderTable(); renderDetail(); renderKpis(); renderPremList(); renderBoard(); drawFlowChart(); renderMeta();
-  state.nextAt = Date.now() + state.interval;
+  if (state.refreshing) return;
+  state.refreshing = true;
+  try {
+    const response = await fetch('/api/snapshot', { cache: 'no-store' });
+    const payload = await response.json().catch(() => null);
+    if (!response.ok) throw new Error(payload && payload.error ? payload.error : `Live NSE API returned HTTP ${response.status}`);
+    if (!payload || payload.meta?.mode !== 'live' || payload.meta?.source !== 'nseindia.com' ||
+        !Array.isArray(payload.contracts) || payload.contracts.length === 0) {
+      throw new Error(payload?.error || 'The NSE response is incomplete or contains no current contracts.');
+    }
+    const contracts = normalizeContracts(payload);
+    if (!contracts.length) throw new Error('No usable live NSE contract rows were returned.');
+
+    state.snapshot = payload;
+    state.contracts = contracts;
+    state.aggregate = aggregate(contracts);
+    const receivedAt = Date.now();
+    for (const contract of contracts) {
+      if (!Number.isFinite(contract.ltp)) continue;
+      const series = state.history.get(contract.id) || [];
+      series.push({ t: receivedAt, ltp: contract.ltp });
+      if (series.length > 160) series.shift();
+      state.history.set(contract.id, series);
+    }
+    if (!contracts.some(contract => contract.id === state.selectedId)) state.selectedId = contracts[0].id;
+    document.body.classList.remove('no-live');
+    renderAll();
+  } catch (error) {
+    clearLiveDisplay(String(error && error.message || error));
+  } finally {
+    state.nextAt = Date.now() + state.interval;
+    state.refreshing = false;
+  }
 }
 
-function uiLoop() {
-  const now = Date.now();
-  // clock every frame is cheap enough at 250ms below
-  if (state.auto && now >= state.nextAt) refresh();
-  // countdown ring
-  const C = 2 * Math.PI * 10;
-  const frac = state.auto ? clamp(1 - (state.nextAt - now) / state.interval, 0, 1) : 0;
-  $('#refRingFg').setAttribute('stroke-dasharray', C.toFixed(1));
-  $('#refRingFg').setAttribute('stroke-dashoffset', (C * frac).toFixed(1));
-  requestAnimationFrame(uiLoop);
-}
-
-/* -------- events -------- */
-document.querySelectorAll('.chip').forEach(ch => ch.addEventListener('click', () => {
-  document.querySelectorAll('.chip').forEach(x => x.classList.remove('on'));
-  ch.classList.add('on');
-  state.view = ch.dataset.view;
-  if (state.view === 'BYOI') { state.sort = 'oi'; state.dir = -1; }
-  renderTable();
-}));
-document.querySelectorAll('th.sortable').forEach(th => th.addEventListener('click', () => {
-  const k = th.dataset.sort;
-  if (state.sort === k) state.dir = -state.dir; else { state.sort = k; state.dir = -1; }
-  document.querySelectorAll('th.sortable .arr').forEach(a => a.remove());
-  th.insertAdjacentHTML('beforeend', `<span class="arr">${state.dir < 0 ? '▼' : '▲'}</span>`);
-  renderTable();
-}));
-$('#q').addEventListener('input', (e) => { state.q = e.target.value.trim(); renderTable(); });
-$('#btnAuto').addEventListener('click', toggleAuto);
-$('#btnNow').addEventListener('click', refresh);
-$('#selInt').addEventListener('change', (e) => { state.interval = Number(e.target.value); state.nextAt = Date.now() + state.interval; });
-document.addEventListener('keydown', (e) => {
-  if (e.target.tagName === 'INPUT') return;
-  if (e.code === 'Space') { e.preventDefault(); toggleAuto(); }
-  if (e.key === 'r' || e.key === 'R') refresh();
-});
 function toggleAuto() {
   state.auto = !state.auto;
   $('#btnAuto').classList.toggle('on', state.auto);
@@ -1287,18 +918,58 @@ function toggleAuto() {
   state.nextAt = Date.now() + state.interval;
 }
 
-/* -------- boot -------- */
+document.querySelectorAll('.chip').forEach(button => button.addEventListener('click', () => {
+  document.querySelectorAll('.chip').forEach(item => item.classList.remove('on'));
+  button.classList.add('on');
+  state.view = button.dataset.view;
+  if (state.view === 'BYOI') { state.sort = 'oi'; state.direction = -1; }
+  renderTable();
+}));
+document.querySelectorAll('th.sortable').forEach(header => header.addEventListener('click', () => {
+  const key = header.dataset.sort;
+  if (state.sort === key) state.direction *= -1;
+  else { state.sort = key; state.direction = -1; }
+  document.querySelectorAll('th.sortable .arr').forEach(arrow => arrow.remove());
+  header.insertAdjacentHTML('beforeend', `<span class="arr">${state.direction < 0 ? '▼' : '▲'}</span>`);
+  renderTable();
+}));
+$('#q').addEventListener('input', event => { state.query = event.target.value.trim(); renderTable(); });
+$('#btnAuto').addEventListener('click', toggleAuto);
+$('#btnNow').addEventListener('click', refresh);
+$('#selInt').addEventListener('change', event => {
+  state.interval = Number(event.target.value);
+  state.nextAt = Date.now() + state.interval;
+});
+document.addEventListener('keydown', event => {
+  if (event.target.tagName === 'INPUT' || event.target.tagName === 'SELECT') return;
+  if (event.code === 'Space') { event.preventDefault(); toggleAuto(); }
+  if (event.key === 'r' || event.key === 'R') refresh();
+});
+$('#mainChart').addEventListener('mousemove', event => {
+  const canvas = event.currentTarget, chart = canvas._chart;
+  if (!chart || chart.points.length < 2) return;
+  const bounds = canvas.getBoundingClientRect();
+  const localX = event.clientX - bounds.left;
+  const index = clamp(Math.round((localX - chart.pad.left) / chart.chartWidth * (chart.points.length - 1)), 0, chart.points.length - 1);
+  const point = chart.points[index], tooltip = $('#ctip');
+  tooltip.style.display = 'block';
+  tooltip.style.left = `${clamp(chart.x(index) + 10, 8, bounds.width - 170)}px`;
+  tooltip.style.top = `${Math.max(6, chart.y(point.ltp) - 44)}px`;
+  tooltip.textContent = `${asIST(point.t, { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false })} IST · received snapshot · LTP ₹${fmtPx(point.ltp)}`;
+});
+$('#mainChart').addEventListener('mouseleave', () => { $('#ctip').style.display = 'none'; });
+
 (async function boot() {
-  await probeFeed();
-  if (state.remoteMode !== 'live') Engine.warmup(150, 3000);
-  // default select most active NIFTY option
-  const star = Engine.contracts.find(c => c.symbol === 'NIFTY' && c.opt === 'PE' && c.strike === 23100) || Engine.contracts[0];
-  state.selectedId = star.id;
+  $('#clock').innerHTML = `${istClock()}<small>IST</small>`;
   await refresh();
-  setInterval(() => { $('#clock').innerHTML = istTime() + '<small>IST</small>'; }, 250);
-  setInterval(() => { if (state.remoteMode !== 'live') Engine.tick(); }, 1000);          // continuous tape (sim mode)
-  setInterval(probeFeed, 60000);                        // re-probe live availability
-  requestAnimationFrame(uiLoop);
+  setInterval(() => {
+    $('#clock').innerHTML = `${istClock()}<small>IST</small>`;
+    if (state.auto && !state.refreshing && Date.now() >= state.nextAt) refresh();
+    const circumference = 2 * Math.PI * 10;
+    const fraction = state.auto ? clamp(1 - (state.nextAt - Date.now()) / state.interval, 0, 1) : 0;
+    $('#refRingFg').setAttribute('stroke-dasharray', circumference.toFixed(1));
+    $('#refRingFg').setAttribute('stroke-dashoffset', (circumference * fraction).toFixed(1));
+  }, 250);
 })();
 </script>
 </body>
