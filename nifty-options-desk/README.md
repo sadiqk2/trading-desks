@@ -23,7 +23,7 @@ Set `PORT` to change the port. The server binds to `0.0.0.0` and serves both the
 
 The app requests `/api/chain` from its own server and validates the response metadata before rendering. `/api/health` is available as a diagnostic endpoint. The server uses the shared adapter at `../bridge/nse-live.js` to request current NSE endpoints. It does not use a fixture, saved snapshot, mock provider, generated price series, or fallback feed. If NSE is unreachable or required fields are missing, the desk clears its displayed market snapshot and reports the feed unavailable.
 
-GitHub Pages is static hosting and does not run this Node API. Open the app through its local Node server on a network that can reach NSE to receive market data. NSE/CDN access may be blocked on some networks.
+GitHub Pages is static hosting, so it cannot read NSE directly (NSE sends no CORS headers). The page therefore looks for a live source in order: its own server (same origin) → a relay passed as `?relay=<origin>` or connected once with the on-page **“Connect a live source”** box → a dashboard server running on this machine (`http://localhost:8081`). Every candidate runs the same live-only adapter, and a snapshot is accepted only when its metadata is `mode: "live"` from `source: "nseindia.com"`. See the repository README for the one-click relay deployment. When nothing answers, the desk lists the attempted sources and their errors.
 
 ## Data and calculations
 
@@ -40,7 +40,7 @@ node bridge/nse-bridge.js
 # /api/health, /api/chain, /api/snapshot on port 8082
 ```
 
-The dashboard does not silently switch to this bridge. It uses its same-origin server endpoint and shows an unavailable state on failure.
+The dashboard uses this bridge only when it is explicitly configured (bridge running on the viewer's machine, or a relay origin saved in the browser). It never accepts unrelated JSON, fixtures, or saved snapshots, and shows an unavailable state on failure.
 
 ## Risk notice
 

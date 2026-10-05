@@ -42,7 +42,7 @@
 <body>
   <header>
     <h1>TRADING <span>DESKS</span></h1>
-    <p>NSE market dashboards · live data requires the local Node server</p>
+    <p>NSE market dashboards · live data via a local Node server or a one-click relay</p>
   </header>
   <div class="grid">
     <a class="card" href="nifty-options-desk/">
@@ -59,10 +59,19 @@
       fields, plus descriptive price/OI observations. No substitute data is shown on feed failure.</p>
       <span class="go">open pulse →</span>
     </a>
+    <a class="card" href="https://deploy.workers.cloudflare.com/?url=https://github.com/sadiqk2/trading-desks" target="_blank" rel="noopener">
+      <span class="tag t2">NO LOCAL SETUP</span>
+      <h2>Live relay (GitHub Pages)</h2>
+      <p class="d">NSE sends no CORS headers, so a static page cannot read the exchange directly. Deploy the free
+      Cloudflare Worker relay once, then open the worker's own page — it links to both dashboards with the
+      relay already attached. Each dashboard also has a “Connect a live source” box that remembers the relay.</p>
+      <span class="go">deploy relay →</span>
+    </a>
   </div>
   <footer>
     Educational analytics · not investment advice · derivatives carry substantial risk of loss<br/>
-    Data: live NSE responses via the local Node servers · GitHub Pages cannot serve the live API
+    Data: live NSE responses only — same-origin server, saved relay (<code>?relay=</code>), or a local server ·
+    no fixtures, saved snapshots, or generated values
   </footer>
 </body>
 </html>

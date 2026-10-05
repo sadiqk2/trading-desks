@@ -23,7 +23,7 @@ Set `PORT` to choose a different port. The server binds to `0.0.0.0` and serves 
 
 The server uses `../bridge/nse-live.js` to fetch NSE responses. It does not use bundled rows, fixtures, local snapshots, mock feeds, generated ticks, or a simulated mode. If the request fails or the response contains no usable contracts, the UI clears the market display and reports that live data is unavailable. Incomplete rows are counted in metadata; optional missing fields display as unavailable rather than zero.
 
-GitHub Pages is static hosting and cannot run the Node API. To see data, open the dashboard through this server on a network that can reach NSE. NSE/CDN access may be blocked on some networks.
+GitHub Pages is static hosting, so it cannot read NSE directly (NSE sends no CORS headers). The page therefore looks for a live source in order: its own server (same origin) → a relay passed as `?relay=<origin>` or connected once with the on-page **“Connect a live source”** box → a dashboard server running on this machine (`http://localhost:8080`). Every candidate runs the same live-only adapter, and a response is accepted only when its metadata is `mode: "live"` from `source: "nseindia.com"`. See the repository README for the one-click relay deployment. When nothing answers, the page lists the attempted sources and their errors.
 
 ## What the dashboard computes
 
@@ -41,7 +41,7 @@ node bridge/nse-bridge.js
 # /api/health, /api/chain, /api/snapshot on port 8082
 ```
 
-NSE Pulse does not silently switch to the bridge or another provider; its same-origin server is the only source. Errors are surfaced instead of replaced with local data.
+NSE Pulse only uses a bridge/relay that answered a health check or served a verified live payload; it never accepts unrelated JSON, fixtures, or saved snapshots. Errors are surfaced instead of replaced with local data, and the footer shows which source answered.
 
 ## Risk notice
 
