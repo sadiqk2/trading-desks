@@ -277,7 +277,8 @@
 
 <div class="card feed-unavailable" id="feedUnavailable" role="status" aria-live="polite">
   <b>Live NSE data is unavailable.</b> No local sample, cached response after an upstream error, or generated market values are displayed.
-  <div class="hint" id="feedUnavailableDetail">Run <code>node nse-pulse/server.js</code> on a connection that can reach NSE. Static hosting has no live API.</div>
+  <div class="hint" id="feedUnavailableDetail">Run <code>node nse-pulse/server.js</code> on a connection that can reach NSE, or connect a relay below.</div>
+  <div id="relayPanel"></div>
 </div>
 
 <main>
@@ -440,6 +441,7 @@
   <span><b>History:</b> charts contain only successful NSE responses received during this browser session; no synthetic ticks or assumed outcome history are generated.</span>
 </footer>
 
+<script src="../bridge/nse-relay-client.js"></script>
 <script>
 /* =====================================================================
    NSE PULSE — live-only NSE snapshot dashboard
@@ -568,7 +570,17 @@ const state = {
   view: 'ALL', sort: 'volume', direction: -1, query: '', selectedId: null,
   auto: true, interval: 5000, nextAt: Date.now(), refreshing: false,
   snapshot: null, contracts: [], aggregate: null, history: new Map(),
+  sourceLabel: null,
 };
+
+/* Live data source resolution (same-origin server → saved relay → local server).
+   The relay runs the same live-only adapter as this app's Node server. */
+const PORTS = [8080, 8081];
+const resolveLive = (path) => window.NseRelay
+  ? NseRelay.resolve(path, { ports: PORTS })
+  : fetch(path, { cache: 'no-store' })
+    .then(async response => ({ ok: response.ok, status: response.status, payload: await response.json().catch(() => null), label: 'same-origin server', tried: [] }))
+    .catch(error => ({ ok: false, error: String(error && error.message || error), tried: [] }));
 const rowElements = new Map();
 
 function filteredContracts() {
@@ -649,7 +661,7 @@ function renderMeta() {
   $('#feedDot').className = 'dot';
   const omittedRows = Number.isFinite(meta.omittedIncompleteRows) ? meta.omittedIncompleteRows : 0;
   const sourceRows = Number.isFinite(meta.sourceRows) ? meta.sourceRows : null;
-  $('#ftFeed').textContent = `NSE live response${sourceRows !== null ? ` · ${state.contracts.length}/${sourceRows} usable most-active rows` : ''} · ${sourceTime}${omittedRows > 0 ? ` · ${omittedRows} incomplete source rows omitted` : ''}`;
+  $('#ftFeed').textContent = `NSE live response${sourceRows !== null ? ` · ${state.contracts.length}/${sourceRows} usable most-active rows` : ''} · ${sourceTime}${omittedRows > 0 ? ` · ${omittedRows} incomplete source rows omitted` : ''} · via ${state.sourceLabel || 'this site\'s server'}`;
   const marketStatus = String(meta.marketStatus || 'SOURCE STATUS UNAVAILABLE').toUpperCase();
   $('#mktStatus').textContent = marketStatus;
   $('#mktDot').className = `dot ${marketStatus === 'OPEN' ? '' : 'paused'}`;
@@ -856,11 +868,12 @@ function renderAll() {
   renderBoard();
 }
 
-function clearLiveDisplay(error) {
+function clearLiveDisplay(error, tried) {
   state.snapshot = null;
   state.contracts = [];
   state.aggregate = null;
   state.selectedId = null;
+  state.sourceLabel = null;
   state.history.clear();
   rowElements.clear();
   document.body.classList.add('no-live');
@@ -871,16 +884,30 @@ function clearLiveDisplay(error) {
   $('#asOf').textContent = 'NSE source timestamp unavailable';
   $('#tbody').innerHTML = '';
   $('#emptyMsg').style.display = 'none';
-  $('#feedUnavailableDetail').textContent = `${error}. Start the local dashboard server on a network that can reach NSE. No stored or substitute market values are used.`;
+  $('#feedUnavailableDetail').textContent = `${error}. Live values are only rendered from a verified NSE response; nothing local, saved, or generated is substituted.`;
   $('#ftFeed').textContent = `No live NSE response · ${error}`;
+  if (window.NseRelay) {
+    NseRelay.mountPanel($('#relayPanel'), {
+      ports: PORTS,
+      tried: tried,
+      headline: tried && tried.length ? 'Attempted live sources' : 'Connect a live source',
+      onConnected: () => refresh(),
+    });
+  }
 }
 
 async function refresh() {
   if (state.refreshing) return;
   state.refreshing = true;
   try {
-    const response = await fetch('/api/snapshot', { cache: 'no-store' });
-    const payload = await response.json().catch(() => null);
+    const resolved = await resolveLive('/api/snapshot');
+    if (!resolved.ok) {
+      const failure = new Error(resolved.error || 'No live NSE source answered.');
+      failure.tried = resolved.tried;
+      throw failure;
+    }
+    const response = { ok: resolved.status < 400, status: resolved.status };
+    const payload = resolved.payload;
     if (!response.ok) throw new Error(payload && payload.error ? payload.error : `Live NSE API returned HTTP ${response.status}`);
     if (!payload || payload.meta?.mode !== 'live' || payload.meta?.source !== 'nseindia.com' ||
         !Array.isArray(payload.contracts) || payload.contracts.length === 0) {
@@ -889,6 +916,7 @@ async function refresh() {
     const contracts = normalizeContracts(payload);
     if (!contracts.length) throw new Error('No usable live NSE contract rows were returned.');
 
+    state.sourceLabel = resolved.label;
     state.snapshot = payload;
     state.contracts = contracts;
     state.aggregate = aggregate(contracts);
@@ -904,7 +932,7 @@ async function refresh() {
     document.body.classList.remove('no-live');
     renderAll();
   } catch (error) {
-    clearLiveDisplay(String(error && error.message || error));
+    clearLiveDisplay(String(error && error.message || error), error && error.tried);
   } finally {
     state.nextAt = Date.now() + state.interval;
     state.refreshing = false;

@@ -297,9 +297,10 @@
 <main>
 
   <section class="card feed-unavailable" id="feedUnavailable" role="status" aria-live="polite">
-    <b>Live NSE data is unavailable.</b> Start this desk's Node server on a network that can reach NSE.
-    No embedded sample prices, saved snapshots, or generated market values are used.
-    <div class="hint" id="feedUnavailableDetail">Start <code>node nifty-options-desk/server.js</code> on a connection that can reach NSE. Static hosting has no live API.</div>
+    <b>Live NSE data is unavailable.</b> Start this desk's Node server on a network that can reach NSE,
+    or connect a relay below. No embedded sample prices, saved snapshots, or generated market values are used.
+    <div class="hint" id="feedUnavailableDetail">Start <code>node nifty-options-desk/server.js</code> on a connection that can reach NSE, or connect a relay below.</div>
+    <div id="relayPanel"></div>
   </section>
 
   <!-- ROW A : structure + levels -->
@@ -524,6 +525,7 @@
   <span><b>Risk:</b> derivatives can lose more than capital at risk in a position. Nothing here is investment advice or a guarantee of outcome.</span>
 </footer>
 
+<script src="../bridge/nse-relay-client.js"></script>
 <script>
 /* ============================================================================
    LAYER 1 — DATA
@@ -557,6 +559,12 @@ const fmtOptional = (n, digits = 2) => Number.isFinite(n) ? n.toFixed(digits) : 
 const RemoteNseProvider = (() => {
   let initialized = false;
   let status = 'CONNECTING TO LIVE NSE';
+  let lastTried = [];
+  let sourceLabel = null;
+  // Live source resolution: same-origin server → saved relay (?relay= / remembered)
+  // → a dashboard server running on this machine. Every candidate runs the same
+  // live-only NSE adapter; no fixtures or saved snapshots exist on any path.
+  const PORTS = [8081, 8080];
 
   async function init() {
     initialized = true;
@@ -564,17 +572,34 @@ const RemoteNseProvider = (() => {
     return true;
   }
 
+  async function resolveLive(path) {
+    // Same-origin first with a saved relay / local-server fallback. If the
+    // browser client was not copied along with this page, degrade to the plain
+    // same-origin request instead of failing outright.
+    if (window.NseRelay) return NseRelay.resolve(path, { ports: PORTS });
+    try {
+      const response = await fetch(path, { cache: 'no-store' });
+      return { ok: response.ok, status: response.status, payload: await response.json().catch(() => null), label: 'same-origin server', tried: [] };
+    } catch (error) {
+      return { ok: false, error: String(error && error.message || error), tried: [] };
+    }
+  }
+
   async function getSnapshot() {
     if (!initialized) await init();
     try {
-      const response = await fetch('/api/chain', { cache: 'no-store' });
-      const snapshot = await response.json().catch(() => null);
+      const resolved = await resolveLive('/api/chain');
+      lastTried = resolved.tried || [];
+      if (!resolved.ok) throw new Error(resolved.error || 'No live NSE source answered.');
+      const response = { ok: resolved.status < 400, status: resolved.status };
+      const snapshot = resolved.payload;
       if (!response.ok) throw new Error(snapshot?.error || `Live NSE request failed (${response.status})`);
       if (snapshot?.meta?.mode !== 'live' || snapshot?.meta?.source !== 'nseindia.com' ||
           !Number.isFinite(snapshot?.spot?.ltp) || !Array.isArray(snapshot.chain) || snapshot.chain.length === 0) {
         throw new Error(snapshot?.error || 'NSE returned an incomplete option-chain snapshot');
       }
-      status = 'LIVE · NSE INDIA';
+      sourceLabel = resolved.label;
+      status = `LIVE · NSE INDIA · ${resolved.label}`;
       return snapshot;
     } catch (error) {
       status = `LIVE NSE UNAVAILABLE — ${String(error && error.message || error)}`;
@@ -587,6 +612,8 @@ const RemoteNseProvider = (() => {
     init,
     getSnapshot,
     get status() { return status; },
+    get lastTried() { return lastTried; },
+    get sourceLabel() { return sourceLabel; },
   };
 })();
 
@@ -1206,7 +1233,7 @@ const App = (() => {
     $('#feedLbl').textContent = 'LIVE · NSE INDIA';
     $('#feedLbl').className = 'lbl-feed lbl-live';
     const omittedRows = Number.isFinite(meta.omittedIncompleteRows) ? meta.omittedIncompleteRows : 0;
-    $('#ftFeed').textContent = `Live NSE option-chain response · ${meta.source || 'NSE'} · ${meta.ist || 'exchange timestamp unavailable'}${omittedRows ? ` · ${omittedRows} incomplete expiry rows omitted` : ''}`;
+    $('#ftFeed').textContent = `Live NSE option-chain response · ${meta.source || 'NSE'} · ${meta.ist || 'exchange timestamp unavailable'}${omittedRows ? ` · ${omittedRows} incomplete expiry rows omitted` : ''} · via ${state.provider.sourceLabel || 'this site\'s server'}`;
   }
 
   /* ---------- (2) structure panel ---------- */
@@ -1557,7 +1584,7 @@ const App = (() => {
   }
 
   /* ---------- refresh ---------- */
-  function showUnavailable(detail) {
+  function showUnavailable(detail, tried) {
     state.snap = null;
     state.sig = null;
     state.plan = null;
@@ -1566,7 +1593,15 @@ const App = (() => {
     Signals.reset();
     document.body.classList.add('no-live');
     const message = detail || 'No live NSE response is available.';
-    $('#feedUnavailableDetail').textContent = `${message}. Start the dashboard server on a network that can reach NSE; no local or saved market data is substituted.`;
+    $('#feedUnavailableDetail').textContent = `${message}. Live values are only rendered from a verified NSE response; nothing local or saved is substituted.`;
+    if (window.NseRelay) {
+      NseRelay.mountPanel($('#relayPanel'), {
+        ports: [8081, 8080],
+        tried: tried,
+        headline: tried && tried.length ? 'Attempted live sources' : 'Connect a live source',
+        onConnected: () => refresh(),
+      });
+    }
     $('#hSpot').textContent = '—';
     $('#hChg').textContent = '—';
     $('#hExpiry').textContent = '—';
@@ -1585,7 +1620,7 @@ const App = (() => {
     try {
       const snapshot = await state.provider.getSnapshot();
       if (!snapshot) {
-        showUnavailable(state.provider.status);
+        showUnavailable(state.provider.status, state.provider.lastTried);
         return;
       }
       state.snap = Analytics.decorate(snapshot);
