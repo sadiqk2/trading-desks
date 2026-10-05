@@ -102,6 +102,11 @@
   function classifyError(error) {
     const message = String((error && error.message) || error || 'unknown error');
     const status = error && (error.status || error.code);
+    // Callers re-inspect errors from lower layers; keep the message from being
+    // wrapped twice (e.g. "network error reaching nseindia.com (network error …)").
+    if (/^(network error reaching nseindia\.com|NSE did not respond|NSE returned an HTML page|NSE rejected the request|NSE HTTP \d)/.test(message)) {
+      return { code: (error && error.code) || 'ERROR', message };
+    }
     if (message === 'NSE_TIMEOUT' || (error && error.name === 'AbortError') || /aborted|timed? ?out/i.test(message)) {
       return { code: 'TIMEOUT', message: `NSE did not respond within ${REQUEST_TIMEOUT_MS / 1000}s` };
     }

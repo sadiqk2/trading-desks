@@ -108,6 +108,7 @@ console.log('\n2) Failure modes report unavailable (no fallback values)');
   try {
     const health = await live.health();
     ok('connection refused classified as NETWORK', health.mode === 'down' && health.code === 'NETWORK', health);
+    ok('error message is not double-wrapped', (health.error.match(/network error reaching nseindia\.com/g) || []).length === 1, health.error);
   } finally { globalThis.fetch = realFetch; }
 }
 
