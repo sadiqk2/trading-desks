@@ -1,0 +1,72 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-option_intelligence}
+      POSTGRES_USER: ${POSTGRES_USER:-kite}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-kite_dev_password}
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-kite} -d ${POSTGRES_DB:-option_intelligence}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  backend:
+    build:
+      context: ./backend
+    restart: unless-stopped
+    environment:
+      KITE_API_KEY: ${KITE_API_KEY:-}
+      KITE_API_SECRET: ${KITE_API_SECRET:-}
+      KITE_ACCESS_TOKEN: ${KITE_ACCESS_TOKEN:-}
+      KITE_REDIRECT_URL: ${KITE_REDIRECT_URL:-http://localhost:8000/api/auth/callback}
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-kite}:${POSTGRES_PASSWORD:-kite_dev_password}@postgres:5432/${POSTGRES_DB:-option_intelligence}
+      REDIS_URL: redis://redis:6379/0
+      FRONTEND_URL: ${FRONTEND_URL:-http://localhost:8080}
+      RISK_FREE_RATE: ${RISK_FREE_RATE:-0.06}
+      OI_WALL_PERCENTILE: ${OI_WALL_PERCENTILE:-90}
+      STALE_AFTER_SECONDS: ${STALE_AFTER_SECONDS:-15}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    command: ["sh", "-c", "alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port 8000 --no-access-log"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "127.0.0.1:${API_PORT:-8000}:8000"
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/api/health', timeout=2)"]
+      interval: 15s
+      timeout: 3s
+      retries: 8
+      start_period: 20s
+
+  frontend:
+    build:
+      context: ./frontend
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8080}:80"
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres-data:
+  redis-data:
