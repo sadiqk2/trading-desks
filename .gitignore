@@ -1,7 +1,24 @@
-node_modules/
+# Environment secrets and local runtime files
+.env
+.env.*
+!.env.example
 *.log
 .DS_Store
-.env
+
+# Python
 .venv/
 __pycache__/
-test/.worker-for-e2e.mjs
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+
+# Node / frontend build
+node_modules/
+frontend/dist/
+
+# Local database, editor and coverage artifacts
+*.sqlite3
+.coverage
+htmlcov/
+.vscode/
+.idea/
