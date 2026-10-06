@@ -45,73 +45,153 @@ No valid credentials are bundled. Without authentication the UI intentionally st
 
 ## Environment variables
 
-See [`.env.example`](.env.example).
-
-| Variable | Purpose |
-|---|---|
-| `KITE_API_KEY` | Server-side Kite API key |
-| `KITE_API_SECRET` | Server-side Kite API secret; never returned or logged |
-| `KITE_ACCESS_TOKEN` | Optional server-side daily token |
-| `KITE_REDIRECT_URL` | Documented callback URL; register the same URL in the Kite app |
-| `DATABASE_URL` | PostgreSQL URL for local backend runs |
-| `REDIS_URL` | Redis URL for local backend runs |
-| `RISK_FREE_RATE` | Configurable annual continuously-compounded rate for Black–Scholes (default `0.06`) |
-| `OI_WALL_PERCENTILE` | OI wall percentile from 50 to 99 (default `90`) |
-| `STALE_AFTER_SECONDS` | Tick staleness threshold (default `15`) |
-| `POSTGRES_*` | Local Compose database bootstrap values; change defaults outside development |
-
-## Run with Docker Compose
-
-From the repository root:
+All configuration lives in a single `.env` file at the **repository root** (copy it from [`.env.example`](.env.example)). The backend loads it automatically via `python-dotenv` (from the repo root or the `backend/` folder), and Docker Compose reads it for variable substitution. The frontend needs **no** env variables — it only calls same-origin `/api` and `/ws` paths.
 
 ```bash
 cp .env.example .env
-# Edit .env and set KITE_API_KEY and KITE_API_SECRET.
+```
+
+### Kite Connect (backend only)
+
+| Variable | Required | Default | Purpose |
+|---|---|---|---|
+| `KITE_API_KEY` | **Yes** | – | Kite Connect API key from the developer console |
+| `KITE_API_SECRET` | **Yes** | – | Kite Connect API secret; never returned or logged |
+| `KITE_ACCESS_TOKEN` | No | empty | Pre-issued daily access token so the backend starts authenticated. Leave empty and use **Connect Kite** (OAuth) instead |
+| `KITE_REDIRECT_URL` | Yes | `http://localhost:8000/api/auth/callback` | Must exactly match the redirect URL registered in your Kite app |
+
+### Backend services
+
+| Variable | Required | Default | Purpose |
+|---|---|---|---|
+| `DATABASE_URL` | Yes (local run) | empty | SQLAlchemy URL, e.g. `postgresql+psycopg://kite:kite_dev_password@localhost:5432/option_intelligence`. Ignored by Compose (it builds its own) |
+| `REDIS_URL` | Yes (local run) | empty | e.g. `redis://localhost:6379/0`. Ignored by Compose |
+| `FRONTEND_URL` | Yes | `http://localhost:5173` | Where the browser is redirected after Kite login; also allowed in CORS. Use `http://localhost:5173` for Vite dev, `http://localhost:8080` for Compose (Compose defaults to 8080 if unset) |
+| `LOG_LEVEL` | No | `INFO` | `DEBUG`, `INFO`, `WARNING`, `ERROR` |
+
+### Analytics tuning
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `RISK_FREE_RATE` | `0.06` | Annual continuously-compounded rate used in Black–Scholes |
+| `OI_WALL_PERCENTILE` | `90` | OI wall percentile, clamped to 50–99 |
+| `STALE_AFTER_SECONDS` | `15` | A tick older than this is marked stale (min 1) |
+
+### Docker Compose only
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `POSTGRES_DB` | `option_intelligence` | Database created in the Postgres container |
+| `POSTGRES_USER` | `kite` | Postgres user |
+| `POSTGRES_PASSWORD` | `kite_dev_password` | Postgres password — change outside development |
+| `APP_PORT` | `8080` | Host port for the dashboard (Nginx) |
+| `API_PORT` | `8000` | Host port for the backend (bound to `127.0.0.1`) |
+
+> If you change `API_PORT`, also update `KITE_REDIRECT_URL` and the Kite app callback. If you change `APP_PORT`, set `FRONTEND_URL` to match.
+
+### Minimal `.env` examples
+
+**Local dev (backend + Vite):**
+
+```dotenv
+KITE_API_KEY=your_api_key
+KITE_API_SECRET=your_api_secret
+KITE_REDIRECT_URL=http://localhost:8000/api/auth/callback
+DATABASE_URL=postgresql+psycopg://kite:kite_dev_password@localhost:5432/option_intelligence
+REDIS_URL=redis://localhost:6379/0
+FRONTEND_URL=http://localhost:5173
+```
+
+**Docker Compose:**
+
+```dotenv
+KITE_API_KEY=your_api_key
+KITE_API_SECRET=your_api_secret
+KITE_REDIRECT_URL=http://localhost:8000/api/auth/callback
+FRONTEND_URL=http://localhost:8080
+```
+
+## Option A — Run everything with Docker Compose (easiest)
+
+```bash
+cp .env.example .env
+# Edit .env: set KITE_API_KEY, KITE_API_SECRET and FRONTEND_URL=http://localhost:8080
 docker compose up --build
 ```
 
-Open <http://localhost:8080>. Compose starts PostgreSQL and Redis, runs Alembic migrations, starts FastAPI, then serves the built React app through Nginx. Nginx proxies `/api` and `/ws` to FastAPI, so browser code only uses same-origin URLs. The backend API is also bound locally at <http://localhost:8000> for development diagnostics.
-
-Stop the stack:
+Open <http://localhost:8080>. Compose starts PostgreSQL and Redis, runs Alembic migrations, starts FastAPI, then serves the built React app through Nginx. Nginx proxies `/api` and `/ws` to FastAPI. The backend is also available at <http://localhost:8000> (docs at `/docs`).
 
 ```bash
-docker compose down
+docker compose logs -f backend   # follow backend logs
+docker compose down              # stop
+docker compose down -v           # stop AND delete DB/cache volumes (reset)
 ```
 
-Remove local database/cache data only when you explicitly intend to reset it:
+## Option B — Run locally for development (hot reload)
+
+Prerequisites: Python 3.12+, Node.js 20+, and PostgreSQL 16 + Redis 7 reachable on localhost.
+
+### 1. Configure `.env`
 
 ```bash
-docker compose down -v
+cp .env.example .env
+# Set KITE_API_KEY and KITE_API_SECRET. Keep FRONTEND_URL=http://localhost:5173.
 ```
 
-## Run services locally (without the frontend container)
+### 2. Start PostgreSQL and Redis
 
-Start PostgreSQL and Redis first, then configure their local URLs in `.env`.
+Simplest — reuse the Compose services, exposing their ports to your machine:
 
-### Backend
+```bash
+docker run -d --name oi-postgres -p 5432:5432 \
+  -e POSTGRES_DB=option_intelligence -e POSTGRES_USER=kite -e POSTGRES_PASSWORD=kite_dev_password \
+  postgres:16-alpine
+docker run -d --name oi-redis -p 6379:6379 redis:7-alpine
+```
+
+Or use natively installed services and create a matching database/user:
+
+```bash
+psql -U postgres -c "CREATE USER kite WITH PASSWORD 'kite_dev_password';"
+psql -U postgres -c "CREATE DATABASE option_intelligence OWNER kite;"
+```
+
+Make sure `DATABASE_URL` and `REDIS_URL` in `.env` point to these.
+
+### 3. Backend (terminal 1)
 
 ```bash
 cd backend
 python3.12 -m venv .venv
 source .venv/bin/activate       # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-alembic upgrade head
+alembic upgrade head            # creates tables using DATABASE_URL
 uvicorn app.main:app --reload --host 0.0.0.0 --port 8000 --no-access-log
 ```
 
-FastAPI docs: <http://localhost:8000/docs>. Health/status: <http://localhost:8000/api/system/status>.
+Check: <http://localhost:8000/api/health>, <http://localhost:8000/api/system/status>, docs at <http://localhost:8000/docs>.
 
-### Frontend
-
-In a second terminal, from the repository root:
+### 4. Frontend (terminal 2)
 
 ```bash
 cd frontend
 npm install
-npm run dev -- --host 0.0.0.0
+npm run dev
 ```
 
-Open <http://localhost:5173>. Vite proxies relative `/api` and `/ws` requests to the backend; no browser-facing `localhost` service URL is embedded in the app.
+Open <http://localhost:5173>. Vite (port 5173, `strictPort`) proxies `/api` and `/ws` to `http://127.0.0.1:8000`, so the backend must run on port 8000.
+
+### 5. Connect Kite
+
+Click **Connect Kite** → log in on Zerodha → you are redirected to `KITE_REDIRECT_URL` (backend) → backend redirects back to `FRONTEND_URL`. The access token is held in backend memory, so after restarting the backend, reconnect (or set `KITE_ACCESS_TOKEN`). Tokens expire daily.
+
+### Local run checklist
+
+- [ ] `.env` is at the repo root (not in `backend/` or `frontend/`)
+- [ ] `KITE_REDIRECT_URL` matches the Kite developer console exactly
+- [ ] `FRONTEND_URL` matches where you open the UI (5173 dev / 8080 Compose)
+- [ ] Postgres and Redis are running and `alembic upgrade head` succeeded
+- [ ] Backend on port 8000, frontend on 5173
 
 ## WebSocket and data quality
 
